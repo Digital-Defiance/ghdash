@@ -5,15 +5,16 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
-**Done 2026-11-13, except the live GitHub test in 0.5.** Results are in SPEC §11, and the code is in `spike/`.
+**Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
 - [x] 0.1 Pick a template and a working approach → `templates/blog`. The spike code lives in `ghpages-port/spike/` and the template change is a patch (`spike/blog-static.patch`), so the template itself stays unmodified.
 - [x] 0.2 Static build → works. Live collections resolve at prerender, and `getStaticPaths()` is needed on dynamic routes.
 - [x] 0.3 `json-to-sqlite` → `spike/db-json.mjs`. The round trip is lossless and the site rebuilt from JSON is byte-identical. The seed format was rejected as lossy (SPEC D11).
 - [x] 0.4 Handlers in the browser → Option A (SPEC D12). The bundle is 258 KB gzipped, needs 5 shims, and runs on `@sqlite.org/sqlite-wasm` in Node and Chromium.
-- [~] 0.5 PAT commit through the Git Data API → `spike/github-commit.mjs`, with 3 tests passing against a fake API. **Still to do:** run it against a real throwaway repo with a fine-grained PAT (no GitHub access from the spike environment).
+- [x] 0.5 PAT commit through the Git Data API → `spike/github-commit.mjs`. 3 fake-API tests pass, and the live run against `Digital-Defiance/GHDash-example` passed every check (`spike/live-commit-test.mjs`).
 - [x] 0.6 Findings written up in SPEC §9/§10/§11. → Go/no-go for Phase 1 is Jessica's call.
 
 ## Phase 1: Static site from repo JSON · est. 1 week
+Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be enabled).
 - [ ] 1.1 Finalise the `content/` layout and JSON conventions (sorted keys, one file per entry).
 - [ ] 1.2 Turn `json-to-sqlite` into a CLI (inside the adapter package, SPEC §8).
 - [ ] 1.3 GitHub Action: install → json-to-sqlite → astro build → deploy-pages.
@@ -61,3 +62,4 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Log
 - 2026-11-13: Spec and TODO created after the feasibility review.
 - 2026-11-13: Phase 0 spike run. 0.2–0.4 pass, and 0.5 passes against a fake API with the live run pending. D11 and D12 added to SPEC.
+- 2026-11-13: Live commit test passed. Phase 0 complete. The spike is on branch `spike/ghpages-phase0`.

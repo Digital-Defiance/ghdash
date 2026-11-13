@@ -1,6 +1,6 @@
 # EmDash on GitHub Pages: Port Spec
 
-Status: **Phase 0 spike done: the core approach works. See §11. Live GitHub commit test still pending.**
+Status: **Phase 0 spike done. Every check passed, including the live GitHub commit. See §11. Ready for Phase 1.**
 Last updated: 2026-11-13
 Owner: Jessica
 Companion file: [TODO.md](./TODO.md), the checkable work list. Update both files as work proceeds.
@@ -193,6 +193,7 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 ## 10. Decision log
 - 2026-11-13: Feasibility assessed. D1–D10 agreed with Jessica. Public drafts are OK. A GitHub account is required for comments.
 - 2026-11-13: Phase 0 spike approved and run. D11 (table-shaped JSON, not seed) and D12 (Option A on sqlite-wasm) were added from the results.
+- 2026-11-13: The live PAT commit test passed against `Digital-Defiance/GHDash-example`, which is now the demo and test repo for later phases. Phase 0 is complete.
 
 ## 11. Phase 0 spike results (2026-11-13)
 The spike code is in `ghpages-port/spike/`, and `spike/README.md` has the reproduction steps. It was run on a clean clone of `main` at `c73c600`, using Node 22.23 and pnpm 11.9.
@@ -202,7 +203,7 @@ The spike code is in `ghpages-port/spike/`, and `spike/README.md` has the reprod
 | 0.2 | Does the blog prerender with `output: "static"`? | ✅ Yes. With `getStaticPaths()` on 4 routes, it produced 18 HTML pages plus RSS (20 MB including assets). Live collections work at build time. |
 | 0.3 | Is the JSON round trip lossless? | ✅ Yes. Export → import → export is identical after one normalising pass (the `options.revision` hash is recomputed by a trigger on first import). A site built from the reimported DB was byte-identical apart from the RSS build date. FTS search works after import. |
 | 0.4 | Do the core handlers run in a browser? | ✅ Yes. List, create, publish and update content, update settings, list terms and menus, and create a collection (which creates `ec_projects`) all work in Node on the same WASM build. List, create and publish, plus an FTS query, also work in headless Chromium. |
-| 0.5 | Can the browser make an atomic PAT commit? | 🟡 The code is written (`spike/github-commit.mjs`), and 3 tests pass against an in-memory fake API, covering text, binary and deletions in one commit, a stale head, and a mid-commit race. **Not yet run against real GitHub:** the spike environment had no GitHub credentials and its proxy blocked `api.github.com`. Needs a throwaway repo and a fine-grained PAT. |
+| 0.5 | Can the browser make an atomic PAT commit? | ✅ Yes. 3 tests pass against an in-memory fake API. Jessica also ran it live with a fine-grained PAT against `Digital-Defiance/GHDash-example` on 2026-11-13, using `spike/live-commit-test.mjs` on branch `spike/live-commit-test`: 2 JSON files and 1 PNG landed in one commit, a stale head was reported as a conflict, and a deletion commit worked. |
 
 Surprises:
 - **Seed format is lossy** for this purpose (D11).
