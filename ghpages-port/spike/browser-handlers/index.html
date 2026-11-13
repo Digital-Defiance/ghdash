@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8"><pre id="out"></pre>
+<script type="module">
+import init from "./node_modules/@sqlite.org/sqlite-wasm/index.mjs";
+import * as H from "./handlers.js";
+const log = (...a) => (document.getElementById("out").textContent += a.join(" ") + "\n");
+try {
+const sqlite = await init();
+const bytes = new Uint8Array(await (await fetch("fresh.db")).arrayBuffer()); bytes[18] = 1; bytes[19] = 1;
+const p = sqlite.wasm.allocFromTypedArray(bytes); const db = new sqlite.oo1.DB();
+sqlite.capi.sqlite3_deserialize(db.pointer, "main", p, bytes.length, bytes.length, sqlite.capi.SQLITE_DESERIALIZE_FREEONCLOSE | sqlite.capi.SQLITE_DESERIALIZE_RESIZEABLE);
+const c = await (await fetch("content-bundle.json")).json(); const ddl = c._ddl; delete c._ddl;
+db.exec("PRAGMA foreign_keys=OFF; BEGIN");
+for (const o of ddl.filter((o) => o.type === "table")) db.exec(o.sql);
+for (const o of ddl.filter((o) => o.type === "trigger")) db.exec(o.sql);
+for (const [t, rows] of Object.entries(c)) for (const r of rows) { const k = Object.keys(r);
+  db.exec({ sql: `insert or replace into "${t}" (${k.map((x) => `"${x}"`)}) values (${k.map(() => "?")})`, bind: k.map((x) => r[x]) }); }
+for (const o of ddl.filter((o) => o.type === "index")) db.exec(o.sql);
+db.exec("COMMIT");
+const adapter = { close() { db.close(); }, prepare(sql) { const s = db.prepare(sql); const reader = s.columnCount > 0; s.finalize(); return { reader,
+  all(ps) { const rows = []; db.exec({ sql, bind: ps.length ? ps : undefined, rowMode: "object", resultRows: rows }); return rows; },
+  run(ps) { db.exec({ sql, bind: ps.length ? ps : undefined }); return { changes: sqlite.capi.sqlite3_changes(db.pointer), lastInsertRowid: 0n }; },
+  *iterate(ps) { yield* this.all(ps); } }; } };
+const k = new H.Kysely({ dialect: new H.SqliteDialect({ database: adapter }) });
+const l = await H.content.handleContentList(k, "posts", { limit: 50 }); log("list", l.success, l.data?.items?.length);
+const cr = await H.content.handleContentCreate(k, "posts", { data: { title: "Made in Chromium", content: [] }, slug: "made-in-chromium", status: "draft" }); log("create", cr.success);
+const pb = await H.content.handleContentPublish(k, "posts", cr.data.item.id); log("publish", pb.success);
+log("fts", db.selectValue("select count(*) from _emdash_fts_posts where _emdash_fts_posts match 'chromium'"));
+log("DONE");
+} catch (e) { log("ERROR", e.stack || e); }
+</script>

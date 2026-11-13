@@ -1,0 +1,18 @@
+{
+  "name": "browser-handlers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": "true",
+  "dependencies": {
+    "@sqlite.org/sqlite-wasm": "^3.50.4-build1",
+    "path-browserify": "^1.0.1"
+  }
+}

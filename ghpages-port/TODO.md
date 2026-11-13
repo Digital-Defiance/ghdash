@@ -1,0 +1,63 @@
+# EmDash on GitHub Pages: TODO
+
+Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`→ note`), and update SPEC.md's status line and decision log when anything changes.
+
+Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
+
+## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
+**Done 2026-11-13, except the live GitHub test in 0.5.** Results are in SPEC §11, and the code is in `spike/`.
+- [x] 0.1 Pick a template and a working approach → `templates/blog`. The spike code lives in `ghpages-port/spike/` and the template change is a patch (`spike/blog-static.patch`), so the template itself stays unmodified.
+- [x] 0.2 Static build → works. Live collections resolve at prerender, and `getStaticPaths()` is needed on dynamic routes.
+- [x] 0.3 `json-to-sqlite` → `spike/db-json.mjs`. The round trip is lossless and the site rebuilt from JSON is byte-identical. The seed format was rejected as lossy (SPEC D11).
+- [x] 0.4 Handlers in the browser → Option A (SPEC D12). The bundle is 258 KB gzipped, needs 5 shims, and runs on `@sqlite.org/sqlite-wasm` in Node and Chromium.
+- [~] 0.5 PAT commit through the Git Data API → `spike/github-commit.mjs`, with 3 tests passing against a fake API. **Still to do:** run it against a real throwaway repo with a fine-grained PAT (no GitHub access from the spike environment).
+- [x] 0.6 Findings written up in SPEC §9/§10/§11. → Go/no-go for Phase 1 is Jessica's call.
+
+## Phase 1: Static site from repo JSON · est. 1 week
+- [ ] 1.1 Finalise the `content/` layout and JSON conventions (sorted keys, one file per entry).
+- [ ] 1.2 Turn `json-to-sqlite` into a CLI (inside the adapter package, SPEC §8).
+- [ ] 1.3 GitHub Action: install → json-to-sqlite → astro build → deploy-pages.
+- [ ] 1.4 Base-path support for project sites (`/<repo>/`).
+- [ ] 1.4a Template changes: path-based pagination instead of `?cursor=`, and `getStaticPaths()` on every dynamic route (start from `spike/blog-static.patch`).
+- [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
+- [ ] 1.5 Copy media and optimise images at build time.
+- [ ] 1.6 Sitemap, robots and static redirect stubs.
+
+## Phase 2: Browser admin with PAT editing · est. 2–3 weeks
+- [ ] 2.1 Admin static bundle served at `/admin/`.
+- [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
+- [ ] 2.3 Load repo JSON into in-browser SQLite on admin start, with a progress indicator (start from `spike/browser-handlers/`). Decide how the migrated empty DB is delivered (SPEC §9 Q6).
+- [ ] 2.4 Make the `apiFetch` transport pluggable and route it to the local router (SPEC §9 Q7: reuse the route files or call handlers directly).
+- [ ] 2.5 Local routes for content CRUD, drafts and publish for posts and pages.
+- [ ] 2.6 Save flow: changed rows → JSON files → atomic commit, plus conflict UI.
+- [ ] 2.7 Settings, schema (collections and fields), taxonomies, menus, widgets, bylines and SEO routes.
+- [ ] 2.8 "Live in ~1–3 min" notice, with optional Actions run polling.
+
+## Phase 3: Media, search, scheduling · est. 1–2 weeks
+- [ ] 3.1 Media upload commits to `media/`, with size warnings and limits.
+- [ ] 3.2 Media library backed by `media/_index.json`.
+- [ ] 3.3 Pagefind index in the build, plus search UI in templates.
+- [ ] 3.4 Cron Action for scheduled publishing.
+
+## Phase 4: Comments · est. 2–4 days
+- [ ] 4.1 giscus component for collections with `commentsEnabled`.
+- [ ] 4.2 (Optional) Issue-form link, plus an `issues: opened` Action that runs comment hooks, commits JSON and rebuilds.
+
+## Phase 5: Plugins · est. 2–4 weeks
+- [ ] 5.1 Load plugin admin UI in the browser admin (`color`, `field-kit`, `embeds`).
+- [ ] 5.2 Run before-hooks in the browser before the commit.
+- [ ] 5.3 Run after-hooks in the Action for changed entries, with secrets from Actions secrets.
+- [ ] 5.4 Plugin cron mapped to a scheduled Action.
+- [ ] 5.5 Split secret and non-secret plugin settings, and strip secrets on export.
+- [ ] 5.6 Document per plugin what doesn't work (public routes).
+- [ ] 5.7 (Later) Sandboxed plugin runner (Web Worker or Node), and installing marketplace plugins by committing their code.
+
+## Phase 6: Hardening and docs
+- [ ] 6.1 Admin CSP and PAT handling review.
+- [ ] 6.2 "Create a site from this template" repo and a setup guide (PAT creation, Pages settings, secrets).
+- [ ] 6.3 Tests: JSON round trip, commit/conflict flow, static build smoke test.
+- [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.
+
+## Log
+- 2026-11-13: Spec and TODO created after the feasibility review.
+- 2026-11-13: Phase 0 spike run. 0.2–0.4 pass, and 0.5 passes against a fake API with the live run pending. D11 and D12 added to SPEC.

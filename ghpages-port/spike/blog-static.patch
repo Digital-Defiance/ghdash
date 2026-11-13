@@ -1,0 +1,73 @@
+diff --git a/templates/blog/astro.config.mjs b/templates/blog/astro.config.mjs
+index 8d856bf..7301355 100644
+--- a/templates/blog/astro.config.mjs
++++ b/templates/blog/astro.config.mjs
+@@ -6,7 +6,7 @@ import { sqlite } from "emdash/db";
+ import { Features } from "lightningcss";
+ 
+ export default defineConfig({
+-	output: "server",
++	output: "static",
+ 	adapter: node({
+ 		mode: "standalone",
+ 	}),
+diff --git a/templates/blog/src/pages/category/[slug].astro b/templates/blog/src/pages/category/[slug].astro
+index 195e3f8..fea1c62 100644
+--- a/templates/blog/src/pages/category/[slug].astro
++++ b/templates/blog/src/pages/category/[slug].astro
+@@ -1,4 +1,10 @@
+ ---
++export async function getStaticPaths() {
++	const { getTaxonomyTerms } = await import("emdash");
++	const terms = await getTaxonomyTerms("category");
++	return terms.map((t) => ({ params: { slug: t.slug } }));
++}
++
+ import {
+ 	getTaxonomyTermsWithCacheHint,
+ 	getEmDashCollection,
+diff --git a/templates/blog/src/pages/pages/[slug].astro b/templates/blog/src/pages/pages/[slug].astro
+index e164911..8053b7b 100644
+--- a/templates/blog/src/pages/pages/[slug].astro
++++ b/templates/blog/src/pages/pages/[slug].astro
+@@ -1,4 +1,10 @@
+ ---
++export async function getStaticPaths() {
++	const { getEmDashCollection } = await import("emdash");
++	const { entries } = await getEmDashCollection("pages", { limit: 1000 });
++	return entries.map((e) => ({ params: { slug: e.id } }));
++}
++
+ import {
+ 	getEmDashEntry,
+ 	getSeoMeta,
+diff --git a/templates/blog/src/pages/posts/[slug].astro b/templates/blog/src/pages/posts/[slug].astro
+index c5a5b45..9ecd46b 100644
+--- a/templates/blog/src/pages/posts/[slug].astro
++++ b/templates/blog/src/pages/posts/[slug].astro
+@@ -1,4 +1,10 @@
+ ---
++export async function getStaticPaths() {
++	const { getEmDashCollection } = await import("emdash");
++	const { entries } = await getEmDashCollection("posts", { limit: 1000 });
++	return entries.map((e) => ({ params: { slug: e.id } }));
++}
++
+ import {
+ 	getEmDashEntry,
+ 	getEmDashCollection,
+diff --git a/templates/blog/src/pages/tag/[slug].astro b/templates/blog/src/pages/tag/[slug].astro
+index 76818ef..623c19a 100644
+--- a/templates/blog/src/pages/tag/[slug].astro
++++ b/templates/blog/src/pages/tag/[slug].astro
+@@ -1,4 +1,10 @@
+ ---
++export async function getStaticPaths() {
++	const { getTaxonomyTerms } = await import("emdash");
++	const terms = await getTaxonomyTerms("tag");
++	return terms.map((t) => ({ params: { slug: t.slug } }));
++}
++
+ import {
+ 	getTaxonomyTermsWithCacheHint,
+ 	getEmDashCollection,
