@@ -218,3 +218,9 @@ Surprises:
 - `content/options.json` is committed in its normalised form, so the first import doesn't produce a diff.
 - **Font fetch flake:** `astro build` downloads Google font files, and one CI run failed on a `CannotFetchFontFile` error before passing on rerun (TODO 1.7).
 - **First deploy:** live 2026-11-13 after Pages was enabled. The Action deploys `dist/client` only.
+
+## 13. Phase 2a: minimal editor (2026-11-13)
+- Shipped as a stepping stone before the real admin (§5.2): `GHDash-example/public/admin/index.html`, one dependency-free file. It reads `content/ec_posts` and `content/ec_pages` through the GitHub contents API at a pinned head SHA, and saves with the same atomic Git Data API flow as `spike/github-commit.mjs`.
+- It edits only `title`, `excerpt`, `content` (as plain paragraphs), `status`, `published_at`, `updated_at` and `version` on the row. It does not touch `revisions.json`, bylines, taxonomies or images. That is safe for rendering because published pages read the `ec_*` columns directly (checked with a rebuild), but it means edits made here leave no EmDash revision history, only git history.
+- Paragraph-only round trip: a body is editable only if every block is a plain `normal` paragraph with one unformatted span. Anything else is locked rather than flattened.
+- The real admin (2b) needs `ADMIN_BASEPATH` and `API_BASE` made configurable plus a browser transport. See TODO Phase 2.

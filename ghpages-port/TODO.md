@@ -21,11 +21,16 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 1.4 Base-path support for project sites (`/<repo>/`): `astro.config.mjs` reads `BASE_PATH`/`SITE_URL`, and `scripts/rebase-urls.mjs` prefixes the template's root-absolute links in built HTML/XML. Verified in a local build.
 - [~] 1.4a Template changes: `getStaticPaths()` on the 4 dynamic routes is done (in `GHDash-example`). **Still to do:** path-based pagination instead of `?cursor=` (lists show page 1 only), and a replacement for `/search`.
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
-- [ ] 1.7 Make font downloads robust: the build fetches Google font files and a transient failure fails the whole deploy. Options: retry step in the workflow, or self-host fonts.
+- [x] 1.7 Font downloads: the workflow now retries the build up to 3 times, so a transient Google font fetch failure no longer fails the deploy.
 - [ ] 1.5 Copy media and optimise images at build time.
 - [ ] 1.6 Sitemap, robots and static redirect stubs.
 
 ## Phase 2: Browser admin with PAT editing · est. 2–3 weeks
+**2a (minimal editor) is done; 2b (the real EmDash admin) has not started.** 2a is `GHDash-example/public/admin/index.html`: one static file, PAT sign-in, list/create/edit posts and pages (title, excerpt, plain-paragraph body, status), one commit per save, refuses to save if the branch moved. Tested in headless Chromium against a fake GitHub API, and the JSON it wrote rebuilt into the right pages. Bodies with headings, links, images or lists are read-only there so they can't be damaged.
+- [x] 2a.1 PAT sign-in with push-permission check, session-storage only.
+- [x] 2a.2 Create and edit posts and pages as single commits, with a stale-head conflict check.
+- [ ] 2a.3 Try it against the real repo from a real browser (Jessica), and show an Actions status link after saving.
+**2b notes from reading the admin:** `packages/admin` hardcodes `ADMIN_BASEPATH = "/_emdash/admin"` (App.tsx) and `API_BASE = "/_emdash/api"` (lib/api/client.ts). Serving it under `/<repo>/admin/` needs both made configurable, and a fetch transport that calls the browser handlers (spike/browser-handlers) instead of the network. Those are small upstream changes but touch the admin's boot calls (manifest, current user, setup status), which still need mapping.
 - [ ] 2.1 Admin static bundle served at `/admin/`.
 - [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
 - [ ] 2.3 Load repo JSON into in-browser SQLite on admin start, with a progress indicator (start from `spike/browser-handlers/`). Decide how the migrated empty DB is delivered (SPEC §9 Q6).
@@ -66,3 +71,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Live commit test passed. Phase 0 complete. The spike is on branch `spike/ghpages-phase0`.
 - 2026-11-13: Phase 1 first cut pushed to `Digital-Defiance/GHDash-example` (main). Local clean-clone build gives 18 pages with the right base path. The Pages deploy waits on enabling Pages in repo settings.
 - 2026-11-13: Pages enabled by Jessica and the first successful deploy is live. A font-fetch flake needed one rerun.
+- 2026-11-13: Minimal editor (2a) built and deployed to GHDash-example `/admin/`. Retry added for font flake.
