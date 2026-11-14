@@ -4,6 +4,11 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
+## Status (2026-11-14)
+- **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/; 2a minimal editor at `/admin/`; 2b.1–2b.3 and 2b.7 (admin paths configurable, admin boots at `/studio/`, release tarballs).
+- **Next:** 2b.4, the browser API that answers the admin's `/_api/*` calls. Then the pending-changes tray (2b.5).
+- **Open from Phase 1:** pagination, search, adapter package, `revisions.json`, media, sitemap.
+
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
 **Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
 - [x] 0.1 Pick a template and a working approach → `templates/blog`. The spike code lives in `ghpages-port/spike/` and the template change is a patch (`spike/blog-static.patch`), so the template itself stays unmodified.
@@ -26,7 +31,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 1.6 Sitemap, robots and static redirect stubs.
 
 ## Phase 2: Browser admin with PAT editing · est. 2–3 weeks
-**2a (minimal editor) is done; 2b (the real EmDash admin) has not started.** 2a is `GHDash-example/public/admin/index.html`: one static file, PAT sign-in, list/create/edit posts and pages (title, excerpt, plain-paragraph body, status), one commit per save, refuses to save if the branch moved. Tested in headless Chromium against a fake GitHub API, and the JSON it wrote rebuilt into the right pages. Bodies with headings, links, images or lists are read-only there so they can't be damaged.
+**2a (minimal editor) is done. 2b (the real EmDash admin) is in progress: it boots, and the browser API is next.** 2a is `GHDash-example/public/admin/index.html`: one static file, PAT sign-in, list/create/edit posts and pages (title, excerpt, plain-paragraph body, status), one commit per save, refuses to save if the branch moved. Tested in headless Chromium against a fake GitHub API, and the JSON it wrote rebuilt into the right pages. Bodies with headings, links, images or lists are read-only there so they can't be damaged.
 - [x] 2a.1 PAT sign-in with push-permission check, session-storage only.
 - [x] 2a.2 Create and edit posts and pages as single commits, with a stale-head conflict check.
 - [ ] 2a.3 Try it against the real repo from a real browser (Jessica), and show an Actions status link after saving.
@@ -40,15 +45,13 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 2b.5b Conflict handling: keep changes after a stale head, reload the baseline, re-apply non-clashing rows.
 - [ ] 2b.6 Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
 - [x] 2b.7 Tarballs as GitHub release assets (SPEC D13): release `pages-v0.1.0` on `Digital-Defiance/ghdash` holds `emdash-cms-admin-1.5.0.tgz` and `emdash-1.5.0.tgz`. `GHDash-example` (branch `studio-experiment`) installs the admin from the release URL and `vendor/` is gone from that branch's tip. The old 11 MB blob remains in that branch's history, which is fine because it is not merged to `main`. **Note:** this first tag had to be pushed from a local clone, because the cloud session's git connection drops on tag pushes. To publish a new build: push a new `pages-v*` tag, then update the URLs in the demo's `package.json`.
-**2b notes from reading the admin:** `packages/admin` hardcodes `ADMIN_BASEPATH = "/_emdash/admin"` (App.tsx) and `API_BASE = "/_emdash/api"` (lib/api/client.ts). Serving it under `/<repo>/admin/` needs both made configurable, and a fetch transport that calls the browser handlers (spike/browser-handlers) instead of the network. Those are small upstream changes but touch the admin's boot calls (manifest, current user, setup status), which still need mapping.
-- [ ] 2.1 Admin static bundle served at `/admin/`.
-- [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
-- [ ] 2.3 Load repo JSON into in-browser SQLite on admin start, with a progress indicator (start from `spike/browser-handlers/`). Decide how the migrated empty DB is delivered (SPEC §9 Q6).
-- [ ] 2.4 Make the `apiFetch` transport pluggable and route it to the local router (SPEC §9 Q7: reuse the route files or call handlers directly).
-- [ ] 2.5 Local routes for content CRUD, drafts and publish for posts and pages.
-- [ ] 2.6 Save flow: changed rows → JSON files → atomic commit, plus conflict UI.
-- [ ] 2.7 Settings, schema (collections and fields), taxonomies, menus, widgets, bylines and SEO routes.
-- [ ] 2.8 "Live in ~1–3 min" notice, with optional Actions run polling.
+- [ ] 2.1 Admin static bundle served at `/admin/` → superseded by `/studio/` (2b.3); decide whether `/admin/` becomes the real admin once 2b is stable.
+- [ ] 2.2 PAT sign-in screen for the real admin (reuse 2a.1): validate `permissions.push`, sessionStorage, optional remember-me. Feeds `auth/me` in 2b.4.
+- [ ] 2.3 Load repo JSON into in-browser SQLite on admin start, with a progress indicator (part of 2b.4; start from `spike/browser-handlers/`). Decide how the migrated empty DB is delivered (SPEC §9 Q6).
+- [ ] 2.5 Content CRUD, drafts and publish for posts and pages through the local router (part of 2b.4).
+- [ ] 2.7 Settings, schema, taxonomies, menus, widgets, bylines and SEO routes (part of 2b.4).
+- [ ] 2.8 "Live in ~1–3 min" notice, with optional Actions run polling (with 2a.3).
+- 2.4 (pluggable `apiFetch`) is done as 2b.1; 2.6 (save flow and conflicts) is 2b.5 and 2b.5b.
 
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
 - [ ] 3.1 Media upload commits to `media/`, with size warnings and limits.
@@ -85,4 +88,5 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: The sandbox network allowlist now includes `digital-defiance.github.io`, so the live site can be tested from a session. Live check passed.
 - 2026-11-13: Admin paths made configurable in the fork. The real admin boots at `/studio/` in the demo (branch `studio-experiment`) and asks for `manifest` and `auth/me`. The browser API (2b.4) is next.
 - 2026-11-13: Decided release-asset tarballs (D13) and a pending-changes tray with a commit button (D14), both from Jessica. Release workflow pushed; the first tag still needs pushing from a local clone.
+- 2026-11-14: README and TODO refreshed; browser API (2b.4) starting.
 - 2026-11-13: Release `pages-v0.1.0` built by the workflow (success) with the admin and core tarballs. The demo's `studio-experiment` branch now installs from it.
