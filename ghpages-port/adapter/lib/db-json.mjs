@@ -9,6 +9,7 @@
 //                             (ec_* tables, their indexes, FTS tables and triggers)
 //   <table>.json              rows of a small system table, sorted by primary key
 //   <ec_table>/<id>.json      one file per content row, so diffs and merges stay per entry
+//   revisions/<id>.json       one file per revision row (an older revisions.json is still read)
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -29,6 +30,7 @@ const SKIP = [
 	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
 	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,
 ];
+const perRow = (t) => t.startsWith("ec_") || t === "revisions";
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) =>
 	Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
@@ -67,7 +69,7 @@ function exportDb(dbPath, out, freshPath) {
 			.all()
 			.map((r) => sortKeys({ ...r }));
 		if (!rows.length) continue;
-		if (t.startsWith("ec_")) {
+		if (perRow(t)) {
 			mkdirSync(join(out, t), { recursive: true });
 			for (const r of rows) write(join(out, t, `${r.id}.json`), r);
 		} else {
@@ -92,7 +94,9 @@ function importDb(dir, dbPath) {
 			).run(...cols.map((c) => r[c]));
 		}
 	};
-	for (const name of readdirSync(dir).sort()) {
+	const names = readdirSync(dir).sort();
+	const isDir = (n) => statSync(join(dir, n)).isDirectory();
+	for (const name of [...names.filter((n) => !isDir(n)), ...names.filter(isDir)]) {
 		if (name === "_ddl.json") continue;
 		const p = join(dir, name);
 		if (statSync(p).isDirectory()) {

@@ -85,7 +85,7 @@ media/
 
 Rows are written as pretty-printed JSON with sorted keys, ordered by primary key. The blog seed exports to 25 files (132 KB). The following are **not exported**, and are rebuilt or dropped: FTS shadow tables (`_emdash_fts_*_data|idx|content|docsize|config`), `_emdash_migrations*`, `*_lock` tables, media-usage bookkeeping, rate limits, the 404 log, and every auth, session, token, OAuth and room table. The exclusion list is `SKIP` in `spike/db-json.mjs`. On import, the order is: migrated empty DB, then `_ddl` tables, then triggers (so the FTS triggers index rows as they load), then rows, then indexes.
 
-**Revisions:** `revisions.json` grows with every save. A single file will cause merge conflicts and bloat (§9 Q3).
+**Revisions:** one file per row under `revisions/` (decided: kept, split per row; an older single `revisions.json` is still read).
 
 ### 4.2 Starting points in the codebase
 

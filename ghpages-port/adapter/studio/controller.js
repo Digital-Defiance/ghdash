@@ -1,5 +1,5 @@
 import { checkAccess, commitFiles, getHead, GitHubError } from "./github-commit.js";
-import { applyFile, canonical, diffFiles, mergeRemote, snapshot } from "./tray.js";
+import { applyFile, canonical, diffFiles, mergeRemote, expandLegacyRevisions, revisionPathsFor, snapshot, visibleChanges } from "./tray.js";
 
 const TOKEN_KEY = "ghdash-token";
 const API = "https://api.github.com";
@@ -58,7 +58,7 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 
 	function changesFor(cur) {
 		const media = mediaDiff(cur);
-		const json = diffFiles(base, cur);
+		const json = visibleChanges(base, cur);
 		return media.length ? [...json.filter((c) => c.path !== "media.json"), ...media].sort((a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label)) : json;
 	}
 
@@ -110,7 +110,7 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 				files.set(n.path.slice(prefix.length), canonical(new TextDecoder().decode(bytes)));
 			}));
 		}
-		return files;
+		return expandLegacyRevisions(files);
 	}
 
 	async function updateFromRemote() {
@@ -134,7 +134,11 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 	}
 
 	function discardOne(path) {
-		if (!path.startsWith(MEDIA)) { applyFile(db, path, base.get(path) ?? null); return; }
+		if (!path.startsWith(MEDIA)) {
+			for (const p of revisionPathsFor(base, snapshot(db, freshNames), path)) applyFile(db, p, base.get(p) ?? null);
+			applyFile(db, path, base.get(path) ?? null);
+			return;
+		}
 		const key = path.slice(MEDIA.length);
 		const row = mediaRows(base).find((r) => r.storage_key === key);
 		if (row) {

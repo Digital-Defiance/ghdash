@@ -11,6 +11,7 @@ ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BRO
 ghdash-pages copy-media          media/ -> public/media/
 ghdash-pages finish [dist]       after `astro build`: base path, media URLs, redirect pages (BASE_PATH)
 ghdash-pages export-content      data.db -> content/
+ghdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
 ghdash-pages serve               serve dist/client under BASE_PATH, like Pages
 ```
 

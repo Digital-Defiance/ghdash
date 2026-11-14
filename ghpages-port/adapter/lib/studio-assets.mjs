@@ -10,12 +10,18 @@ mkdirSync(out, { recursive: true });
 const dir = "content";
 const ddl = JSON.parse(readFileSync(join(dir, "_ddl.json"), "utf8"));
 const tables = {};
-for (const n of readdirSync(dir).sort()) {
+const names = readdirSync(dir).sort();
+const isDir = (n) => statSync(join(dir, n)).isDirectory();
+// Plain files first, so a per-row directory wins over an older single file for the same table.
+for (const n of [...names.filter((x) => !isDir(x)), ...names.filter(isDir)]) {
 	if (n === "_ddl.json") continue;
 	const q = join(dir, n);
-	tables[n.replace(/\.json$/, "")] = statSync(q).isDirectory()
+	const t = n.replace(/\.json$/, "");
+	const rows = isDir(n)
 		? readdirSync(q).sort().map((f) => JSON.parse(readFileSync(join(q, f), "utf8")))
 		: JSON.parse(readFileSync(q, "utf8"));
+	const byId = new Map((tables[t] ?? []).map((r) => [r.id, r]));
+	tables[t] = byId.size ? [...new Map([...byId, ...rows.map((r) => [r.id, r])]).values()] : rows;
 }
 const sh = (cmd, args) => { try { return execFileSync(cmd, args, { encoding: "utf8" }).trim(); } catch { return ""; } };
 const remote = sh("git", ["remote", "get-url", "origin"]).match(/github\.com[:/]([^/]+\/[^/.]+)/)?.[1];
