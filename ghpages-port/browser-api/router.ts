@@ -18,10 +18,26 @@ export interface BrowserUser {
 	avatarUrl?: string;
 }
 
-/** The parts of a plugin definition the admin manifest needs. Its code does not run here. */
+export interface BeforeSaveEvent {
+	data: Record<string, unknown>;
+	collection: string;
+	isNew: boolean;
+	/** Present when an existing entry is being saved. */
+	id?: string;
+}
+
+/** Throw this from `beforeSave` to refuse a save; the message is shown to the editor. */
+export const saveRejected = (message: string) => Object.assign(new Error(message), { name: "SaveRejected" });
+
+/** The parts of a plugin definition the admin manifest needs. Its server code does not run here. */
 export interface BrowserPlugin {
 	id: string;
 	version?: string;
+	/**
+	 * Opt-in browser version of `content:beforeSave`. Return the data to save (or nothing to keep it),
+	 * or throw `saveRejected(message)`. It must be plain browser code written for the site.
+	 */
+	beforeSave?: (event: BeforeSaveEvent) => unknown | Promise<unknown>;
 	admin?: {
 		entry?: string;
 		pages?: Array<{ path: string; label?: string; icon?: string; group?: string }>;
@@ -180,7 +196,46 @@ function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>, pl
 			if (name.startsWith("handle") && typeof fn === "function") em[name] ??= (...args: unknown[]) => fn(db, ...args);
 		}
 	}
+	withBeforeSave(em, plugins);
 	return em;
+}
+
+function withBeforeSave(em: Record<string, any>, plugins: BrowserPlugin[]) {
+	const hooks = plugins.filter((p) => p.beforeSave);
+	if (!hooks.length) return;
+	const run = async (event: BeforeSaveEvent) => {
+		let data = event.data;
+		for (const p of hooks) {
+			const out = await p.beforeSave!({ ...event, data });
+			if (out && typeof out === "object") data = out as Record<string, unknown>;
+		}
+		return data;
+	};
+	const refusal = (error: unknown) => {
+		if ((error as Error | undefined)?.name === "SaveRejected") {
+			return { success: false, error: { code: "SAVE_REJECTED", message: (error as Error).message } };
+		}
+		console.error("[browser-api] beforeSave hook failed:", error);
+		return { success: false, error: { code: "SAVE_HOOK_ERROR", message: "A plugin hook failed while saving" } };
+	};
+	const create = em.handleContentCreate;
+	em.handleContentCreate = async (collection: string, body: { data?: Record<string, unknown> }, ...rest: unknown[]) => {
+		if (!body?.data) return create(collection, body, ...rest);
+		try {
+			return create(collection, { ...body, data: await run({ data: body.data, collection, isNew: true }) }, ...rest);
+		} catch (error) {
+			return refusal(error);
+		}
+	};
+	const update = em.handleContentUpdate;
+	em.handleContentUpdate = async (collection: string, id: string, body: { data?: Record<string, unknown> }, ...rest: unknown[]) => {
+		if (!body?.data) return update(collection, id, body, ...rest);
+		try {
+			return update(collection, id, { ...body, data: await run({ data: body.data, collection, isNew: false, id }) }, ...rest);
+		} catch (error) {
+			return refusal(error);
+		}
+	};
 }
 
 const rank = (pattern: string) =>

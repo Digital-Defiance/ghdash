@@ -2,7 +2,7 @@
 import init from "@sqlite.org/sqlite-wasm";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import * as A from "./api.js";
+import * as A from "./dist/entry.js";
 import { openDb } from "./load-db.js";
 
 const [dir, freshDb] = process.argv.slice(2);
@@ -55,4 +55,26 @@ const first = list.json.data.items[0].id;
 const lk = await call("POST", `/content/posts/${first}/lock`, {});
 check("lock acquire", lk.json.success);
 console.log("  lock:", JSON.stringify(lk.json.data));
+const guarded = A.createBrowserApi({
+	db, apiBase: "/GHDash-example/_api", user: { id: "gh-1", email: "a@b.c", name: "Tester" },
+	plugins: [{
+		id: "guard",
+		beforeSave: ({ data, isNew }) => {
+			if (String(data.title).includes("forbidden")) throw A.saveRejected("That title is not allowed");
+			if (isNew) return { ...data, title: String(data.title).toUpperCase() };
+		},
+	}],
+});
+const gcall = async (method, path, body) => {
+	const r = await guarded(B + path, { method, headers: { "content-type": "application/json" }, body: body && JSON.stringify(body) });
+	return { status: r.status, json: await r.json() };
+};
+const g1 = await gcall("POST", "/content/posts", { data: { title: "quiet", excerpt: "x", content: [] }, slug: "quiet" });
+check("beforeSave rewrites a new entry", g1.status === 201 && g1.json.data.item.data.title === "QUIET");
+const g2 = await gcall("POST", "/content/posts", { data: { title: "forbidden one", excerpt: "x", content: [] }, slug: "nope" });
+check("beforeSave refuses a create", !g2.json.success && g2.json.error.code === "SAVE_REJECTED" && g2.json.error.message === "That title is not allowed");
+check("a refused create saved nothing", (await gcall("GET", "/content/posts?limit=100")).json.data.items.every((i) => i.slug !== "nope"));
+const g3 = await gcall("PUT", "/content/posts/" + g1.json.data.item.id, { data: { title: "forbidden again" } });
+check("beforeSave refuses an update", !g3.json.success && g3.json.error.code === "SAVE_REJECTED");
+check("a refused update kept the old title", (await gcall("GET", "/content/posts/" + g1.json.data.item.id)).json.data.item.data.title === "QUIET");
 process.exit(bad ? 1 : 0);

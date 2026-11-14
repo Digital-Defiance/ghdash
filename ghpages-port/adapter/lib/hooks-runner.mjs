@@ -133,7 +133,8 @@ export async function runHooks({ plugins, events, env = process.env, fetch, site
 	const results = [];
 	for (const { plugin, definition, settings } of plugins) {
 		const ctx = makeContext(plugin, resolveSettings(settings, env), { fetch, site });
-		for (const { hook, event } of events) {
+		for (const { hook, event, plugin: only } of events) {
+			if (only && only !== plugin.id) continue;
 			const entry = definition.hooks?.[hook];
 			const handler = typeof entry === "function" ? entry : entry?.handler;
 			if (!handler) continue;
