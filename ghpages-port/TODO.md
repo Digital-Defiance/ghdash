@@ -5,11 +5,11 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
-- **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
-- **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
-- **Next:** moving `src/studio/` into a package, `revisions.json` size, then plugins (Phase 5) and hardening (Phase 6).
-- **Open from Phase 1:** `revisions.json`, image optimisation, moving `src/studio/` into a package.
-- **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
+- **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path.
+- **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.6.0` (admin, core, browser API, adapter).
+- **Built, waiting on a merge:** giscus comments (4.1), branch `giscus-comments`. After the merge the site owner must enable Discussions, install the giscus app and commit `giscus.json`.
+- **Next:** moving `src/studio/` into a package (in progress), `revisions.json` size, the "Live in ~1–3 min" notice (2.8), then plugins (Phase 5) and hardening (Phase 6).
+- **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; image optimisation isn't done; the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
 **Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
@@ -48,11 +48,11 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2b.6 (done 2026-11-14: the 404 page redirects `/studio/*` to `/studio/?p=...` and the studio entry restores the path) Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
 - [x] 2b.7 Tarballs as GitHub release assets (SPEC D13): release `pages-v0.1.0` on `Digital-Defiance/ghdash` holds `emdash-cms-admin-1.5.0.tgz` and `emdash-1.5.0.tgz`. `GHDash-example` (branch `studio-experiment`) installs the admin from the release URL and `vendor/` is gone from that branch's tip. The old 11 MB blob remains in that branch's history, which is fine because it is not merged to `main`. **Note:** this first tag had to be pushed from a local clone, because the cloud session's git connection drops on tag pushes. To publish a new build: push a new `pages-v*` tag, then update the URLs in the demo's `package.json`.
 - [ ] 2.1 Admin static bundle served at `/admin/` → superseded by `/studio/` (2b.3); decide whether `/admin/` becomes the real admin once 2b is stable.
-- [ ] 2.2 PAT sign-in screen for the real admin (reuse 2a.1): validate `permissions.push`, sessionStorage, optional remember-me. Feeds `auth/me` in 2b.4.
-- [ ] 2.3 Load repo JSON into in-browser SQLite on admin start, with a progress indicator (part of 2b.4; start from `spike/browser-handlers/`). Decide how the migrated empty DB is delivered (SPEC §9 Q6).
-- [ ] 2.5 Content CRUD, drafts and publish for posts and pages through the local router (part of 2b.4).
-- [ ] 2.7 Settings, schema, taxonomies, menus, widgets, bylines and SEO routes (part of 2b.4).
-- [ ] 2.8 "Live in ~1–3 min" notice, with optional Actions run polling (with 2a.3).
+- [x] 2.2 PAT sign-in lives in the pending-changes tray (D14): validates `permissions.push`, keeps the token in sessionStorage, clears it on a 401. `auth/me` is answered by the browser API.
+- [x] 2.3 The repo JSON loads into in-browser SQLite (sqlite-wasm) when `/studio/` starts, with a "Loading site data" message. The migrated empty DB is delivered as `studio-data/empty.db` (SPEC §9 Q6 answered).
+- [x] 2.5 Content CRUD, drafts, publish and schedule run through EmDash's own route files in the browser (D15); e2e covers edit, create, schedule.
+- [x] 2.7 Settings, schema, taxonomies, menus, widgets, bylines and SEO routes all come from the same route files (every sidebar page is covered by e2e).
+- [ ] 2.8 "Live in ~1–3 min" notice after a commit, with optional Actions run polling. **Not started:** the tray shows the commit SHA only.
 - 2.4 (pluggable `apiFetch`) is done as 2b.1; 2.6 (save flow and conflicts) is 2b.5 and 2b.5b.
 
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
@@ -77,7 +77,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 ## Phase 6: Hardening and docs
 - [ ] 6.1 Admin CSP and PAT handling review.
 - [ ] 6.2 "Create a site from this template" repo and a setup guide (PAT creation, Pages settings, secrets).
-- [~] 6.3 Tests: Playwright suite in `GHDash-example/e2e/` (14 tests: static pages and links, studio load, every sidebar page, edit and create a post, deep link) and `.github/workflows/e2e.yml`. Studio tests skip in CI until the browser API bundle is built into `dist/` (release asset, 2b.4). **Still to do:** JSON round trip, commit/conflict flow, tray tests.
+- [~] 6.3 Tests: 27 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 9 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. **Still to do:** JSON round trip as a CI test, a CI run with a real token (`test/live.mjs`).
 - [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.
 
 ## Log
