@@ -7,8 +7,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/; 2a minimal editor at `/admin/`; 2b.1–2b.3 and 2b.7 (admin paths configurable, admin boots at `/studio/`, release tarballs).
 - **Live:** `/studio/` is deployed at https://digital-defiance.github.io/GHDash-example/studio/ (merged to `main` 2026-11-14, release `pages-v0.3.0`); checked on the live site in headless Chromium (loads, lists posts, edits count in the tray, deep link works).
-- **Next:** Jessica's real-token try-out (2a.3), media upload (Phase 3), then the remaining Phase 1 items (pagination, search, sitemap) and the adapter package.
-- **Open from Phase 1:** pagination, search, adapter package, `revisions.json`, media, sitemap.
+- **Next:** Jessica's real-token try-out (2a.3), media upload (Phase 3), then the remaining Phase 1 items (sitemap, robots, redirects) and the adapter package.
+- **Open from Phase 1:** adapter package, `revisions.json`, media, sitemap.
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
 **Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
@@ -25,7 +25,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [~] 1.2 `json-to-sqlite` is now `scripts/db-json.mjs` + `scripts/build-db.mjs` inside `GHDash-example`, installed from the published `emdash@1.5.0`. **Still to do:** move it into a reusable adapter package (SPEC §8).
 - [x] 1.3 GitHub Action (`GHDash-example/.github/workflows/pages.yml`) deployed the site: https://digital-defiance.github.io/GHDash-example/. Checked in headless Chromium on the live site: every page returns 200 except `/search/` (404, known: needs Pagefind), styling and fonts render, no failed requests, and every internal link carries the base path. The first run failed fetching a Google font file and passed on rerun (see 1.7).
 - [x] 1.4 Base-path support for project sites (`/<repo>/`): `astro.config.mjs` reads `BASE_PATH`/`SITE_URL`, and `scripts/rebase-urls.mjs` prefixes the template's root-absolute links in built HTML/XML. Verified in a local build.
-- [~] 1.4a Template changes: `getStaticPaths()` on the 4 dynamic routes is done (in `GHDash-example`). **Still to do:** path-based pagination instead of `?cursor=` (lists show page 1 only), and a replacement for `/search`.
+- [x] 1.4a Template changes in `GHDash-example`: `getStaticPaths()` on the dynamic routes; path-based pagination (`/posts/page/2/`, `/tag/<slug>/page/2/`, same for categories; `PAGE_SIZE` env var overrides the default of 20 at build time); `/search/` is a static page that queries a Pagefind index in the browser.
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
 - [x] 1.7 Font downloads: the workflow now retries the build up to 3 times, so a transient Google font fetch failure no longer fails the deploy.
 - [~] 1.5 Media: the build copies repo `media/` to `public/media/` and rewrites `/_emdash/api/media/file/<key>` to `<base>/media/<key>`. **Still to do:** image optimisation (resizing, srcset).
@@ -57,7 +57,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
 - [x] 3.1 Media upload: files go to an in-memory pending map, show in the tray as `Media` changes, persist in IndexedDB, and commit as blobs under `media/<key>`. Limit 10 MB per file (`MAX_UPLOAD`); the browser API reports `NOT_SUPPORTED` for signed uploads so the admin uses its direct-upload path. Needs release `pages-v0.4.0`. **Known gaps:** images already in the repo only display after the site is rebuilt; the editor's inline images keep `/_emdash/api/media/file/...` URLs inside the studio.
 - [x] 3.2 Media library: the `media` table (`content/media.json`) is the index, so no separate `_index.json`. Deleting a committed item shows in the tray as a deleted file and is committed as a removal.
-- [ ] 3.3 Pagefind index in the build, plus search UI in templates.
+- [x] 3.3 Pagefind index in the build (`pagefind --site dist/client` after the URL rebase), search UI in `src/pages/search.astro`. Only pages marked `data-pagefind-body` (posts and pages) are indexed.
 - [ ] 3.4 Cron Action for scheduled publishing.
 
 ## Phase 4: Comments · est. 2–4 days
