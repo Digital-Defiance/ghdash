@@ -8,7 +8,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 - **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path.
 - **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.7.0` (admin, core, browser API, adapter).
 - **Needs the site owner:** giscus comments (4.1) are merged but stay off until Discussions is enabled, the giscus app is installed and `giscus.json` is committed.
-- **Next:** `revisions.json` size, the "Live in ~1–3 min" notice (2.8), then plugins (Phase 5) and hardening (Phase 6).
+- **Next:** `revisions.json` size, image optimisation, plugins (Phase 5), hardening (Phase 6).
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; image optimisation isn't done; the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -52,7 +52,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2.3 The repo JSON loads into in-browser SQLite (sqlite-wasm) when `/studio/` starts, with a "Loading site data" message. The migrated empty DB is delivered as `studio-data/empty.db` (SPEC §9 Q6 answered).
 - [x] 2.5 Content CRUD, drafts, publish and schedule run through EmDash's own route files in the browser (D15); e2e covers edit, create, schedule.
 - [x] 2.7 Settings, schema, taxonomies, menus, widgets, bylines and SEO routes all come from the same route files (every sidebar page is covered by e2e).
-- [ ] 2.8 "Live in ~1–3 min" notice after a commit, with optional Actions run polling. **Not started:** the tray shows the commit SHA only.
+- [x] 2.8 "Live in ~1–3 min" notice after a commit: the tray shows "The site rebuilds in a minute or two" with a link to the Actions runs. (Run polling is not done.)
 - 2.4 (pluggable `apiFetch`) is done as 2b.1; 2.6 (save flow and conflicts) is 2b.5 and 2b.5b.
 
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
@@ -76,7 +76,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 
 ## Phase 6: Hardening and docs
 - [ ] 6.1 Admin CSP and PAT handling review.
-- [ ] 6.2 "Create a site from this template" repo and a setup guide (PAT creation, Pages settings, secrets).
+- [x] 6.2 Template repo: e2e suite takes the base path from `BASE_PATH`, giscus example uses placeholders, `SETUP.md` covers template, Pages, token, giscus, scheduling. (Branch `template-repo` on the example repo; the "Template repository" checkbox in its settings is still to be ticked by the owner.)
 - [~] 6.3 Tests: 27 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 9 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. **Still to do:** JSON round trip as a CI test, a CI run with a real token (`test/live.mjs`).
 - [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.
 
