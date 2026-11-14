@@ -56,7 +56,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2.4 (pluggable `apiFetch`) is done as 2b.1; 2.6 (save flow and conflicts) is 2b.5 and 2b.5b.
 
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
-- [x] 3.1 Media upload: files go to an in-memory pending map, show in the tray as `Media` changes, persist in IndexedDB, and commit as blobs under `media/<key>`. Limit 10 MB per file (`MAX_UPLOAD`); the browser API reports `NOT_SUPPORTED` for signed uploads so the admin uses its direct-upload path. Needs release `pages-v0.4.0`. **Known gaps:** images already in the repo only display after the site is rebuilt; the editor's inline images keep `/_emdash/api/media/file/...` URLs inside the studio.
+- [x] 3.1 Media upload: files go to an in-memory pending map, show in the tray as `Media` changes, persist in IndexedDB, and commit as blobs under `media/<key>`. Limit 10 MB per file (`MAX_UPLOAD`); the browser API reports `NOT_SUPPORTED` for signed uploads so the admin uses its direct-upload path. **Known gaps:** images already in the repo only display after the site is rebuilt; the editor's inline images keep `/_emdash/api/media/file/...` URLs inside the studio.
 - [x] 3.2 Media library: the `media` table (`content/media.json`) is the index, so no separate `_index.json`. Deleting a committed item shows in the tray as a deleted file and is committed as a removal.
 - [x] 3.3 Pagefind index in the build (`pagefind --site dist/client` after the URL rebase), search UI in `src/pages/search.astro`. Only pages marked `data-pagefind-body` (posts and pages) are indexed.
 - [x] 3.4 Scheduled publishing: the studio schedules through EmDash's own handler (fixed a facade bug where the options object was passed as the clock). At build, `ghdash-pages publish-due` runs the core sweep (`publishDue` from the browser API bundle) on `data.db`, then writes `content/` back; `pages.yml` runs hourly (cron `17 * * * *`), skips the build unless `ghdash-pages due` says something is due, and commits the published state to `main`. Published time is the scheduled time. Tested with a real database (`test/publish-due.test.mjs`) and the studio (e2e). Released in `pages-v0.6.0`. **Not covered:** picking the date in the admin's schedule dialog is not automated, only the API call.
@@ -96,6 +96,6 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-14: Browser API first cut: admin shell renders at /studio/ with real collections. Dashboard and content routes next.
 - 2026-11-14: e2e suite added (14 passing locally); deep links fixed.
 - 2026-11-14: Browser API packaged as a release asset; release pages-v0.2.0 published (first push of the tag hit the wrong commit and was redone); clean demo build plus 14 e2e tests pass against it.
-- 2026-11-14: Pending-changes tray, commit and conflict flow built; 18 e2e and 6 unit tests pass locally. Needs release pages-v0.3.0 for the admin hooks.
+- 2026-11-14: Pending-changes tray, commit and conflict flow built; 18 e2e and 6 unit tests pass locally.
 - 2026-11-14: studio-experiment merged to GHDash-example main; /studio/ is live and checked.
 - 2026-11-14: Jessica's real-token commit from /studio/ worked (dbb2413).
