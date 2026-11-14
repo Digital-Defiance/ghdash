@@ -35,7 +35,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 **2a (minimal editor) is done. 2b (the real EmDash admin) is in progress: it boots, and the browser API is next.** 2a is `GHDash-example/public/admin/index.html`: one static file, PAT sign-in, list/create/edit posts and pages (title, excerpt, plain-paragraph body, status), one commit per save, refuses to save if the branch moved. Tested in headless Chromium against a fake GitHub API, and the JSON it wrote rebuilt into the right pages. Bodies with headings, links, images or lists are read-only there so they can't be damaged.
 - [x] 2a.1 PAT sign-in with push-permission check, session-storage only.
 - [x] 2a.2 Create and edit posts and pages as single commits, with a stale-head conflict check.
-- [ ] 2a.3 Try it against the real repo from a real browser (Jessica), and show an Actions status link after saving.
+- [x] 2a.3 Real-browser try-out done 2026-11-14: Jessica committed a new post from `/studio/` with a real token (commit dbb2413, one file added) and it rebuilt into the live site. The tray shows a link to the Actions page after a commit.
 **2b progress (2026-11-13):**
 - [x] 2b.1 Fork admin made configurable: new `packages/admin/src/lib/paths.ts` reads `globalThis.__EMDASH_PATHS__ = { adminBase, apiBase, fetch }` (defaults unchanged). `apiFetch` rewrites `/_emdash/api` to `apiBase` and uses `fetch` if given. 12 admin files use `ADMIN_BASE` instead of the literal `/_emdash/admin`. Admin `typecheck` (tsgo) and `oxlint` are clean. Committed on `spike/ghpages-phase0`. Admin unit/browser tests were not run.
 - [x] 2b.2 Demo consumes the fork: `GHDash-example` branch `studio-experiment` vendors the fork's admin tarball (`vendor/emdash-cms-admin-1.5.0.tgz`, 11 MB, npm `overrides`). Only admin is vendored; `emdash` core still comes from npm. Not merged to `main` yet because of the 11 MB binary.
@@ -97,3 +97,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-14: Browser API packaged as a release asset; release pages-v0.2.0 published (first push of the tag hit the wrong commit and was redone); clean demo build plus 14 e2e tests pass against it.
 - 2026-11-14: Pending-changes tray, commit and conflict flow built; 18 e2e and 6 unit tests pass locally. Needs release pages-v0.3.0 for the admin hooks.
 - 2026-11-14: studio-experiment merged to GHDash-example main; /studio/ is live and checked.
+- 2026-11-14: Jessica's real-token commit from /studio/ worked (dbb2413).
