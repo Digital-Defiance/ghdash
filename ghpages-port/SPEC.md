@@ -1,6 +1,6 @@
 # EmDash on GitHub Pages: Port Spec
 
-Status: **Phase 0 spike done. Every check passed, including the live GitHub commit. See §11. Ready for Phase 1.**
+Status: **Phase 0 done. Phase 1 in progress: the demo site is in `Digital-Defiance/GHDash-example`, and the Pages deploy waits on enabling Pages. See §11–§12.**
 Last updated: 2026-11-13
 Owner: Jessica
 Companion file: [TODO.md](./TODO.md), the checkable work list. Update both files as work proceeds.
@@ -209,3 +209,10 @@ Surprises:
 - **Seed format is lossy** for this purpose (D11).
 - `pnpm build` runs out of memory at the default heap size.
 - Two dynamically imported virtual modules (`wait-until`, `object-cache`) only show up at runtime in the browser, so they need shims too.
+
+## 12. Phase 1 notes (2026-11-13)
+- The demo site is `Digital-Defiance/GHDash-example`. It installs the **published `emdash@1.5.0`** from npm, so nothing is forked yet. The blog template was copied in with the `getStaticPaths()` patch from the spike.
+- `npm run build` does: `emdash init` (migrated empty DB) → `scripts/db-json.mjs import content data.db` → `astro build` → `scripts/rebase-urls.mjs dist/client`.
+- **Base path:** Astro prefixes its own assets, but the template hardcodes root-absolute links like `href="/posts/x"`. `scripts/rebase-urls.mjs` rewrites those in the built output. A cleaner fix is for templates to use `import.meta.env.BASE_URL` (TODO 1.4a).
+- **Dependabot** opened a run on the repo as soon as `package.json` landed. It is harmless but may open PRs.
+- `content/options.json` is committed in its normalised form, so the first import doesn't produce a diff.

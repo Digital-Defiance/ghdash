@@ -15,11 +15,11 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Phase 1: Static site from repo JSON · est. 1 week
 Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be enabled).
-- [ ] 1.1 Finalise the `content/` layout and JSON conventions (sorted keys, one file per entry).
-- [ ] 1.2 Turn `json-to-sqlite` into a CLI (inside the adapter package, SPEC §8).
-- [ ] 1.3 GitHub Action: install → json-to-sqlite → astro build → deploy-pages.
-- [ ] 1.4 Base-path support for project sites (`/<repo>/`).
-- [ ] 1.4a Template changes: path-based pagination instead of `?cursor=`, and `getStaticPaths()` on every dynamic route (start from `spike/blog-static.patch`).
+- [x] 1.1 `content/` layout finalised as in SPEC §4.1 (sorted keys, one file per row). Committed in `GHDash-example`.
+- [~] 1.2 `json-to-sqlite` is now `scripts/db-json.mjs` + `scripts/build-db.mjs` inside `GHDash-example`, installed from the published `emdash@1.5.0`. **Still to do:** move it into a reusable adapter package (SPEC §8).
+- [~] 1.3 GitHub Action written (`GHDash-example/.github/workflows/pages.yml`). A clean clone with `npm ci && npm run build` passes locally. **Blocked on:** Pages must be enabled (Settings → Pages → Source: GitHub Actions). The first run stopped at `configure-pages` with "Pages not enabled".
+- [x] 1.4 Base-path support for project sites (`/<repo>/`): `astro.config.mjs` reads `BASE_PATH`/`SITE_URL`, and `scripts/rebase-urls.mjs` prefixes the template's root-absolute links in built HTML/XML. Verified in a local build.
+- [~] 1.4a Template changes: `getStaticPaths()` on the 4 dynamic routes is done (in `GHDash-example`). **Still to do:** path-based pagination instead of `?cursor=` (lists show page 1 only), and a replacement for `/search`.
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
 - [ ] 1.5 Copy media and optimise images at build time.
 - [ ] 1.6 Sitemap, robots and static redirect stubs.
@@ -63,3 +63,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Spec and TODO created after the feasibility review.
 - 2026-11-13: Phase 0 spike run. 0.2–0.4 pass, and 0.5 passes against a fake API with the live run pending. D11 and D12 added to SPEC.
 - 2026-11-13: Live commit test passed. Phase 0 complete. The spike is on branch `spike/ghpages-phase0`.
+- 2026-11-13: Phase 1 first cut pushed to `Digital-Defiance/GHDash-example` (main). Local clean-clone build gives 18 pages with the right base path. The Pages deploy waits on enabling Pages in repo settings.
