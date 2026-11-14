@@ -112,6 +112,15 @@ export function makeTray(c: Controller) {
 									GitHub token to commit to {owner}/{repo} (fine-grained, Contents: read and write). Kept in this tab only.
 								</label>
 								<input id="tray-token" type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} style={field} />
+								<details style={{ fontSize: 12, color: "var(--text-color-kumo-subtle)" }}>
+									<summary style={{ cursor: "pointer" }}>What token do I need?</summary>
+									<ol style={{ margin: "6px 0 0", paddingInlineStart: 18, display: "grid", gap: 2 }}>
+										<li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Create a fine-grained token</a> on GitHub.</li>
+										<li>Repository access: only {owner}/{repo}.</li>
+										<li>Permissions: Contents, read and write. Nothing else.</li>
+										<li>Paste it here. It stays in this tab, is only sent to api.github.com, and is forgotten when you close the tab. It lets whoever holds it change this repository, so don't share it.</li>
+									</ol>
+								</details>
 								<button type="submit" disabled={!token.trim() || busy} style={btn(true, !token.trim() || busy)}>Sign in</button>
 							</form>
 						) : (

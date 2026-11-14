@@ -279,4 +279,4 @@ What the studio holds and who can reach it:
 - **Content Security Policy.** `/studio/` ships a CSP meta tag: scripts only from the site itself (plus WebAssembly), network only to the site and `api.github.com`, no objects, no foreign base or form targets. The boot script moved to `studio/paths.js` so no inline script is needed. The e2e suite fails on any CSP violation in the studio. A meta tag cannot set `frame-ancestors`, so clickjacking protection is not available on Pages.
 - **Not covered:** an XSS in the admin itself could still use the token while the tab is open (the CSP stops it sending the token elsewhere, not from calling the GitHub API). Post bodies render through EmDash's Portable Text, which does not emit raw HTML.
 
-Still open: a plain-language prompt in the studio that explains the token's scope before the user pastes it (6.1b).
+The paste dialog has a "What token do I need?" section that gives the creation link, the single repository, Contents read and write, and how the token is kept.
