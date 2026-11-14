@@ -47,5 +47,5 @@ Add the plugin's URL as an Actions secret (for the demo, `WEBHOOK_URL`; Jessica 
 
 ## 6. Decisions still open for the owner
 
-- Merge the port into the fork's `main` branch (today everything is on `spike/ghpages-phase0`).
+- ~~Merge the port into the fork's `main` branch~~ Done 2026-11-14 (fast-forward to `894f424`). The old `spike/ghpages-phase0` branch is kept for now.
 - Upstream the browser API and the admin hooks to EmDash, or keep carrying the patched admin and core as release assets.

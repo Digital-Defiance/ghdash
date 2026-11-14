@@ -27,7 +27,7 @@ Drafts are public because the repo is public, so GHDash suits open source sites.
 
 Experimental. Done so far: the static build, a lossless JSON round trip, EmDash's handlers running in the browser on SQLite compiled to WebAssembly, a live Pages deploy, a minimal browser editor, and a configurable admin that boots under a repo base path. In progress: the browser API that lets the full admin work, then a pending-changes tray with a commit button. Still to do: media, search, scheduled publishing, and plugins.
 
-Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). The work is on the `spike/ghpages-phase0` branch.
+Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). The work is on `main`.
 
 ## Try it
 

@@ -8,4 +8,4 @@ Working notes for running EmDash as a static site on GitHub Pages, with content 
 - Demo and test site: [GHDash-example](https://github.com/Digital-Defiance/GHDash-example), live at https://digital-defiance.github.io/GHDash-example/.
 - Admin build tarballs: release `pages-v*` assets, built by `.github/workflows/pages-tarballs.yml`.
 
-The fork's own changes live on branch `spike/ghpages-phase0`. The repo's root README is left untouched to ease merging upstream.
+The fork's own changes live on `main`. The repo's root README is left untouched to ease merging upstream.
