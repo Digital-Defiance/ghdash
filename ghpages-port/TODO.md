@@ -5,10 +5,11 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
-- **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/; 2a minimal editor at `/admin/`; 2b.1–2b.3 and 2b.7 (admin paths configurable, admin boots at `/studio/`, release tarballs).
-- **Live:** `/studio/` is deployed at https://digital-defiance.github.io/GHDash-example/studio/ (merged to `main` 2026-11-14, release `pages-v0.3.0`); checked on the live site in headless Chromium (loads, lists posts, edits count in the tray, deep link works).
-- **Next:** Jessica's real-token try-out (2a.3), media upload (Phase 3), then the remaining Phase 1 items (sitemap, robots, redirects) and the adapter package.
-- **Open from Phase 1:** adapter package, `revisions.json`, media, sitemap.
+- **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
+- **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
+- **Next:** sitemap, robots and redirects (finishes Phase 1), then the adapter package, `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
+- **Open from Phase 1:** adapter package, `revisions.json`, image optimisation, sitemap/robots/redirects.
+- **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
 **Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
