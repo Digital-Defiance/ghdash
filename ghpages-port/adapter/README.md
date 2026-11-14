@@ -4,6 +4,8 @@ Build-side commands for an EmDash site that is published to GitHub Pages, with i
 
 ```
 ghdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
+ghdash-pages publish-due         publish scheduled entries that are due and update content/ (after fetch-browser-api)
+ghdash-pages due                 prints true or false: is a scheduled entry due? (for a scheduled workflow)
 ghdash-pages studio-assets       public/studio-data/ for the in-browser admin
 ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
 ghdash-pages copy-media          media/ -> public/media/

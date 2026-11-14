@@ -7,7 +7,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
 - **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
-- **Next:** (Phase 1 done once `pages-v0.5.0` is released and the adapter branch is merged) `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
+- **Next:** comments with giscus (Phase 4), moving `src/studio/` into a package, `revisions.json` size, then plugins (Phase 5) and hardening (Phase 6).
 - **Open from Phase 1:** `revisions.json`, image optimisation, moving `src/studio/` into a package.
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
@@ -59,7 +59,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 3.1 Media upload: files go to an in-memory pending map, show in the tray as `Media` changes, persist in IndexedDB, and commit as blobs under `media/<key>`. Limit 10 MB per file (`MAX_UPLOAD`); the browser API reports `NOT_SUPPORTED` for signed uploads so the admin uses its direct-upload path. Needs release `pages-v0.4.0`. **Known gaps:** images already in the repo only display after the site is rebuilt; the editor's inline images keep `/_emdash/api/media/file/...` URLs inside the studio.
 - [x] 3.2 Media library: the `media` table (`content/media.json`) is the index, so no separate `_index.json`. Deleting a committed item shows in the tray as a deleted file and is committed as a removal.
 - [x] 3.3 Pagefind index in the build (`pagefind --site dist/client` after the URL rebase), search UI in `src/pages/search.astro`. Only pages marked `data-pagefind-body` (posts and pages) are indexed.
-- [ ] 3.4 Cron Action for scheduled publishing.
+- [x] 3.4 Scheduled publishing: the studio schedules through EmDash's own handler (fixed a facade bug where the options object was passed as the clock). At build, `ghdash-pages publish-due` runs the core sweep (`publishDue` from the browser API bundle) on `data.db`, then writes `content/` back; `pages.yml` runs hourly (cron `17 * * * *`), skips the build unless `ghdash-pages due` says something is due, and commits the published state to `main`. Published time is the scheduled time. Tested with a real database (`test/publish-due.test.mjs`) and the studio (e2e). Needs release `pages-v0.6.0`. **Not covered:** picking the date in the admin's schedule dialog is not automated, only the API call.
 
 ## Phase 4: Comments · est. 2–4 days
 - [ ] 4.1 giscus component for collections with `commentsEnabled`.

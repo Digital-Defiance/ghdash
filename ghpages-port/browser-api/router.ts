@@ -116,6 +116,8 @@ function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>) {
 		configuredPlugins: [],
 		sandboxedPluginEntries: [],
 		getManifest: () => buildManifest(db),
+		handleContentSchedule: (collection: string, id: string, scheduledAt: string, options: { _rev?: string } = {}) =>
+			content.handleContentSchedule(db, collection, id, scheduledAt, new Date(), options._rev),
 		handleCommentModerate: (id: string, status: any) => comments.handleCommentStatusChange(db, id, status),
 		invalidateUrlPatternCache() {},
 		ensureSearchHealthy: async () => {},

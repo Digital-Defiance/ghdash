@@ -15,6 +15,8 @@ export interface EmDashPaths {
 	apiBase?: string;
 	/** Replaces `fetch` for every `apiFetch` call, so the API can run without a server. */
 	fetch?: typeof fetch;
+	/** Where the public site lives, for the "View Site" link. Defaults to "/". */
+	siteBase?: string;
 	/** Rendered in the header, before the "View Site" link. */
 	HeaderExtras?: ComponentType;
 	/** Called once with the admin's query client, so a host that changes data behind the API can reset cached screens. */
@@ -31,6 +33,7 @@ export const DEFAULT_API_BASE = "/_emdash/api";
 export const ADMIN_BASE = trim(configured?.adminBase ?? DEFAULT_ADMIN_BASE);
 export const API_BASE = trim(configured?.apiBase ?? DEFAULT_API_BASE);
 export const customFetch = configured?.fetch;
+export const SITE_BASE = configured?.siteBase ?? "/";
 export const HeaderExtras = configured?.HeaderExtras;
 export const onQueryClient = configured?.onQueryClient;
 

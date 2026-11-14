@@ -9,7 +9,7 @@ import { useCurrentUser } from "../lib/api/current-user";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserAvatar } from "./UserAvatar.js";
-import { ADMIN_BASE, HeaderExtras } from "../lib/paths.js";
+import { ADMIN_BASE, HeaderExtras, SITE_BASE } from "../lib/paths.js";
 
 export type { CurrentUser } from "../lib/api/current-user";
 
@@ -69,7 +69,7 @@ export function Header({ staging = false }: { staging?: boolean }) {
 				{HeaderExtras && <HeaderExtras />}
 
 				{/* View site link */}
-				<LinkButton variant="ghost" size="sm" href="/" external>
+				<LinkButton variant="ghost" size="sm" href={SITE_BASE} external>
 					<ArrowSquareOut className="h-4 w-4 me-1" />
 					{t`View Site`}
 				</LinkButton>
