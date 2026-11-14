@@ -280,3 +280,22 @@ What the studio holds and who can reach it:
 - **Not covered:** an XSS in the admin itself could still use the token while the tab is open (the CSP stops it sending the token elsewhere, not from calling the GitHub API). Post bodies render through EmDash's Portable Text, which does not emit raw HTML.
 
 The paste dialog has a "What token do I need?" section that gives the creation link, the single repository, Contents read and write, and how the token is kept.
+
+## 17. Pulling in upstream EmDash (2026-11-14)
+
+**What we change in upstream code.** Only 15 files outside `ghpages-port/`, all in `packages/admin/src` (`git diff --name-only origin/main HEAD -- packages`): `App.tsx`, `router.tsx`, `lib/paths.ts` (new, the one place that knows about base paths), `lib/url.ts`, `lib/plugin-links.ts`, `lib/api/client.ts`, `lib/api/media.ts`, and eight components that built `/_emdash/admin` links by hand (`AdminCommandPalette`, `DeviceAuthorizePage`, `Header`, `InviteAcceptPage`, `LoginPage`, `SetupWizard`, `SignupPage`, `WordPressImport`). Core, auth and the route files are untouched: the browser API loads them as they are.
+
+**Rule for new patches.** Keep them additive and small. Anything that builds a URL goes through `lib/paths.ts`. Anything new for the port goes under `ghpages-port/` or `.github/workflows/pages-tarballs.yml`.
+
+**Procedure for each upstream release**
+1. `git remote add upstream <the upstream EmDash repository URL>` (once), then `git fetch upstream`.
+2. On a branch off `spike/ghpages-phase0`, run `git rebase upstream/main` (or merge, if the history is long). Conflicts are most likely in the 15 files above; keep upstream's change and re-apply the `paths.ts` call.
+3. `grep -rn "/_emdash/admin\|/_emdash/api" packages/admin/src` and route any new hand-built URL through `lib/paths.ts`.
+4. `pnpm build`, `pnpm typecheck`, `pnpm lint:quick`, then the adapter tests (`cd ghpages-port/adapter && npm test`).
+5. Rebuild the browser API (`ghpages-port/browser-api`) and check the router still covers every route file: the studio e2e test "every sidebar page loads without API errors" fails if a new route needs something the facade lacks.
+6. Check upstream's new migrations: they run on the freshly initialised database at build time and in `empty.db`, so they apply to existing sites without changing `content/`. A migration that changes `ec_*` tables needs `_ddl.json` regenerated (`ghdash-pages export-content`), which a normal build does.
+7. Tag `pages-v*`, point the demo at it (`npm install`), and wait for the demo's CI to pass before merging.
+
+**Version names.** The tarballs are named after the upstream package versions (`emdash-1.5.0.tgz`). When upstream bumps the version the asset names change, so update the `overrides` URLs in the demo's `package.json` and in the template instructions in the same change.
+
+**Cadence.** Rebase on upstream minor releases, or sooner for a security fix. Between releases, nothing needs doing: the demo pins a release.

@@ -5,10 +5,10 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
-- **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; template repo and `SETUP.md` (6.2); revisions split per row (1.4b); image downscale (1.5); Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path.
-- **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.9.0` (admin, core, browser API, adapter).
+- **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; template repo and `SETUP.md` (6.2); revisions split per row (1.4b); image downscale (1.5); Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path; CSP on /studio/ (6.1); token explainer (6.1b).
+- **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.10.0` (admin, core, browser API, adapter).
 - **Needs the site owner:** giscus comments (4.1) are merged but stay off until Discussions is enabled, the giscus app is installed and `giscus.json` is committed.
-- **Next:** plugins (Phase 5), hardening (Phase 6).
+- **Next:** plugins (Phase 5), then the remaining Phase 6 items.
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; images are only downscaled (no srcset or WebP yet); the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -78,8 +78,8 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 6.1 CSP on `/studio/` (meta tag, no inline script) and a written review of token handling (SPEC §16). Demo branch `hardening-csp`.
 - [x] 6.1b Token explainer in the studio paste dialog: "What token do I need?" with the creation link, repository, permission and handling (adapter 0.5.0).
 - [x] 6.2 Template repo: e2e suite takes the base path from `BASE_PATH`, giscus example uses placeholders, `SETUP.md` covers template, Pages, token, giscus, scheduling. (Branch `template-repo` on the example repo; the "Template repository" checkbox in its settings is still to be ticked by the owner.)
-- [~] 6.3 Tests: 27 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 9 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. **Still to do:** JSON round trip as a CI test, a CI run with a real token (`test/live.mjs`).
-- [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.
+- [~] 6.3 Tests: 28 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 12 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. **Still to do:** JSON round trip as a CI test, a CI run with a real token (`test/live.mjs`).
+- [x] 6.4 Rebase plan and checklist for pulling in upstream EmDash (SPEC §17): 15 upstream files touched, a rule for new patches, a seven-step procedure.
 
 ## Log
 - 2026-11-13: Spec and TODO created after the feasibility review.
