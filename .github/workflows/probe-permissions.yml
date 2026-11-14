@@ -1,0 +1,26 @@
+name: Probe token permissions
+
+on:
+  push:
+    branches: [probe-permissions]
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create and delete a draft release with the workflow token
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          out=$(gh api -X POST "repos/${GITHUB_REPOSITORY}/releases" -f tag_name=probe-permissions-tmp -f name=probe -F draft=true 2>&1)
+          echo "create release: $out" | head -c 600
+          id=$(echo "$out" | jq -r '.id // empty' 2>/dev/null)
+          [ -n "$id" ] && gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/$id" && echo "deleted draft $id"
+          echo "---"
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/git/refs" -f ref=refs/tags/probe-permissions-tag -f sha="${GITHUB_SHA}" 2>&1 | head -c 400
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/probe-permissions-tag" 2>&1 | head -c 200
+          true
