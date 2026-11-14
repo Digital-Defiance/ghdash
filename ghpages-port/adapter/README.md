@@ -57,6 +57,17 @@ import * as colorAdmin from "@emdash-cms/plugin-color/admin";
 
 Only the admin side runs in the browser. Plugin hooks and routes do not run in the studio.
 
+### What works for each plugin
+
+| Plugin | In the studio | On the published site | Doesn't work |
+| --- | --- | --- | --- |
+| `color` | Color picker field widget | Values are stored as plain field data and render with your templates | Nothing known |
+| `field-kit` | Its field widgets | Values are plain field data | Nothing known |
+| `embeds` | Block types in the editor, with the insert dialog | Rendered at build time; add `embedsPlugin()` to the `emdash({ plugins: [...] })` list in `astro.config.mjs` | Without that line the blocks save fine but don't render on the site |
+| `webhook-notifier` | Not usable: its settings screen is a plugin route, and routes don't run in the studio | `content:afterSave` and `content:afterDelete` run in the Action (see below) | Configure it in `hooks.config.json` with secrets in Actions secrets, not in the studio |
+
+Two limits apply to every plugin. Public plugin HTTP routes don't exist on Pages, because there is no server. Encrypted secret settings can't be saved in the studio, since the browser has no encryption key, and they are never written to `content/`.
+
 ## Plugin after-hooks in the build Action
 
 `ghdash-pages run-hooks --base <sha> --head <sha>` runs the `content:afterSave` and `content:afterDelete` hooks of the plugins in `hooks.config.json` for each content file that changed between the commits (added or modified: save, with `isNew` for added files; deleted or soft-deleted: delete).
