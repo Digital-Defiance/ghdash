@@ -20,6 +20,7 @@ import { apiFetch, API_BASE, ApiResponseError, parseApiResponse } from "../lib/a
 import { cn } from "../lib/utils";
 import { API_TOKEN_SCOPE_VALUES } from "./settings/ApiTokenSettings.js";
 import { UserAvatar } from "./UserAvatar.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types
@@ -130,7 +131,7 @@ export function DeviceAuthorizePage() {
 	React.useEffect(() => {
 		if (!isLoading && (authError || !user)) {
 			const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-			window.location.href = `/_emdash/admin/login?redirect=${returnUrl}`;
+			window.location.href = `${ADMIN_BASE}/login?redirect=${returnUrl}`;
 		}
 	}, [isLoading, authError, user]);
 

@@ -15,6 +15,7 @@ import { useAuthProviderList } from "../lib/auth-provider-context";
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
 import { RouterLinkButton } from "./RouterLinkButton.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 type InviteStep = "verify" | "register" | "error";
 
@@ -24,7 +25,7 @@ interface RegisterStepProps {
 }
 
 function handleInviteSuccess() {
-	window.location.href = "/_emdash/admin";
+	window.location.href = ADMIN_BASE;
 }
 
 function RegisterStep({ inviteData, token }: RegisterStepProps) {

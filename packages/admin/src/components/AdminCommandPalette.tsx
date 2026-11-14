@@ -30,6 +30,7 @@ import {
 	resolvePluginPageLabel,
 	visibleCollectionEntries,
 } from "./Sidebar.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 /** Subset of manifest fields used by the palette (matches `Shell` props shape). */
 type CommandPaletteManifest = {
@@ -433,7 +434,7 @@ export function AdminCommandPalette({ manifest }: AdminCommandPaletteProps) {
 				const path = item.params
 					? item.to.replace(ROUTE_PARAM_REGEX, (_, key) => item.params?.[key] ?? "")
 					: item.to;
-				window.open(`/_emdash/admin${path}`, "_blank");
+				window.open(`${ADMIN_BASE}${path}`, "_blank");
 			} else {
 				// Navigate within the app
 				void navigate({

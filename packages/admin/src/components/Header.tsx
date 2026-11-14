@@ -9,6 +9,7 @@ import { useCurrentUser } from "../lib/api/current-user";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserAvatar } from "./UserAvatar.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 export type { CurrentUser } from "../lib/api/current-user";
 
@@ -22,14 +23,14 @@ async function handleLogout() {
 	} catch {
 		// ignore — flag is best-effort
 	}
-	const res = await apiFetch("/_emdash/api/auth/logout?redirect=/_emdash/admin/login", {
+	const res = await apiFetch(`/_emdash/api/auth/logout?redirect=${ADMIN_BASE}/login`, {
 		method: "POST",
 		credentials: "same-origin",
 	});
 	if (res.redirected) {
 		window.location.href = res.url;
 	} else {
-		window.location.href = "/_emdash/admin/login";
+		window.location.href = `${ADMIN_BASE}/login`;
 	}
 }
 

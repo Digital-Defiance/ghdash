@@ -23,6 +23,7 @@ import { useAuthProviderList, type AuthProviderModule } from "../lib/auth-provid
 import { navigateTo } from "../lib/navigation.js";
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types
@@ -88,8 +89,8 @@ type WizardStep = "site" | "admin" | "passkey";
 
 type StartWith = "sample" | "empty" | "import";
 
-const ADMIN_HOME_URL = "/_emdash/admin";
-const START_IMPORT_URL = "/_emdash/admin/settings/transfer?start=import";
+const ADMIN_HOME_URL = ADMIN_BASE;
+const START_IMPORT_URL = `${ADMIN_BASE}/settings/transfer?start=import`;
 
 function completionUrl(startWith: StartWith): string {
 	return startWith === "import" ? START_IMPORT_URL : ADMIN_HOME_URL;
@@ -579,7 +580,7 @@ export function SetupWizard() {
 
 	// Redirect if setup already complete
 	if (!statusLoading && status && !status.needsSetup) {
-		window.location.href = "/_emdash/admin";
+		window.location.href = ADMIN_BASE;
 		return null;
 	}
 

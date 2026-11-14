@@ -2,7 +2,9 @@
  * Shared URL validation and transformation utilities
  */
 
-const DEFAULT_REDIRECT = "/_emdash/admin";
+import { ADMIN_BASE } from "./paths.js";
+
+const DEFAULT_REDIRECT = ADMIN_BASE;
 const LEADING_SLASHES = /^\/+/;
 // eslint-disable-next-line no-control-regex -- rejecting control characters is the whole point of this regex
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;

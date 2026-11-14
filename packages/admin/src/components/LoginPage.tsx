@@ -27,6 +27,7 @@ import { SUPPORTED_LOCALES } from "../locales/index.js";
 import { useLocale } from "../locales/useLocale.js";
 import { PasskeyLogin } from "./auth/PasskeyLogin";
 import { BrandLogo } from "./Logo.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types
@@ -164,7 +165,7 @@ function MagicLinkForm({ onBack }: MagicLinkFormProps) {
 // Main Component
 // ============================================================================
 
-export function LoginPage({ redirectUrl = "/_emdash/admin" }: LoginPageProps) {
+export function LoginPage({ redirectUrl = ADMIN_BASE }: LoginPageProps) {
 	// Defense-in-depth: sanitize even if the caller already validated
 	const safeRedirectUrl = sanitizeRedirectUrl(redirectUrl);
 	const { t } = useLingui();

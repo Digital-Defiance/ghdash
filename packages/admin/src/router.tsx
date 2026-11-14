@@ -193,6 +193,7 @@ import { BylineSchemaPage } from "./routes/byline-schema";
 import { BylinesPage } from "./routes/bylines";
 import { CalendarPage } from "./routes/calendar";
 import { UsersPage } from "./routes/users";
+import { ADMIN_BASE } from "./lib/paths.js";
 
 // Router context type
 interface RouterContext {
@@ -473,7 +474,7 @@ const loginRoute = createRoute({
 function LoginPageWrapper() {
 	// Extract redirect URL from query params, sanitized to prevent open redirect / XSS
 	const searchParams = new URLSearchParams(window.location.search);
-	const redirect = sanitizeRedirectUrl(searchParams.get("redirect") || "/_emdash/admin");
+	const redirect = sanitizeRedirectUrl(searchParams.get("redirect") || ADMIN_BASE);
 	return <LoginPage redirectUrl={redirect} />;
 }
 
@@ -490,7 +491,7 @@ const magicLinkConfirmRoute = createRoute({
 
 function MagicLinkConfirmPageWrapper() {
 	const { token, redirect } = useSearch({ from: "/login/magic-link" });
-	const safeRedirect = sanitizeRedirectUrl(redirect || "/_emdash/admin");
+	const safeRedirect = sanitizeRedirectUrl(redirect || ADMIN_BASE);
 	return <MagicLinkConfirmPage token={token ?? null} redirectUrl={safeRedirect} />;
 }
 
@@ -4007,7 +4008,7 @@ export function createAdminRouter(queryClient: QueryClient) {
 	return createRouter({
 		routeTree,
 		context: { queryClient },
-		basepath: "/_emdash/admin",
+		basepath: ADMIN_BASE,
 		defaultPreload: "intent",
 	});
 }

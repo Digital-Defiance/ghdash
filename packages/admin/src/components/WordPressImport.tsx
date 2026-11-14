@@ -64,6 +64,7 @@ import {
 import { cn } from "../lib/utils";
 import { CaretNext } from "./ArrowIcons.js";
 import { MediaImportSummary } from "./MediaImportSummary.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 export function WordPressExporterMessage() {
 	return (
@@ -2497,7 +2498,7 @@ function CompleteStep({
 				<Button variant="outline" onClick={onReset}>
 					{t`Import Another File`}
 				</Button>
-				<LinkButton href="/_emdash/admin">{t`Go to Dashboard`}</LinkButton>
+				<LinkButton href={ADMIN_BASE}>{t`Go to Dashboard`}</LinkButton>
 			</div>
 		</div>
 	);

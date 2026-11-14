@@ -7,8 +7,9 @@ import { i18n } from "@lingui/core";
 import { msg } from "@lingui/core/macro";
 
 import type { EditorDraftAccessDeclaration } from "../sandboxed-editor-extensions.js";
+import { API_BASE, customFetch, resolveApiUrl } from "../paths.js";
 
-export const API_BASE = "/_emdash/api";
+export { API_BASE };
 
 const forbiddenResponseListeners = new Set<() => void>();
 
@@ -22,7 +23,7 @@ export async function apiFetch(
 ): Promise<Response> {
 	const headers = new Headers(init?.headers);
 	headers.set("X-EmDash-Request", "1");
-	const response = await fetch(input, { ...init, headers });
+	const response = await (customFetch ?? fetch)(resolveApiUrl(input), { ...init, headers });
 	if (response.status === 403) {
 		for (const listener of forbiddenResponseListeners) listener();
 	}

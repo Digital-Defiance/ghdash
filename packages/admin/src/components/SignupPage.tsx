@@ -20,6 +20,7 @@ import { requestSignup, verifySignupToken, type SignupVerifyResult } from "../li
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
 import { RouterLinkButton } from "./RouterLinkButton.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 
 export function VerificationSentMessage({ email }: { email: string }) {
 	return (
@@ -186,7 +187,7 @@ interface VerifyStepProps {
 
 function handleSignupSuccess() {
 	// Redirect to admin dashboard after successful signup
-	window.location.href = "/_emdash/admin";
+	window.location.href = ADMIN_BASE;
 }
 
 function VerifyStep({ verifyResult, token, onBack: _onBack }: VerifyStepProps) {
