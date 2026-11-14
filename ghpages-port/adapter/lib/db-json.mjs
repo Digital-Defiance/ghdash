@@ -31,6 +31,9 @@ const SKIP = [
 	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
 	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,
 ];
+// Encrypted plugin secret settings are never published, even as ciphertext.
+const isSecretOption = (t, r) =>
+	t === "options" && /^plugin:[^:]+:settings:/.test(String(r.name)) && /"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
 const perRow = (t) => t.startsWith("ec_") || t === "revisions";
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) =>
@@ -68,6 +71,7 @@ function exportDb(dbPath, out, freshPath) {
 		const rows = db
 			.prepare(`select * from "${t}" order by ${pk.map((c) => `"${c}"`).join(",")}`)
 			.all()
+			.filter((r) => !isSecretOption(t, r))
 			.map((r) => sortKeys({ ...r }));
 		if (!rows.length) continue;
 		if (perRow(t)) {

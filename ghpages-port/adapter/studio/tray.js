@@ -15,6 +15,9 @@ const SKIP = [
 	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
 	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,
 ];
+// Encrypted plugin secret settings are never published, even as ciphertext.
+const isSecretOption = (t, r) =>
+	t === "options" && /^plugin:[^:]+:settings:/.test(String(r.name)) && /"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
 const perRow = (t) => t.startsWith("ec_") || t === "revisions";
@@ -42,7 +45,7 @@ export function snapshot(db, freshNames) {
 	const tables = db.selectValues("select name from sqlite_master where type='table' order by name").filter((t) => !skip(t));
 	for (const t of tables) {
 		const pk = pkCols(db, t);
-		const rows = db.selectObjects(`select * from ${q(t)} order by ${pk.map(q).join(",")}`).map((r) => sortKeys(r));
+		const rows = db.selectObjects(`select * from ${q(t)} order by ${pk.map(q).join(",")}`).filter((r) => !isSecretOption(t, r)).map((r) => sortKeys(r));
 		if (!rows.length) continue;
 		if (perRow(t)) for (const r of rows) files.set(`${t}/${r.id}.json`, stringify(r));
 		else files.set(`${t}.json`, stringify(rows));
