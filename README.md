@@ -1,3 +1,42 @@
+# GHDash
+
+GHDash is a fork of [EmDash](https://github.com/emdash-cms/emdash) that runs entirely on GitHub Pages. There is no server and no database service. Your site's content, schema and settings are JSON files in a public repo, a GitHub Action builds them into a static site, and you edit from the browser with a GitHub token that commits straight to the repo.
+
+**Live demo:** https://digital-defiance.github.io/GHDash-example/ (source: [GHDash-example](https://github.com/Digital-Defiance/GHDash-example))
+
+## Why a fork
+
+EmDash is built for servers: Cloudflare Workers or Node.js, with SQL at request time. That is the right design for most sites, but it rules out free static hosting, and it means open source projects, docs and personal blogs need infrastructure they would rather not run. GHDash keeps EmDash's content model, templates and admin, and changes where the data lives and when pages are rendered.
+
+The fork stays close to upstream on purpose. Changes are additive (for example, the admin reads its base paths from `globalThis.__EMDASH_PATHS__`, and defaults are unchanged), so pulling in EmDash releases stays practical.
+
+## What changes
+
+| | EmDash | GHDash |
+| --- | --- | --- |
+| Content store | SQLite, D1 or Postgres | JSON files in the repo (one file per row) |
+| Rendering | On each request | Static build in a GitHub Action |
+| Admin | Served by the site, signs in with passkeys | Static admin in the browser, signs in with a fine-grained token |
+| Saving | Writes to the database | One atomic commit through the GitHub API |
+| Comments | Built in | giscus (commenters need a GitHub account) |
+| Plugins | Sandboxed runtime | Browser admin UI and before-hooks, plus build-time after-hooks; public plugin HTTP routes are lost |
+
+Drafts are public because the repo is public, so GHDash suits open source sites.
+
+## Status
+
+Experimental. Done so far: the static build, a lossless JSON round trip, EmDash's handlers running in the browser on SQLite compiled to WebAssembly, a live Pages deploy, a minimal browser editor, and a configurable admin that boots under a repo base path. In progress: the browser API that lets the full admin work, then a pending-changes tray with a commit button. Still to do: media, search, scheduled publishing, and plugins.
+
+Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). The work is on the `spike/ghpages-phase0` branch.
+
+## Try it
+
+Fork [GHDash-example](https://github.com/Digital-Defiance/GHDash-example), enable Pages (Settings, Pages, Source: GitHub Actions), and open `/admin/` on your site with a fine-grained token (Contents: read and write, that repo only).
+
+The rest of this README is EmDash's own, kept as is.
+
+---
+
 # EmDash
 
 A full-stack TypeScript CMS built on [Astro](https://astro.build/). EmDash takes the ideas that made WordPress dominant -- extensibility, admin UX, a plugin ecosystem -- and rebuilds them on serverless, type-safe foundations. Plugins run in sandboxed Worker isolates, solving the fundamental security problem with WordPress's plugin architecture.
