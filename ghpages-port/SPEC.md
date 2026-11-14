@@ -1,6 +1,6 @@
 # EmDash on GitHub Pages: Port Spec
 
-Status: **Phase 0 done. Phase 1 in progress: the demo site is live at https://digital-defiance.github.io/GHDash-example/. See §11–§12.**
+Status: **Phase 0 and Phase 1 done. Phase 2b: the real admin runs at `/studio/` on the live demo (https://digital-defiance.github.io/GHDash-example/studio/) with a pending-changes tray and one-commit saves; a real-token try-out is the next check. See §11–§14b.**
 Last updated: 2026-11-13
 Owner: Jessica
 Companion file: [TODO.md](./TODO.md), the checkable work list. Update both files as work proceeds.

@@ -6,7 +6,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/; 2a minimal editor at `/admin/`; 2b.1–2b.3 and 2b.7 (admin paths configurable, admin boots at `/studio/`, release tarballs).
-- **Next:** release `pages-v0.3.0` (admin with the new hooks), then point the demo at it and merge `studio-experiment` to `main`; then media (Phase 3) and the remaining Phase 1 items.
+- **Live:** `/studio/` is deployed at https://digital-defiance.github.io/GHDash-example/studio/ (merged to `main` 2026-11-14, release `pages-v0.3.0`); checked on the live site in headless Chromium (loads, lists posts, edits count in the tray, deep link works).
+- **Next:** Jessica's real-token try-out (2a.3), media upload (Phase 3), then the remaining Phase 1 items (pagination, search, sitemap) and the adapter package.
 - **Open from Phase 1:** pagination, search, adapter package, `revisions.json`, media, sitemap.
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -95,3 +96,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-14: e2e suite added (14 passing locally); deep links fixed.
 - 2026-11-14: Browser API packaged as a release asset; release pages-v0.2.0 published (first push of the tag hit the wrong commit and was redone); clean demo build plus 14 e2e tests pass against it.
 - 2026-11-14: Pending-changes tray, commit and conflict flow built; 18 e2e and 6 unit tests pass locally. Needs release pages-v0.3.0 for the admin hooks.
+- 2026-11-14: studio-experiment merged to GHDash-example main; /studio/ is live and checked.
