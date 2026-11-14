@@ -308,3 +308,13 @@ The paste dialog has a "What token do I need?" section that gives the creation l
 - **Bug found and fixed on the way:** adding a field in the studio and reloading left the page on "Loading site data…" for good. The saved pending changes included rows for a column that the freshly loaded database did not have. Restore now applies the saved schema first (adds missing tables and columns; indexes and triggers are not restored) and, if anything still fails, drops the saved changes and shows a message instead of blocking the studio.
 
 **Embeds (2026-11-14).** `embeds` has no admin module: it adds Portable Text block types. The editor reads them from the manifest (`admin.portableTextBlocks`), so the studio entry carries the seven block descriptions; picking one opens a dialog with its fields and Insert saves the block into the post. On the site the plugin is a normal build-time plugin (`embedsPlugin()` in the emdash integration), and EmDash registers its Astro components with `PortableText` itself. Network access is needed at build time only for embeds that fetch metadata (link previews, tweets).
+
+## 19. Proposal for plugin hooks, 5.2 and 5.3 (2026-11-14)
+
+None of the bundled UI plugins (`color`, `field-kit`, `embeds`) has hooks, so this is for plugins like `webhook-notifier`, `audit-log` and `atproto`.
+
+**5.3 After-hooks in the build Action (recommended first).** After a push to `main`, a step in `pages.yml` works out which entries changed since the last processed commit (a `git diff` of `content/ec_*/`), loads the plugin in Node, and calls its `content:afterSave` / `content:afterPublish` / `content:afterDelete` hooks for those entries. Secrets come from Actions secrets, never from the repo. The last processed commit is kept in the Actions cache (or a small committed marker) so a re-run does not notify twice. The first target is `webhook-notifier`. Risk: low. Hooks run in a trusted place, with no browser sandbox problem.
+
+**5.2 Before-hooks in the browser (defer).** `content:beforeSave` and `beforePublish` can veto or rewrite content. Running a plugin's server code in the browser means bundling its dependencies and giving it the browser API's database, and most plugins assume a server (network access, secrets, storage). A safe version needs a Web Worker sandbox and a plugin opt-in (`browserHooks`). Do this only when a concrete plugin needs it.
+
+**What changes for plugin authors.** Public plugin routes (`forms` submissions, `ai-search`) are not supported on Pages; the Action can only react to commits.
