@@ -7,7 +7,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
 - **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
-- **Next:** comments with giscus (Phase 4), moving `src/studio/` into a package, `revisions.json` size, then plugins (Phase 5) and hardening (Phase 6).
+- **Next:** moving `src/studio/` into a package, `revisions.json` size, then plugins (Phase 5) and hardening (Phase 6).
 - **Open from Phase 1:** `revisions.json`, image optimisation, moving `src/studio/` into a package.
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
@@ -62,7 +62,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 3.4 Scheduled publishing: the studio schedules through EmDash's own handler (fixed a facade bug where the options object was passed as the clock). At build, `ghdash-pages publish-due` runs the core sweep (`publishDue` from the browser API bundle) on `data.db`, then writes `content/` back; `pages.yml` runs hourly (cron `17 * * * *`), skips the build unless `ghdash-pages due` says something is due, and commits the published state to `main`. Published time is the scheduled time. Tested with a real database (`test/publish-due.test.mjs`) and the studio (e2e). Needs release `pages-v0.6.0`. **Not covered:** picking the date in the admin's schedule dialog is not automated, only the API call.
 
 ## Phase 4: Comments · est. 2–4 days
-- [ ] 4.1 giscus component for collections with `commentsEnabled`.
+- [x] 4.1 giscus comments on posts (`GHDash-example`: `src/components/Giscus.astro`, config in `giscus.json`, mapped by post slug, shown only when the config is complete). The server-backed EmDash comment widgets are no longer rendered. **Needs from the site owner:** enable Discussions on the repo, install the giscus app, and commit `giscus.json` (see `giscus.example.json`). **Not done:** the `commentsEnabled` per-collection setting isn't read, and the admin's Comments screen still lists only server comments, which a static site never receives.
 - [ ] 4.2 (Optional) Issue-form link, plus an `issues: opened` Action that runs comment hooks, commits JSON and rebuilds.
 
 ## Phase 5: Plugins · est. 2–4 weeks
