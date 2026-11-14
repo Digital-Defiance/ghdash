@@ -75,7 +75,8 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 5.7 (Later) Sandboxed plugin runner (Web Worker or Node), and installing marketplace plugins by committing their code.
 
 ## Phase 6: Hardening and docs
-- [ ] 6.1 Admin CSP and PAT handling review.
+- [x] 6.1 CSP on `/studio/` (meta tag, no inline script) and a written review of token handling (SPEC §16). Demo branch `hardening-csp`.
+- [ ] 6.1b Plain-language token explainer in the studio paste dialog.
 - [x] 6.2 Template repo: e2e suite takes the base path from `BASE_PATH`, giscus example uses placeholders, `SETUP.md` covers template, Pages, token, giscus, scheduling. (Branch `template-repo` on the example repo; the "Template repository" checkbox in its settings is still to be ticked by the owner.)
 - [~] 6.3 Tests: 27 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 9 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. **Still to do:** JSON round trip as a CI test, a CI run with a real token (`test/live.mjs`).
 - [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.

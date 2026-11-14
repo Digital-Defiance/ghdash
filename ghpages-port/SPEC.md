@@ -268,3 +268,15 @@ Surprises:
 - Tray: an upload is `@media/<key>` in the change list (label is the filename) and replaces the `media.json` entry while file changes exist. Commit sends `media/<key>` as a blob; a deleted committed row sends `media/<key>: null`. Discard removes the pending bytes and the row, or restores a deleted row.
 - Build: `scripts/copy-media.mjs` copies `media/` to `public/media/`, and `rebase-urls.mjs` rewrites media URLs in built HTML and XML.
 - Covered by two e2e tests (upload, reload, commit bytes; discard).
+
+## 16. Security review: token and studio page (2026-11-14)
+
+What the studio holds and who can reach it:
+
+- **The token** lives in `sessionStorage` under `ghdash-token` and is sent only to `https://api.github.com` as a Bearer header. It dies with the tab. A 401 clears it.
+- **Pending changes** (including uploaded files) live in IndexedDB, keyed by `<repo>#<branch>`. They persist across tabs and restarts and are discarded if the branch head moved.
+- **Shared origin.** Project sites on `<owner>.github.io` all share one origin. Any page on a sibling repo's site could read `sessionStorage` (same tab) and IndexedDB. Use a fine-grained token limited to the one repository with only Contents read and write, so a leak is bounded to that repository. A custom domain per site removes the sharing.
+- **Content Security Policy.** `/studio/` ships a CSP meta tag: scripts only from the site itself (plus WebAssembly), network only to the site and `api.github.com`, no objects, no foreign base or form targets. The boot script moved to `studio/paths.js` so no inline script is needed. The e2e suite fails on any CSP violation in the studio. A meta tag cannot set `frame-ancestors`, so clickjacking protection is not available on Pages.
+- **Not covered:** an XSS in the admin itself could still use the token while the tab is open (the CSP stops it sending the token elsewhere, not from calling the GitHub API). Post bodies render through EmDash's Portable Text, which does not emit raw HTML.
+
+Still open: a plain-language prompt in the studio that explains the token's scope before the user pastes it (6.1b).
