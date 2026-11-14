@@ -318,3 +318,11 @@ None of the bundled UI plugins (`color`, `field-kit`, `embeds`) has hooks, so th
 **5.2 Before-hooks in the browser (defer).** `content:beforeSave` and `beforePublish` can veto or rewrite content. Running a plugin's server code in the browser means bundling its dependencies and giving it the browser API's database, and most plugins assume a server (network access, secrets, storage). A safe version needs a Web Worker sandbox and a plugin opt-in (`browserHooks`). Do this only when a concrete plugin needs it.
 
 **What changes for plugin authors.** Public plugin routes (`forms` submissions, `ai-search`) are not supported on Pages; the Action can only react to commits.
+
+## 20. After-hooks in the Action: results (2026-11-14)
+
+- `ghdash-pages run-hooks --base --head` turns `git diff --name-status` over `content/ec_*/` into hook events (added or modified file: `content:afterSave` with `isNew` for added; deleted file or a row with `deleted_at`: `content:afterDelete`) and runs the plugins from `hooks.config.json`.
+- The hook context is a small in-memory stand-in for `PluginContext`: `kv` and `settings` seeded from the config (`{env: NAME}` values come from the environment, so secrets stay in Actions secrets), `storage` as in-memory collections, `http.fetch`, `log`, `site`. There is no content, media or schema access, so only plugins whose hooks work from the event itself run. `webhook-notifier` does.
+- The `hooks` job runs after `deploy`. Its range starts at the `hooks-last` tag (moved after each successful run) or, the first time, at the push's previous commit. This means a run cancelled by the workflow's `cancel-in-progress` setting does not lose notifications; the next run covers them. A failed run does not move the tag, so a retry can repeat notifications that already went out.
+- Scheduled publishing counts too: the commit made by the hourly run is part of the range, so a post that goes live on schedule is notified.
+- Limits: no media hooks, no `content:afterPublish` (the status in the row says whether it is published), and a large import sends one call per entry.

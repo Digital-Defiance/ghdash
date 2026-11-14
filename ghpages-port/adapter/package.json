@@ -1,6 +1,6 @@
 {
   "name": "@digital-defiance/ghdash-pages",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",
@@ -22,7 +22,8 @@
   },
   "exports": {
     "./studio/*": "./studio/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./hooks": "./lib/hooks-runner.mjs"
   },
   "peerDependencies": {
     "@emdash-cms/admin": "*",

@@ -5,6 +5,7 @@ Build-side commands for an EmDash site that is published to GitHub Pages, with i
 ```
 ghdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
 ghdash-pages publish-due         publish scheduled entries that are due and update content/ (after fetch-browser-api)
+ghdash-pages run-hooks --base <sha> --head <sha>  run plugin after-hooks for content that changed between two commits (reads hooks.config.json)
 ghdash-pages due                 prints true or false: is a scheduled entry due? (for a scheduled workflow)
 ghdash-pages studio-assets       public/studio-data/ for the in-browser admin
 ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
@@ -55,3 +56,22 @@ import * as colorAdmin from "@emdash-cms/plugin-color/admin";
 ```
 
 Only the admin side runs in the browser. Plugin hooks and routes do not run in the studio.
+
+## Plugin after-hooks in the build Action
+
+`ghdash-pages run-hooks --base <sha> --head <sha>` runs the `content:afterSave` and `content:afterDelete` hooks of the plugins in `hooks.config.json` for each content file that changed between the commits (added or modified: save, with `isNew` for added files; deleted or soft-deleted: delete).
+
+```json
+{
+	"site": { "name": "My site", "url": "https://owner.github.io/repo/" },
+	"plugins": [
+		{
+			"id": "webhook-notifier",
+			"module": "@emdash-cms/plugin-webhook-notifier/sandbox",
+			"settings": { "webhookUrl": { "env": "WEBHOOK_URL" }, "secretToken": { "env": "WEBHOOK_TOKEN" }, "enabled": true }
+		}
+	]
+}
+```
+
+`{ "env": "NAME" }` reads the value from the environment (use Actions secrets); a variable that is not set leaves the setting unset. The hook gets `kv` and `settings` seeded from these values, in-memory `storage`, `http.fetch` and `log`. Content, media and schema access are not provided, and nothing a plugin stores outlives the run. Media uploads do not trigger `media:afterUpload`. The programmatic API is `@digital-defiance/ghdash-pages/hooks`.
