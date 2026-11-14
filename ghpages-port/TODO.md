@@ -7,8 +7,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
 - **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
-- **Next:** sitemap, robots and redirects (finishes Phase 1), then the adapter package, `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
-- **Open from Phase 1:** adapter package, `revisions.json`, image optimisation, sitemap/robots/redirects.
+- **Next:** the adapter package (last big Phase 1 item), `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
+- **Open from Phase 1:** adapter package, `revisions.json`, image optimisation.
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -30,7 +30,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
 - [x] 1.7 Font downloads: the workflow now retries the build up to 3 times, so a transient Google font fetch failure no longer fails the deploy.
 - [~] 1.5 Media: the build copies repo `media/` to `public/media/` and rewrites `/_emdash/api/media/file/<key>` to `<base>/media/<key>`. **Still to do:** image optimisation (resizing, srcset).
-- [ ] 1.6 Sitemap, robots and static redirect stubs.
+- [x] 1.6 `sitemap.xml` and `robots.txt` are generated endpoints in `GHDash-example` (absolute URLs including the base path; `/studio/` and `/admin/` disallowed). The RSS feed links now include the base path too (they didn't before). Redirects: `scripts/redirects.mjs` turns enabled rows of `content/_emdash_redirects.json` into meta-refresh pages after the build; pattern redirects are skipped with a warning (static hosting can't do them). Unit-tested; e2e covers sitemap, robots and feed.
 
 ## Phase 2: Browser admin with PAT editing · est. 2–3 weeks
 **2a (minimal editor) is done. 2b (the real EmDash admin) is in progress: it boots, and the browser API is next.** 2a is `GHDash-example/public/admin/index.html`: one static file, PAT sign-in, list/create/edit posts and pages (title, excerpt, plain-paragraph body, status), one commit per save, refuses to save if the branch moved. Tested in headless Chromium against a fake GitHub API, and the JSON it wrote rebuilt into the right pages. Bodies with headings, links, images or lists are read-only there so they can't be damaged.
