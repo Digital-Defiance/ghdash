@@ -1,6 +1,6 @@
 {
   "name": "@digital-defiance/ghdash-pages",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",

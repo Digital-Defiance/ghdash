@@ -1,5 +1,5 @@
 import { checkAccess, commitFiles, getHead, GitHubError } from "./github-commit.js";
-import { applyFile, canonical, diffFiles, mergeRemote, expandLegacyRevisions, revisionPathsFor, snapshot, visibleChanges } from "./tray.js";
+import { applyFile, canonical, diffFiles, mergeRemote, expandLegacyRevisions, revisionPathsFor, applyDdl, snapshot, visibleChanges } from "./tray.js";
 
 const TOKEN_KEY = "ghdash-token";
 const API = "https://api.github.com";
@@ -89,7 +89,14 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 		if (!saved) return;
 		if (saved.head !== head) { await store.del(storeKey).catch(() => {}); return; }
 		for (const [key, file] of Object.entries(saved.media ?? {})) pendingMedia.set(key, file);
-		for (const [path, text] of Object.entries(saved.files)) applyFile(db, path, text);
+		try {
+			if (saved.files["_ddl.json"]) applyDdl(db, saved.files["_ddl.json"]);
+			for (const [path, text] of Object.entries(saved.files)) applyFile(db, path, text);
+		} catch (e) {
+			await store.del(storeKey).catch(() => {});
+			set({ status: { kind: "error", message: `Your earlier pending changes could not be restored and were dropped (${describeError(e)}).` } });
+			return;
+		}
 		refresh();
 		changedExternally();
 	}

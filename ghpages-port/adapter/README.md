@@ -37,3 +37,21 @@ ghdash-pages build-db && ghdash-pages fetch-browser-api && ghdash-pages publish-
 The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js` and `studio/github-commit.js`.
 
 The Pagefind search page and the page templates are part of the site template. See `GHDash-example` for a working site.
+
+## Plugins in the studio
+
+The studio can show plugin screens and field widgets. Before the boot script, set `globalThis.__STUDIO_PLUGINS__`:
+
+```ts
+// src/studio-plugins.ts, imported just before the studio boot script in studio/index.astro
+import * as colorAdmin from "@emdash-cms/plugin-color/admin";
+
+(globalThis as any).__STUDIO_PLUGINS__ = {
+	// What the admin's manifest needs from each plugin definition (see its createPlugin()).
+	plugins: [{ id: "color", version: "0.2.1", admin: { entry: "@emdash-cms/plugin-color/admin", fieldWidgets: [{ name: "picker", label: "Color Picker", fieldTypes: ["string"] }] } }],
+	// The plugin's admin module, as the plugin exports it from its `admin` entry.
+	admins: { color: colorAdmin },
+};
+```
+
+Only the admin side runs in the browser. Plugin hooks and routes do not run in the studio.

@@ -299,3 +299,10 @@ The paste dialog has a "What token do I need?" section that gives the creation l
 **Version names.** The tarballs are named after the upstream package versions (`emdash-1.5.0.tgz`). When upstream bumps the version the asset names change, so update the `overrides` URLs in the demo's `package.json` and in the template instructions in the same change.
 
 **Cadence.** Rebase on upstream minor releases, or sooner for a security fix. Between releases, nothing needs doing: the demo pins a release.
+
+## 18. Plugin admin UI and a restore bug (2026-11-14)
+
+- `createBrowserApi({ plugins })` takes the parts of a plugin definition that the manifest needs (`id`, `version`, `admin`) and fills in the rest of a resolved plugin (empty capabilities, hooks, routes, storage) so the Plugins screen works. Plugin code is not run. The studio gets the plugins' admin modules from `globalThis.__STUDIO_PLUGINS__.admins` and passes them to the admin as `pluginAdmins`.
+- Verified with `@emdash-cms/plugin-color` (published on npm, ships TypeScript source): the Plugins screen lists it, and a string field with widget `color:picker` renders a colour input in the post editor.
+- The manifest entry is written by hand next to the plugin import. Reading it from the plugin's `createPlugin()` would pull the server runtime into the browser bundle.
+- **Bug found and fixed on the way:** adding a field in the studio and reloading left the page on "Loading site data…" for good. The saved pending changes included rows for a column that the freshly loaded database did not have. Restore now applies the saved schema first (adds missing tables and columns; indexes and triggers are not restored) and, if anything still fails, drops the saved changes and shows a message instead of blocking the studio.

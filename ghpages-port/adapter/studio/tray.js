@@ -148,6 +148,32 @@ function insertRow(db, t, row) {
 	});
 }
 
+/** Brings the schema of a freshly loaded database up to a saved `_ddl.json`: creates missing tables and adds missing columns. Indexes and triggers are left alone. */
+export function applyDdl(db, text) {
+	const ddl = JSON.parse(text);
+	const have = new Set(db.selectValues("select name from sqlite_master where type='table'"));
+	for (const o of ddl) {
+		if (o.type !== "table") continue;
+		if (!have.has(o.name)) {
+			db.exec(o.sql);
+			continue;
+		}
+		const scratch = `_ddl_scratch_${o.name}`;
+		const scratchSql = o.sql.replace(/^(\s*create\s+table\s+)("[^"]+"|\S+)/i, `$1${q(scratch)}`);
+		if (scratchSql === o.sql) continue;
+		db.exec(`drop table if exists ${q(scratch)}`);
+		db.exec(scratchSql);
+		const want = db.selectObjects(`PRAGMA table_info(${q(scratch)})`);
+		const known = new Set(db.selectObjects(`PRAGMA table_info(${q(o.name)})`).map((c) => c.name));
+		db.exec(`drop table ${q(scratch)}`);
+		for (const c of want) {
+			if (known.has(c.name)) continue;
+			const dflt = c.dflt_value === null ? "" : ` DEFAULT ${c.dflt_value}`;
+			db.exec(`alter table ${q(o.name)} add column ${q(c.name)} ${c.type}${dflt}`);
+		}
+	}
+}
+
 /** Makes the database match one file: text puts its rows in, null removes them. `_ddl.json` is not applied. */
 export function applyFile(db, path, text) {
 	if (path === "_ddl.json") return;

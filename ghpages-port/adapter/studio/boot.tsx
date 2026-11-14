@@ -9,6 +9,8 @@ import { makeTray } from "./Tray.js";
 import { snapshot } from "./tray.js";
 
 const paths = (globalThis as any).__EMDASH_PATHS__ as { adminBase: string; apiBase: string };
+// Sites that use plugins set this before loading the studio: `plugins` are the definitions the manifest needs, `admins` the plugins' admin modules.
+const studioPlugins = ((globalThis as any).__STUDIO_PLUGINS__ ?? { plugins: [], admins: {} }) as { plugins: unknown[]; admins: Record<string, unknown> };
 const root = document.getElementById("admin-root")!;
 root.textContent = "Loading site data…";
 
@@ -30,6 +32,7 @@ const rawApi = createBrowserApi({
 	user: { id: "github-user", email: "editor@users.noreply.github.com", name: "GitHub editor" },
 	passthrough: realFetch,
 	pendingMedia,
+	plugins: studioPlugins.plugins,
 });
 const api: typeof fetch = async (input, init) => {
 	const res = await rawApi(input, init);
@@ -54,7 +57,7 @@ let generation = 0;
 const render = () =>
 	reactRoot.render(
 		<Fragment key={generation}>
-			<AdminApp locale="en" messages={messages} />
+			<AdminApp locale="en" messages={messages} pluginAdmins={studioPlugins.admins as any} />
 		</Fragment>,
 	);
 controller.onExternalChange(() => {

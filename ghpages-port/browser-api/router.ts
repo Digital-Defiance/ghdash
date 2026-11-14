@@ -18,7 +18,24 @@ export interface BrowserUser {
 	avatarUrl?: string;
 }
 
+/** The parts of a plugin definition the admin manifest needs. Its code does not run here. */
+export interface BrowserPlugin {
+	id: string;
+	version?: string;
+	admin?: {
+		entry?: string;
+		pages?: Array<{ path: string; label?: string; icon?: string; group?: string }>;
+		widgets?: Array<{ id: string; title?: string; size?: string }>;
+		fieldWidgets?: Array<{ name: string; label: string; fieldTypes: string[]; elements?: unknown[] }>;
+		portableTextBlocks?: unknown[];
+		editorPanels?: unknown[];
+		editorActions?: unknown[];
+	};
+}
+
 export interface BrowserApiOptions {
+	/** Plugins the admin should show. Their screens come from `pluginAdmins` on the admin itself. */
+	plugins?: BrowserPlugin[];
 	db: Kysely<any>;
 	user: BrowserUser;
 	apiBase: string;
@@ -30,7 +47,27 @@ export interface BrowserApiOptions {
 const fail = (code: string, message: string, status: number) =>
 	Response.json({ success: false, error: { code, message } }, { status });
 
-async function buildManifest(db: Kysely<any>) {
+function manifestPlugins(plugins: BrowserPlugin[]) {
+	const out: Record<string, unknown> = {};
+	for (const plugin of plugins) {
+		const a = plugin.admin;
+		const hasExtensions = !!(a?.pages?.length || a?.widgets?.length || a?.editorPanels?.length || a?.editorActions?.length);
+		out[plugin.id] = {
+			version: plugin.version,
+			enabled: true,
+			adminMode: a?.entry ? "react" : hasExtensions ? "blocks" : "none",
+			adminPages: a?.pages ?? [],
+			dashboardWidgets: a?.widgets ?? [],
+			portableTextBlocks: a?.portableTextBlocks,
+			fieldWidgets: a?.fieldWidgets,
+			editorPanels: a?.editorPanels,
+			editorActions: a?.editorActions,
+		};
+	}
+	return out;
+}
+
+async function buildManifest(db: Kysely<any>, plugins: BrowserPlugin[]) {
 	const collections = await buildManifestCollections({}, db);
 	const rows = await selectTaxonomyDefs(db).orderBy("d.name").execute();
 	const taxonomies = rows.map((row) => ({
@@ -51,7 +88,7 @@ async function buildManifest(db: Kysely<any>) {
 		version: "browser",
 		hash,
 		collections,
-		plugins: {},
+		plugins: manifestPlugins(plugins),
 		taxonomies,
 		siteTitle: typeof title === "string" && title ? title : undefined,
 		timezone: typeof timezone === "string" && timezone ? timezone : "UTC",
@@ -105,7 +142,7 @@ function makeStorage(siteBase: string, pending: Map<string, PendingFile>, passth
 }
 
 // The runtime's handleXxx methods are thin wrappers over these handlers that add plugin hooks.
-function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>) {
+function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>, plugins: BrowserPlugin[]) {
 	const em: Record<string, any> = {
 		db,
 		config: { maxUploadSize: MAX_UPLOAD },
@@ -113,9 +150,18 @@ function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>) {
 		storage,
 		email: undefined,
 		rooms: undefined,
-		configuredPlugins: [],
+		configuredPlugins: plugins.map((p) => ({
+			capabilities: [],
+			allowedHosts: [],
+			storage: {},
+			hooks: {},
+			routes: {},
+			...p,
+			version: p.version ?? "0.0.0",
+			admin: { pages: [], widgets: [], ...p.admin },
+		})),
 		sandboxedPluginEntries: [],
-		getManifest: () => buildManifest(db),
+		getManifest: () => buildManifest(db, plugins),
 		handleContentSchedule: (collection: string, id: string, scheduledAt: string, options: { _rev?: string } = {}) =>
 			content.handleContentSchedule(db, collection, id, scheduledAt, new Date(), options._rev),
 		handleCommentModerate: (id: string, status: any) => comments.handleCommentStatusChange(db, id, status),
@@ -169,12 +215,12 @@ function match(path: string) {
 	return null;
 }
 
-export function createBrowserApi({ db, user, apiBase, passthrough, pendingMedia }: BrowserApiOptions) {
+export function createBrowserApi({ db, user, apiBase, passthrough, pendingMedia, plugins = [] }: BrowserApiOptions) {
 	const base = apiBase.replace(/\/+$/, "");
 	const siteBase = base.replace(/\/_api$/, "");
 	const pending = pendingMedia ?? new Map<string, PendingFile>();
 	const realFetch: typeof fetch = passthrough ?? fetch.bind(globalThis);
-	const emdash = makeEmdash(db, makeStorage(siteBase, pending, realFetch));
+	const emdash = makeEmdash(db, makeStorage(siteBase, pending, realFetch), plugins);
 	const blobUrls = new Map<string, string>();
 	// Admin screens load images with plain <img> tags, which can't reach this API, so media URLs point at the static file, or at a blob for an upload that isn't committed yet.
 	const mediaUrl = (key: string) => {
