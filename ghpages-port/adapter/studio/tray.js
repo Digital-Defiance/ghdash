@@ -10,6 +10,7 @@ const SKIP = [
 	/^_emdash_redirect_state$/,
 	/^_emdash_rate_limits$/,
 	/^_emdash_404_log$/,
+	/^_plugin_state$/,
 	/^sqlite_/,
 	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
 	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,

@@ -25,6 +25,7 @@ const SKIP = [
 	/^_emdash_redirect_state$/,
 	/^_emdash_rate_limits$/,
 	/^_emdash_404_log$/,
+	/^_plugin_state$/,
 	/^sqlite_/,
 	// auth and secrets: GitHub permissions replace these
 	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
