@@ -22,7 +22,7 @@ const commands = {
 	"studio-assets": ["Write public/studio-data for the in-browser admin", () => run("studio-assets")],
 	"fetch-browser-api": ["Put the in-browser API into public/studio-api", () => run("fetch-browser-api")],
 	"copy-media": ["Copy media/ to public/media/", () => run("copy-media")],
-	finish: ["Post-build: rebase URLs, media URLs and redirects in the built site [distDir]", () => { run("rebase-urls", [dist]); run("redirects", [dist]); }],
+	finish: ["Post-build: rebase URLs, media URLs, responsive images and redirects in the built site [distDir]", () => { run("rebase-urls", [dist]); run("responsive-images", [dist]); run("redirects", [dist]); }],
 	serve: ["Serve the built site under BASE_PATH, like Pages", () => run("serve-dist")],
 };
 
