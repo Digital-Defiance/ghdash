@@ -6,8 +6,8 @@ import type { Element } from "@emdash-cms/blocks";
 import { i18n } from "@lingui/core";
 import { msg } from "@lingui/core/macro";
 
-import type { EditorDraftAccessDeclaration } from "../sandboxed-editor-extensions.js";
 import { API_BASE, customFetch, resolveApiUrl } from "../paths.js";
+import type { EditorDraftAccessDeclaration } from "../sandboxed-editor-extensions.js";
 
 export { API_BASE };
 

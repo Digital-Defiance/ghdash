@@ -179,6 +179,7 @@ import {
 } from "./lib/co-editing/types.js";
 import { canDuplicateEntry, canPublishEntry, entryEditAccess } from "./lib/content-permissions";
 import { describeContentValidationError } from "./lib/content-validation-errors";
+import { ADMIN_BASE } from "./lib/paths.js";
 import { usePluginPage } from "./lib/plugin-context";
 import { getPluginBlocks } from "./lib/pluginBlocks";
 import {
@@ -193,7 +194,6 @@ import { BylineSchemaPage } from "./routes/byline-schema";
 import { BylinesPage } from "./routes/bylines";
 import { CalendarPage } from "./routes/calendar";
 import { UsersPage } from "./routes/users";
-import { ADMIN_BASE } from "./lib/paths.js";
 
 // Router context type
 interface RouterContext {

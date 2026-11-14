@@ -12,10 +12,10 @@ import * as React from "react";
 import { useAdminBranding } from "../lib/admin-branding-context";
 import { validateInviteToken, type InviteVerifyResult } from "../lib/api";
 import { useAuthProviderList } from "../lib/auth-provider-context";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
 import { RouterLinkButton } from "./RouterLinkButton.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 type InviteStep = "verify" | "register" | "error";
 

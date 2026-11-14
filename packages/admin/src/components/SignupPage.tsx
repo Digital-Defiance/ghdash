@@ -17,10 +17,10 @@ import * as React from "react";
 
 import { useAdminBranding } from "../lib/admin-branding-context";
 import { requestSignup, verifySignupToken, type SignupVerifyResult } from "../lib/api";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
 import { RouterLinkButton } from "./RouterLinkButton.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 export function VerificationSentMessage({ email }: { email: string }) {
 	return (

@@ -16,11 +16,17 @@ export async function shrinkMedia(dir, maxWidth) {
 	const walk = async (d) => {
 		for (const name of readdirSync(d)) {
 			const p = join(d, name);
-			if (statSync(p).isDirectory()) { await walk(p); continue; }
+			if (statSync(p).isDirectory()) {
+				await walk(p);
+				continue;
+			}
 			if (!RASTER.has(extname(name).toLowerCase())) continue;
 			const meta = await sharp(p).metadata();
 			if (!meta.width || meta.width <= maxWidth) continue;
-			const out = await sharp(p).rotate().resize({ width: maxWidth, withoutEnlargement: true }).toBuffer();
+			const out = await sharp(p)
+				.rotate()
+				.resize({ width: maxWidth, withoutEnlargement: true })
+				.toBuffer();
 			if (out.length >= statSync(p).size) continue;
 			writeFileSync(p, out);
 			shrunk.push(p);

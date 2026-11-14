@@ -19,6 +19,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { apiFetch, type AdminManifest } from "../lib/api/client.js";
 import { useCurrentUser } from "../lib/api/current-user";
+import { ADMIN_BASE } from "../lib/paths.js";
 import {
 	ADMIN_NAV_ICONS,
 	getCollectionNavIcon,
@@ -30,7 +31,6 @@ import {
 	resolvePluginPageLabel,
 	visibleCollectionEntries,
 } from "./Sidebar.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 /** Subset of manifest fields used by the palette (matches `Shell` props shape). */
 type CommandPaletteManifest = {

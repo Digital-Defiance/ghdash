@@ -35,7 +35,8 @@ function client(token, fetchImpl = globalThis.fetch) {
 
 function toBase64(bytes) {
 	let s = "";
-	for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+	for (let i = 0; i < bytes.length; i += 0x8000)
+		s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
 	return btoa(s);
 }
 
@@ -45,11 +46,23 @@ export async function checkAccess({ token, owner, repo, fetchImpl }) {
 }
 
 export async function getHead({ token, owner, repo, branch, fetchImpl }) {
-	const ref = await client(token, fetchImpl)("GET", `/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+	const ref = await client(token, fetchImpl)(
+		"GET",
+		`/repos/${owner}/${repo}/git/ref/heads/${branch}`,
+	);
 	return ref.object.sha;
 }
 
-export async function commitFiles({ token, owner, repo, branch, files, message, expectedHeadSha, fetchImpl }) {
+export async function commitFiles({
+	token,
+	owner,
+	repo,
+	branch,
+	files,
+	message,
+	expectedHeadSha,
+	fetchImpl,
+}) {
 	const gh = client(token, fetchImpl);
 	const base = `/repos/${owner}/${repo}/git`;
 	const headSha = (await gh("GET", `${base}/ref/heads/${branch}`)).object.sha;
@@ -63,18 +76,29 @@ export async function commitFiles({ token, owner, repo, branch, files, message, 
 		} else if (typeof content === "string") {
 			tree.push({ path, mode: "100644", type: "blob", content });
 		} else {
-			const blob = await gh("POST", `${base}/blobs`, { content: toBase64(content), encoding: "base64" });
+			const blob = await gh("POST", `${base}/blobs`, {
+				content: toBase64(content),
+				encoding: "base64",
+			});
 			tree.push({ path, mode: "100644", type: "blob", sha: blob.sha });
 		}
 	}
 	const newTree = await gh("POST", `${base}/trees`, { base_tree: headCommit.tree.sha, tree });
-	const commit = await gh("POST", `${base}/commits`, { message, tree: newTree.sha, parents: [headSha] });
+	const commit = await gh("POST", `${base}/commits`, {
+		message,
+		tree: newTree.sha,
+		parents: [headSha],
+	});
 	try {
 		await gh("PATCH", `${base}/refs/heads/${branch}`, { sha: commit.sha, force: false });
 	} catch (e) {
 		// 422 "Update is not a fast forward": someone pushed between our read and our write.
 		if (e instanceof GitHubError && e.status === 422) {
-			return { ok: false, conflict: true, headSha: await getHead({ token, owner, repo, branch, fetchImpl }) };
+			return {
+				ok: false,
+				conflict: true,
+				headSha: await getHead({ token, owner, repo, branch, fetchImpl }),
+			};
 		}
 		throw e;
 	}

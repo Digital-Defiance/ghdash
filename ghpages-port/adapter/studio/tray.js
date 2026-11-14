@@ -12,14 +12,29 @@ const SKIP = [
 	/^_emdash_404_log$/,
 	/^_plugin_state$/,
 	/^sqlite_/,
-	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
-	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,
+	/^users$/,
+	/^sessions$/,
+	/^credentials$/,
+	/^auth_/,
+	/^_emdash_api_tokens$/,
+	/^_emdash_oauth/,
+	/^_emdash_authorization_codes$/,
+	/^allowed_domains$/,
+	/^_emdash_rooms?/,
+	/^_emdash_room_/,
 ];
 // Encrypted plugin secret settings are never published, even as ciphertext.
 const isSecretOption = (t, r) =>
-	t === "options" && /^plugin:[^:]+:settings:/.test(String(r.name)) && /"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
+	t === "options" &&
+	/^plugin:[^:]+:settings:/.test(String(r.name)) &&
+	/"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
 const skip = (t) => SKIP.some((r) => r.test(t));
-const sortKeys = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
+const sortKeys = (o) =>
+	Object.fromEntries(
+		Object.keys(o)
+			.sort()
+			.map((k) => [k, o[k]]),
+	);
 const perRow = (t) => t.startsWith("ec_") || t === "revisions";
 export const stringify = (v) => JSON.stringify(v, null, "\t") + "\n";
 export const canonical = (text) => stringify(JSON.parse(text));
@@ -29,7 +44,10 @@ const FTS_SHADOW = /^_emdash_fts_.*_(data|idx|content|docsize|config)$/;
 
 function pkCols(db, t) {
 	const cols = db.selectObjects(`PRAGMA table_info(${q(t)})`);
-	const pk = cols.filter((c) => c.pk > 0).sort((a, b) => a.pk - b.pk).map((c) => c.name);
+	const pk = cols
+		.filter((c) => c.pk > 0)
+		.sort((a, b) => a.pk - b.pk)
+		.map((c) => c.name);
 	return pk.length ? pk : cols.map((c) => c.name);
 }
 
@@ -42,10 +60,15 @@ export function snapshot(db, freshNames) {
 		.map((o) => ({ type: o.type, name: o.name, sql: o.sql }))
 		.sort((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
 	files.set("_ddl.json", stringify(ddl));
-	const tables = db.selectValues("select name from sqlite_master where type='table' order by name").filter((t) => !skip(t));
+	const tables = db
+		.selectValues("select name from sqlite_master where type='table' order by name")
+		.filter((t) => !skip(t));
 	for (const t of tables) {
 		const pk = pkCols(db, t);
-		const rows = db.selectObjects(`select * from ${q(t)} order by ${pk.map(q).join(",")}`).filter((r) => !isSecretOption(t, r)).map((r) => sortKeys(r));
+		const rows = db
+			.selectObjects(`select * from ${q(t)} order by ${pk.map(q).join(",")}`)
+			.filter((r) => !isSecretOption(t, r))
+			.map((r) => sortKeys(r));
 		if (!rows.length) continue;
 		if (perRow(t)) for (const r of rows) files.set(`${t}/${r.id}.json`, stringify(r));
 		else files.set(`${t}.json`, stringify(rows));
@@ -96,18 +119,27 @@ const TABLE_LABELS = {
 
 function describe(path, base, cur) {
 	const kind = base === undefined ? "added" : cur === undefined ? "deleted" : "modified";
-	if (path === "_ddl.json") return { path, kind, group: "Schema", label: "Database schema", discardable: false };
+	if (path === "_ddl.json")
+		return { path, kind, group: "Schema", label: "Database schema", discardable: false };
 	const m = path.match(/^(ec_[^/]+|revisions)\/(.+)\.json$/);
 	if (m && m[1] === "revisions") {
 		const row = JSON.parse(cur ?? base);
 		let title = m[2];
-		try { title = JSON.parse(row.data).title || title; } catch {}
+		try {
+			title = JSON.parse(row.data).title || title;
+		} catch {}
 		return { path, kind, group: "Site", label: `Revisions: ${title}`, discardable: true };
 	}
 	if (m) {
 		const row = JSON.parse(cur ?? base);
 		const collection = m[1].slice(3);
-		return { path, kind, group: collection, label: row.title || row.slug || m[2], discardable: true };
+		return {
+			path,
+			kind,
+			group: collection,
+			label: row.title || row.slug || m[2],
+			discardable: true,
+		};
 	}
 	const table = path.replace(/\.json$/, "");
 	return { path, kind, group: "Site", label: TABLE_LABELS[table] ?? table, discardable: true };
@@ -115,7 +147,8 @@ function describe(path, base, cur) {
 
 export function diffFiles(base, cur) {
 	const out = [];
-	for (const [path, text] of cur) if (base.get(path) !== text) out.push(describe(path, base.get(path), text));
+	for (const [path, text] of cur)
+		if (base.get(path) !== text) out.push(describe(path, base.get(path), text));
 	for (const [path, text] of base) if (!cur.has(path)) out.push(describe(path, text, undefined));
 	return out.sort((a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label));
 }
@@ -141,7 +174,9 @@ export function revisionPathsFor(base, cur, path) {
 	if (!m) return [];
 	return diffFiles(base, cur)
 		.map((c) => c.path)
-		.filter((p) => p.startsWith("revisions/") && JSON.parse(cur.get(p) ?? base.get(p)).entry_id === m[1]);
+		.filter(
+			(p) => p.startsWith("revisions/") && JSON.parse(cur.get(p) ?? base.get(p)).entry_id === m[1],
+		);
 }
 
 function insertRow(db, t, row) {
@@ -197,7 +232,9 @@ export function applyFile(db, path, text) {
 export function mergeRemote(db, oldBase, remote, local) {
 	const clashes = [];
 	for (const path of new Set([...oldBase.keys(), ...remote.keys()])) {
-		const b = oldBase.get(path), r = remote.get(path), l = local.get(path);
+		const b = oldBase.get(path),
+			r = remote.get(path),
+			l = local.get(path);
 		if (r === b) continue;
 		if (l === b) applyFile(db, path, r ?? null);
 		else if (l !== r) clashes.push(path);

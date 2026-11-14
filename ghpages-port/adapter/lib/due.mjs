@@ -16,4 +16,5 @@ export function isDue(contentDir, now = new Date()) {
 	return false;
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) console.log(String(isDue(process.argv[2] ?? "content")));
+if (process.argv[1] === new URL(import.meta.url).pathname)
+	console.log(String(isDue(process.argv[2] ?? "content")));

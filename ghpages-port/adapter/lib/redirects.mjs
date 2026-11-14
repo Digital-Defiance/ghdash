@@ -6,7 +6,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const escapeHtml = (s) =>
+	s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export function redirectPage(destination) {
 	const to = escapeHtml(destination);
@@ -20,11 +21,19 @@ export function planRedirects(rows, base = "") {
 	for (const r of rows) {
 		if (!r.enabled) continue;
 		const source = String(r.source);
-		const safeSource = source.startsWith("/") && !source.startsWith("//") && !source.split("/").includes("..");
-		if (r.is_pattern || !safeSource) { skipped.push(source); continue; }
+		const safeSource =
+			source.startsWith("/") && !source.startsWith("//") && !source.split("/").includes("..");
+		if (r.is_pattern || !safeSource) {
+			skipped.push(source);
+			continue;
+		}
 		const external = /^[a-z][a-z0-9+.-]*:/i.test(r.destination);
-		const destination = external || !String(r.destination).startsWith("/") ? r.destination : base + r.destination;
-		pages.push({ path: join(source.replace(/\/+$/, ""), "index.html"), html: redirectPage(destination) });
+		const destination =
+			external || !String(r.destination).startsWith("/") ? r.destination : base + r.destination;
+		pages.push({
+			path: join(source.replace(/\/+$/, ""), "index.html"),
+			html: redirectPage(destination),
+		});
 	}
 	return { pages, skipped };
 }
@@ -38,7 +47,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	let written = 0;
 	for (const p of pages) {
 		const out = join(dist, p.path);
-		if (existsSync(out)) { console.warn(`redirect source ${p.path} is a real page, skipped`); continue; }
+		if (existsSync(out)) {
+			console.warn(`redirect source ${p.path} is a real page, skipped`);
+			continue;
+		}
 		mkdirSync(dirname(out), { recursive: true });
 		writeFileSync(out, p.html);
 		written++;

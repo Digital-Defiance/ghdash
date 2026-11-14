@@ -10,7 +10,9 @@ const dir = process.argv[2];
 if (!dir) throw new Error("usage: rebase-urls.mjs <distDir>");
 
 // A root-absolute URL that doesn't already start with the base and isn't protocol-relative.
-const prefix = base ? new RegExp(`((?:href|src|action|content|poster)=["'])/(?!/|${base.slice(1)}(?:/|["'?#]))`, "g") : null;
+const prefix = base
+	? new RegExp(`((?:href|src|action|content|poster)=["'])/(?!/|${base.slice(1)}(?:/|["'?#]))`, "g")
+	: null;
 const walk = (d) =>
 	readdirSync(d).flatMap((n) => {
 		const p = join(d, n);

@@ -9,7 +9,15 @@
 //                             (ec_* tables, their indexes, FTS tables and triggers)
 //   <table>.json              rows of a small system table, sorted by primary key
 //   <ec_table>/<id>.json      one file per content row, so diffs and merges stay per entry
-import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
+import {
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	statSync,
+	writeFileSync,
+	existsSync,
+} from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
@@ -24,31 +32,56 @@ const SKIP = [
 	/^_emdash_404_log$/,
 	/^sqlite_/,
 	// auth and secrets: GitHub permissions replace these
-	/^users$/, /^sessions$/, /^credentials$/, /^auth_/, /^_emdash_api_tokens$/, /^_emdash_oauth/,
-	/^_emdash_authorization_codes$/, /^allowed_domains$/, /^_emdash_rooms?/, /^_emdash_room_/,
+	/^users$/,
+	/^sessions$/,
+	/^credentials$/,
+	/^auth_/,
+	/^_emdash_api_tokens$/,
+	/^_emdash_oauth/,
+	/^_emdash_authorization_codes$/,
+	/^allowed_domains$/,
+	/^_emdash_rooms?/,
+	/^_emdash_room_/,
 ];
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) =>
-	Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
+	Object.fromEntries(
+		Object.keys(o)
+			.sort()
+			.map((k) => [k, o[k]]),
+	);
 const write = (p, v) => writeFileSync(p, JSON.stringify(v, null, "\t") + "\n");
 
 function pkCols(db, t) {
 	const cols = db.prepare(`PRAGMA table_info("${t}")`).all();
-	const pk = cols.filter((c) => c.pk > 0).sort((a, b) => a.pk - b.pk).map((c) => c.name);
+	const pk = cols
+		.filter((c) => c.pk > 0)
+		.sort((a, b) => a.pk - b.pk)
+		.map((c) => c.name);
 	return pk.length ? pk : cols.map((c) => c.name);
 }
 
 function exportDb(dbPath, out, freshPath) {
 	const db = new DatabaseSync(dbPath, { readOnly: true });
 	const fresh = new DatabaseSync(freshPath, { readOnly: true });
-	const baseline = new Set(fresh.prepare("select name from sqlite_master").all().map((r) => r.name));
+	const baseline = new Set(
+		fresh
+			.prepare("select name from sqlite_master")
+			.all()
+			.map((r) => r.name),
+	);
 	rmSync(out, { recursive: true, force: true });
 	mkdirSync(out, { recursive: true });
 
 	const ddl = db
-		.prepare("select type,name,tbl_name,sql from sqlite_master where sql is not null order by rowid")
+		.prepare(
+			"select type,name,tbl_name,sql from sqlite_master where sql is not null order by rowid",
+		)
 		.all()
-		.filter((o) => !baseline.has(o.name) && !/^_emdash_fts_.*_(data|idx|content|docsize|config)$/.test(o.name))
+		.filter(
+			(o) =>
+				!baseline.has(o.name) && !/^_emdash_fts_.*_(data|idx|content|docsize|config)$/.test(o.name),
+		)
 		.map((o) => ({ type: o.type, name: o.name, sql: o.sql }))
 		.sort((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
 	write(join(out, "_ddl.json"), ddl);
@@ -94,7 +127,12 @@ function importDb(dir, dbPath) {
 		if (name === "_ddl.json") continue;
 		const p = join(dir, name);
 		if (statSync(p).isDirectory()) {
-			load(name, readdirSync(p).sort().map((f) => JSON.parse(readFileSync(join(p, f), "utf8"))));
+			load(
+				name,
+				readdirSync(p)
+					.sort()
+					.map((f) => JSON.parse(readFileSync(join(p, f), "utf8"))),
+			);
 		} else {
 			load(name.replace(/\.json$/, ""), JSON.parse(readFileSync(p, "utf8")));
 		}

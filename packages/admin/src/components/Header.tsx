@@ -6,10 +6,10 @@ import * as React from "react";
 
 import { apiFetch } from "../lib/api/client";
 import { useCurrentUser } from "../lib/api/current-user";
+import { ADMIN_BASE, HeaderExtras, SITE_BASE } from "../lib/paths.js";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserAvatar } from "./UserAvatar.js";
-import { ADMIN_BASE, HeaderExtras, SITE_BASE } from "../lib/paths.js";
 
 export type { CurrentUser } from "../lib/api/current-user";
 

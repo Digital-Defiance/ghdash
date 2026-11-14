@@ -14,22 +14,57 @@ const dist = rest[0] ?? "dist/client";
 
 const commands = {
 	"build-db": ["Build data.db from content/*.json", () => run("build-db", rest)],
-	"export-content": ["Write content/ from a database: export-content [db] [dir]", () => run("db-json", ["export", rest[0] ?? "data.db", rest[1] ?? "content"])],
-	"split-revisions": ["Split an older content/revisions.json into one file per revision [dir]", () => run("split-revisions", rest)],
-	"run-hooks": ["Run plugin after-hooks for content changed between commits: run-hooks --base <sha> --head <sha>", () => run("run-hooks", rest)],
-	"run-cron": ["Run plugin cron jobs from hooks.config.json that fell due: run-cron [--since <iso>]", () => run("run-cron", rest)],
-	"import-markdown": ["Import a Jekyll site or Markdown folder into content/: import-markdown <dir> [--dry-run]", () => run("import-markdown", rest)],
-	"publish-due": ["Publish scheduled entries that are due, and write content/ back", () => run("publish-due", rest)],
+	"export-content": [
+		"Write content/ from a database: export-content [db] [dir]",
+		() => run("db-json", ["export", rest[0] ?? "data.db", rest[1] ?? "content"]),
+	],
+	"split-revisions": [
+		"Split an older content/revisions.json into one file per revision [dir]",
+		() => run("split-revisions", rest),
+	],
+	"run-hooks": [
+		"Run plugin after-hooks for content changed between commits: run-hooks --base <sha> --head <sha>",
+		() => run("run-hooks", rest),
+	],
+	"run-cron": [
+		"Run plugin cron jobs from hooks.config.json that fell due: run-cron [--since <iso>]",
+		() => run("run-cron", rest),
+	],
+	"import-markdown": [
+		"Import a Jekyll site or Markdown folder into content/: import-markdown <dir> [--dry-run]",
+		() => run("import-markdown", rest),
+	],
+	"publish-due": [
+		"Publish scheduled entries that are due, and write content/ back",
+		() => run("publish-due", rest),
+	],
 	due: ["Print true if a scheduled entry is due (reads content/ only)", () => run("due", rest)],
-	"studio-assets": ["Write public/studio-data for the in-browser admin", () => run("studio-assets")],
-	"fetch-browser-api": ["Put the in-browser API into public/studio-api", () => run("fetch-browser-api")],
+	"studio-assets": [
+		"Write public/studio-data for the in-browser admin",
+		() => run("studio-assets"),
+	],
+	"fetch-browser-api": [
+		"Put the in-browser API into public/studio-api",
+		() => run("fetch-browser-api"),
+	],
 	"copy-media": ["Copy media/ to public/media/", () => run("copy-media")],
-	finish: ["Post-build: rebase URLs, media URLs, responsive images and redirects in the built site [distDir]", () => { run("rebase-urls", [dist]); run("responsive-images", [dist]); run("redirects", [dist]); }],
+	finish: [
+		"Post-build: rebase URLs, media URLs, responsive images and redirects in the built site [distDir]",
+		() => {
+			run("rebase-urls", [dist]);
+			run("responsive-images", [dist]);
+			run("redirects", [dist]);
+		},
+	],
 	serve: ["Serve the built site under BASE_PATH, like Pages", () => run("serve-dist")],
 };
 
 if (!cmd || !commands[cmd]) {
-	console.error(`usage: ghdash-pages <command>\n\n${Object.entries(commands).map(([n, [d]]) => `  ${n.padEnd(18)}${d}`).join("\n")}`);
+	console.error(
+		`usage: ghdash-pages <command>\n\n${Object.entries(commands)
+			.map(([n, [d]]) => `  ${n.padEnd(18)}${d}`)
+			.join("\n")}`,
+	);
 	process.exit(cmd ? 1 : 0);
 }
 commands[cmd][1]();

@@ -10,12 +10,17 @@ import { snapshot } from "./tray.js";
 
 const paths = (globalThis as any).__EMDASH_PATHS__ as { adminBase: string; apiBase: string };
 // Sites that use plugins set this before loading the studio: `plugins` are the definitions the manifest needs, `admins` the plugins' admin modules.
-const studioPlugins = ((globalThis as any).__STUDIO_PLUGINS__ ?? { plugins: [], admins: {} }) as { plugins: unknown[]; admins: Record<string, unknown> };
+const studioPlugins = ((globalThis as any).__STUDIO_PLUGINS__ ?? { plugins: [], admins: {} }) as {
+	plugins: unknown[];
+	admins: Record<string, unknown>;
+};
 const root = document.getElementById("admin-root")!;
 root.textContent = "Loading site data…";
 
 const site = paths.apiBase.replace(/\/_api$/, "");
-const { createBrowserApi, Kysely, SqliteDialect } = await import(/* @vite-ignore */ `${site}/studio-api/entry.js`);
+const { createBrowserApi, Kysely, SqliteDialect } = await import(
+	/* @vite-ignore */ `${site}/studio-api/entry.js`
+);
 const [sqlite, content, empty] = await Promise.all([
 	sqlite3InitModule({ print() {}, printErr() {} }),
 	fetch(`${site}/studio-data/content.json`).then((r) => r.json()),
@@ -27,12 +32,15 @@ const realFetch = globalThis.fetch.bind(globalThis);
 const pendingMedia = new Map();
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker.addEventListener("message", (e) => {
-		if (e.data?.type === "studio-media") e.ports[0]?.postMessage(pendingMedia.get(e.data.key) ?? null);
+		if (e.data?.type === "studio-media")
+			e.ports[0]?.postMessage(pendingMedia.get(e.data.key) ?? null);
 	});
 	navigator.serviceWorker.register(`${site}/studio/media-sw.js`).catch(() => {});
 }
 // Sites that offer "Sign in with GitHub" set this before loading the studio: `clientId` of their GitHub App and `exchangeUrl` of the token-exchange Worker.
-const studioOAuth = (globalThis as any).__STUDIO_OAUTH__ as { clientId: string; exchangeUrl: string } | undefined;
+const studioOAuth = (globalThis as any).__STUDIO_OAUTH__ as
+	| { clientId: string; exchangeUrl: string }
+	| undefined;
 const studioUrl = `${location.origin}${location.pathname}`;
 const controller = createController({
 	db: raw,
@@ -40,7 +48,10 @@ const controller = createController({
 	baseFiles: snapshot(raw, freshNames),
 	meta: content.meta,
 	pendingMedia,
-	oauth: studioOAuth?.clientId && studioOAuth?.exchangeUrl ? { ...studioOAuth, redirectUri: studioUrl } : null,
+	oauth:
+		studioOAuth?.clientId && studioOAuth?.exchangeUrl
+			? { ...studioOAuth, redirectUri: studioUrl }
+			: null,
 });
 const rawApi = createBrowserApi({
 	db,
@@ -52,7 +63,8 @@ const rawApi = createBrowserApi({
 });
 const api: typeof fetch = async (input, init) => {
 	const res = await rawApi(input, init);
-	if ((init?.method ?? (input instanceof Request ? input.method : "GET")) !== "GET") controller.schedule();
+	if ((init?.method ?? (input instanceof Request ? input.method : "GET")) !== "GET")
+		controller.schedule();
 	return res;
 };
 let queryClient: { resetQueries(): Promise<void> } | undefined;
@@ -60,10 +72,13 @@ let queryClient: { resetQueries(): Promise<void> } | undefined;
 	...paths,
 	fetch: api,
 	HeaderExtras: makeTray(controller as any),
-	onQueryClient: (client: typeof queryClient) => { queryClient = client; },
+	onQueryClient: (client: typeof queryClient) => {
+		queryClient = client;
+	},
 };
 await controller.restore();
-if (await controller.finishOAuth(location.search)) history.replaceState(null, "", studioUrl + location.hash);
+if (await controller.finishOAuth(location.search))
+	history.replaceState(null, "", studioUrl + location.hash);
 
 const { AdminApp } = await import("@emdash-cms/admin");
 const { loadMessages } = await import("@emdash-cms/admin/locales");

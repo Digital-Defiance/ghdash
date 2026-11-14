@@ -22,12 +22,12 @@ import * as React from "react";
 import { useAdminBranding } from "../lib/admin-branding-context";
 import { apiFetch, fetchAuthMode } from "../lib/api";
 import { useAuthProviderList } from "../lib/auth-provider-context";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { sanitizeRedirectUrl } from "../lib/url";
 import { SUPPORTED_LOCALES } from "../locales/index.js";
 import { useLocale } from "../locales/useLocale.js";
 import { PasskeyLogin } from "./auth/PasskeyLogin";
 import { BrandLogo } from "./Logo.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types

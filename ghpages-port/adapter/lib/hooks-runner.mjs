@@ -2,8 +2,21 @@
 import { execFileSync } from "node:child_process";
 
 const STANDARD = new Set([
-	"id", "slug", "status", "author_id", "primary_byline_id", "created_at", "updated_at", "published_at", "scheduled_at",
-	"deleted_at", "version", "live_revision_id", "draft_revision_id", "locale", "translation_group",
+	"id",
+	"slug",
+	"status",
+	"author_id",
+	"primary_byline_id",
+	"created_at",
+	"updated_at",
+	"published_at",
+	"scheduled_at",
+	"deleted_at",
+	"version",
+	"live_revision_id",
+	"draft_revision_id",
+	"locale",
+	"translation_group",
 ]);
 
 const camel = (s) => s.replace(/_([a-z])/g, (_m, c) => c.toUpperCase());
@@ -52,7 +65,10 @@ export function eventsFromDiff(nameStatus, head, read) {
 			events.push({ hook: "content:afterDelete", event: { id, collection } });
 			continue;
 		}
-		events.push({ hook: "content:afterSave", event: { content: toContentItem(collection, row), collection, isNew: status.startsWith("A") } });
+		events.push({
+			hook: "content:afterSave",
+			event: { content: toContentItem(collection, row), collection, isNew: status.startsWith("A") },
+		});
 	}
 	return events;
 }
@@ -66,23 +82,46 @@ function memoryStore() {
 	const m = new Map();
 	return {
 		m,
-		async get(k) { return m.has(k) ? m.get(k) : null; },
-		async getVersioned(k) { return m.has(k) ? { value: m.get(k), revision: "0" } : null; },
-		async set(k, v) { m.set(k, v); },
-		async delete(k) { return m.delete(k); },
-		async list(prefix = "") { return [...m].filter(([k]) => k.startsWith(prefix)).map(([key, value]) => ({ key, value })); },
+		async get(k) {
+			return m.has(k) ? m.get(k) : null;
+		},
+		async getVersioned(k) {
+			return m.has(k) ? { value: m.get(k), revision: "0" } : null;
+		},
+		async set(k, v) {
+			m.set(k, v);
+		},
+		async delete(k) {
+			return m.delete(k);
+		},
+		async list(prefix = "") {
+			return [...m].filter(([k]) => k.startsWith(prefix)).map(([key, value]) => ({ key, value }));
+		},
 	};
 }
 
 function memoryCollection() {
 	const rows = new Map();
 	return {
-		async get(id) { return rows.get(id) ?? null; },
-		async put(id, v) { rows.set(id, v); },
-		async delete(id) { return rows.delete(id); },
-		async deleteMany(ids) { for (const id of ids) rows.delete(id); return ids.length; },
-		async count() { return rows.size; },
-		async query({ limit = 50 } = {}) { return { items: [...rows].slice(0, limit).map(([id, data]) => ({ id, data })) }; },
+		async get(id) {
+			return rows.get(id) ?? null;
+		},
+		async put(id, v) {
+			rows.set(id, v);
+		},
+		async delete(id) {
+			return rows.delete(id);
+		},
+		async deleteMany(ids) {
+			for (const id of ids) rows.delete(id);
+			return ids.length;
+		},
+		async count() {
+			return rows.size;
+		},
+		async query({ limit = 50 } = {}) {
+			return { items: [...rows].slice(0, limit).map(([id, data]) => ({ id, data })) };
+		},
 	};
 }
 
@@ -98,7 +137,15 @@ export function makeContext(plugin, settings, { fetch = globalThis.fetch, site =
 		settingsStore.m.set(k, v);
 	}
 	const collections = new Map();
-	const storage = new Proxy({}, { get: (_t, name) => (collections.has(name) ? collections.get(name) : collections.set(name, memoryCollection()).get(name)) });
+	const storage = new Proxy(
+		{},
+		{
+			get: (_t, name) =>
+				collections.has(name)
+					? collections.get(name)
+					: collections.set(name, memoryCollection()).get(name),
+		},
+	);
 	const tag = `[${plugin.id}]`;
 	return {
 		plugin: { id: plugin.id, version: plugin.version ?? "0.0.0" },

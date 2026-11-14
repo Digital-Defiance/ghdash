@@ -29,11 +29,17 @@ const require = createRequire(join(process.cwd(), "package.json"));
 const plugins = [];
 for (const p of config.plugins ?? []) {
 	const mod = await import(pathToFileURL(require.resolve(p.module)).href);
-	plugins.push({ plugin: { id: p.id, version: p.version }, definition: mod.default ?? mod, settings: p.settings });
+	plugins.push({
+		plugin: { id: p.id, version: p.version },
+		definition: mod.default ?? mod,
+		settings: p.settings,
+	});
 }
 
 const events = eventsBetween(base, head);
-console.log(`${events.length} content change(s) between ${base.slice(0, 7)} and ${head.slice(0, 7)}`);
+console.log(
+	`${events.length} content change(s) between ${base.slice(0, 7)} and ${head.slice(0, 7)}`,
+);
 if (!events.length || !plugins.length) process.exit(0);
 const results = await runHooks({ plugins, events, site: config.site });
 const failed = results.filter((r) => !r.ok).length;

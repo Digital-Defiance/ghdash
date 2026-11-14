@@ -12,14 +12,14 @@ The fork stays close to upstream on purpose. Changes are additive (for example, 
 
 ## What changes
 
-| | EmDash | GHDash |
-| --- | --- | --- |
-| Content store | SQLite, D1 or Postgres | JSON files in the repo (one file per row) |
-| Rendering | On each request | Static build in a GitHub Action |
-| Admin | Served by the site, signs in with passkeys | Static admin in the browser, signs in with a fine-grained token |
-| Saving | Writes to the database | One atomic commit through the GitHub API |
-| Comments | Built in | giscus (commenters need a GitHub account) |
-| Plugins | Sandboxed runtime | Browser admin UI and before-hooks, plus build-time after-hooks; public plugin HTTP routes are lost |
+|               | EmDash                                     | GHDash                                                                                             |
+| ------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Content store | SQLite, D1 or Postgres                     | JSON files in the repo (one file per row)                                                          |
+| Rendering     | On each request                            | Static build in a GitHub Action                                                                    |
+| Admin         | Served by the site, signs in with passkeys | Static admin in the browser, signs in with a fine-grained token                                    |
+| Saving        | Writes to the database                     | One atomic commit through the GitHub API                                                           |
+| Comments      | Built in                                   | giscus (commenters need a GitHub account)                                                          |
+| Plugins       | Sandboxed runtime                          | Browser admin UI and before-hooks, plus build-time after-hooks; public plugin HTTP routes are lost |
 
 Drafts are public because the repo is public, so GHDash suits open source sites.
 

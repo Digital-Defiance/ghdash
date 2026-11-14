@@ -20,12 +20,12 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { AdminBrandingProvider, type AdminBranding } from "./lib/admin-branding-context";
 import { refetchCurrentUserOnForbidden } from "./lib/api/current-user";
 import { AuthProviderProvider, type AuthProviders } from "./lib/auth-provider-context";
+import { ADMIN_BASE, onQueryClient } from "./lib/paths.js";
 import { PluginAdminProvider, type PluginAdmins } from "./lib/plugin-context";
 import { getLoadedDateLocale, waitForDateLocale } from "./locales/date-locale.js";
 import { LocaleDirectionProvider } from "./locales/index.js";
 import { KumoTranslationsProvider } from "./locales/KumoTranslationsProvider.js";
 import { createAdminRouter } from "./router";
-import { ADMIN_BASE, onQueryClient } from "./lib/paths.js";
 
 // Create a query client
 const queryClient = new QueryClient({

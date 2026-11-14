@@ -40,7 +40,11 @@ export const onQueryClient = configured?.onQueryClient;
 /** Rewrites a hardcoded `/_emdash/api...` URL to the configured API prefix. */
 export function resolveApiUrl<T extends string | URL | Request>(input: T): T {
 	if (API_BASE === DEFAULT_API_BASE || typeof input !== "string") return input;
-	if (input === DEFAULT_API_BASE || input.startsWith(`${DEFAULT_API_BASE}/`) || input.startsWith(`${DEFAULT_API_BASE}?`)) {
+	if (
+		input === DEFAULT_API_BASE ||
+		input.startsWith(`${DEFAULT_API_BASE}/`) ||
+		input.startsWith(`${DEFAULT_API_BASE}?`)
+	) {
 		return `${API_BASE}${input.slice(DEFAULT_API_BASE.length)}` as T;
 	}
 	return input;

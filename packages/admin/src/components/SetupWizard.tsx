@@ -21,9 +21,9 @@ import { useAdminBranding } from "../lib/admin-branding-context.js";
 import { apiFetch, parseApiResponse } from "../lib/api/client";
 import { useAuthProviderList, type AuthProviderModule } from "../lib/auth-provider-context";
 import { navigateTo } from "../lib/navigation.js";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { PasskeyRegistration } from "./auth/PasskeyRegistration";
 import { BrandLogo } from "./Logo.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types

@@ -1,4 +1,5 @@
 import { isSafePluginPagePath, normalizePluginPagePath, type LinkTarget } from "@emdash-cms/blocks";
+
 import { ADMIN_BASE } from "./paths.js";
 
 export function resolvePluginLinkTarget(pluginId: string, target: LinkTarget): string | null {

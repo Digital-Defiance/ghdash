@@ -61,10 +61,10 @@ import {
 	type NavMenu,
 	type UserListItem,
 } from "../lib/api";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { cn } from "../lib/utils";
 import { CaretNext } from "./ArrowIcons.js";
 import { MediaImportSummary } from "./MediaImportSummary.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 export function WordPressExporterMessage() {
 	return (

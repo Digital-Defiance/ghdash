@@ -2,7 +2,19 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative, sep } from "node:path";
 
-const SKIP_DIRS = new Set([".git", "node_modules", "_site", "_includes", "_layouts", "_sass", "_data", "vendor", ".jekyll-cache", "assets", "media"]);
+const SKIP_DIRS = new Set([
+	".git",
+	"node_modules",
+	"_site",
+	"_includes",
+	"_layouts",
+	"_sass",
+	"_data",
+	"vendor",
+	".jekyll-cache",
+	"assets",
+	"media",
+]);
 const SKIP_FILES = /^(readme|license|changelog|contributing|code_of_conduct)(\.|$)/i;
 const DATED = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
 
@@ -11,7 +23,8 @@ function scalar(text) {
 	if (t === "" || t === "~" || t === "null") return "";
 	if (t === "true") return true;
 	if (t === "false") return false;
-	if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
+	if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'")))
+		return t.slice(1, -1);
 	return t;
 }
 
@@ -23,7 +36,9 @@ export function parseFrontMatter(source) {
 	let key = null;
 	for (const line of m[1].split(/\r?\n/)) {
 		if (/^\s*(#|$)/.test(line)) continue;
-		const item = /^\s+-\s+(.*)$/.exec(line) ?? (key && Array.isArray(data[key]) ? /^-\s+(.*)$/.exec(line) : null);
+		const item =
+			/^\s+-\s+(.*)$/.exec(line) ??
+			(key && Array.isArray(data[key]) ? /^-\s+(.*)$/.exec(line) : null);
 		if (item && key) {
 			if (!Array.isArray(data[key])) data[key] = [];
 			data[key].push(scalar(item[1]));
@@ -34,15 +49,26 @@ export function parseFrontMatter(source) {
 		key = kv[1];
 		const v = kv[2].trim();
 		if (v === "") data[key] = [];
-		else if (v.startsWith("[") && v.endsWith("]")) data[key] = v.slice(1, -1).split(",").map(scalar).filter((x) => x !== "");
+		else if (v.startsWith("[") && v.endsWith("]"))
+			data[key] = v
+				.slice(1, -1)
+				.split(",")
+				.map(scalar)
+				.filter((x) => x !== "");
 		else data[key] = scalar(v);
 	}
-	for (const k of Object.keys(data)) if (Array.isArray(data[k]) && data[k].length === 0) data[k] = "";
+	for (const k of Object.keys(data))
+		if (Array.isArray(data[k]) && data[k].length === 0) data[k] = "";
 	return { data, body: source.slice(m[0].length) };
 }
 
 export const slugify = (s) =>
-	String(s).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+	String(s)
+		.toLowerCase()
+		.normalize("NFKD")
+		.replace(/[̀-ͯ]/g, "")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
 
 const humanize = (slug) => slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
@@ -71,7 +97,10 @@ export function cleanLiquid(text) {
 		.replace(/\{\{\s*site\.baseurl\s*\}\}/g, "")
 		.replace(/\{%\s*raw\s*%\}|\{%\s*endraw\s*%\}/g, "")
 		.replace(/\{%\s*highlight\s+(\w+)[^%]*%\}([\s\S]*?)\{%\s*endhighlight\s*%\}/g, "```$1\n$2\n```")
-		.replace(/(\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\})/g, () => { left++; return ""; });
+		.replace(/(\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\})/g, () => {
+			left++;
+			return "";
+		});
 	return { text: out, unsupported: left };
 }
 
@@ -81,7 +110,10 @@ const IMAGE = /(!\[[^\]]*\]\()([^)\s]+)((?:\s+"[^"]*")?\))/g;
  * Finds the entries in `dir`. Files under `_posts` or named `YYYY-MM-DD-name` become posts (`_drafts` as drafts),
  * everything else becomes a page. `siteRoot` is where root-relative image paths such as /assets/a.png are looked up.
  */
-export function planEntries(dir, { siteRoot = dir, postCollection = "posts", pageCollection = "pages" } = {}) {
+export function planEntries(
+	dir,
+	{ siteRoot = dir, postCollection = "posts", pageCollection = "pages" } = {},
+) {
 	const entries = [];
 	const warnings = [];
 	const used = new Set();
@@ -93,13 +125,22 @@ export function planEntries(dir, { siteRoot = dir, postCollection = "posts", pag
 		const isDraftDir = rel.includes("_drafts");
 		const isPost = rel.includes("_posts") || isDraftDir || !!dated;
 		const collection = isPost ? postCollection : pageCollection;
-		const base = isPost ? (dated ? dated[2] : name) : rel.slice(0, -1).concat(name === "index" ? [] : name).join("-") || "home";
+		const base = isPost
+			? dated
+				? dated[2]
+				: name
+			: rel
+					.slice(0, -1)
+					.concat(name === "index" ? [] : name)
+					.join("-") || "home";
 		let slug = slugify(data.slug || base) || "untitled";
-		for (let n = 2; used.has(`${collection}/${slug}`); n++) slug = `${slugify(data.slug || base)}-${n}`;
+		for (let n = 2; used.has(`${collection}/${slug}`); n++)
+			slug = `${slugify(data.slug || base)}-${n}`;
 		used.add(`${collection}/${slug}`);
 
 		const cleaned = cleanLiquid(rawBody);
-		if (cleaned.unsupported) warnings.push(`${relative(dir, file)}: ${cleaned.unsupported} Liquid tag(s) removed`);
+		if (cleaned.unsupported)
+			warnings.push(`${relative(dir, file)}: ${cleaned.unsupported} Liquid tag(s) removed`);
 		let body = cleaned.text.replace(/^\s+/, "");
 		let title = data.title ? String(data.title) : "";
 		const h1 = /^# +(.+)\r?\n/.exec(body);
@@ -113,7 +154,9 @@ export function planEntries(dir, { siteRoot = dir, postCollection = "posts", pag
 		body = body.replace(IMAGE, (m, pre, url, post) => {
 			if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(url) || url.startsWith("data:")) return m;
 			const clean = decodeURIComponent(url.split(/[?#]/)[0]);
-			const candidates = clean.startsWith("/") ? [join(siteRoot, clean)] : [join(file, "..", clean), join(siteRoot, clean)];
+			const candidates = clean.startsWith("/")
+				? [join(siteRoot, clean)]
+				: [join(file, "..", clean), join(siteRoot, clean)];
 			const found = candidates.find((c) => existsSync(c) && statSync(c).isFile());
 			if (!found) {
 				warnings.push(`${relative(dir, file)}: image not found: ${url}`);
@@ -136,7 +179,10 @@ export function planEntries(dir, { siteRoot = dir, postCollection = "posts", pag
 			publishedAt: parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : null,
 			tags: isPost ? list(data.tags) : [],
 			categories: isPost ? list(data.categories ?? data.category) : [],
-			excerpt: isPost && (data.excerpt || data.description) ? String(data.excerpt || data.description) : "",
+			excerpt:
+				isPost && (data.excerpt || data.description)
+					? String(data.excerpt || data.description)
+					: "",
 		});
 	}
 	return { entries, warnings };

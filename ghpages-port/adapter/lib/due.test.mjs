@@ -19,7 +19,17 @@ test("a scheduled entry in the past is due", () => {
 });
 
 test("future, unscheduled and trashed entries are not due", () => {
-	assert.equal(isDue(site([{ scheduled_at: "2026-07-01T00:00:00Z" }, { scheduled_at: null }, { scheduled_at: "2026-05-01T00:00:00Z", deleted_at: "2026-05-02T00:00:00Z" }]), now), false);
+	assert.equal(
+		isDue(
+			site([
+				{ scheduled_at: "2026-07-01T00:00:00Z" },
+				{ scheduled_at: null },
+				{ scheduled_at: "2026-05-01T00:00:00Z", deleted_at: "2026-05-02T00:00:00Z" },
+			]),
+			now,
+		),
+		false,
+	);
 });
 
 test("a missing content directory is not due", () => {

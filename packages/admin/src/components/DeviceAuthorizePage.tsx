@@ -17,10 +17,10 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { apiFetch, API_BASE, ApiResponseError, parseApiResponse } from "../lib/api";
+import { ADMIN_BASE } from "../lib/paths.js";
 import { cn } from "../lib/utils";
 import { API_TOKEN_SCOPE_VALUES } from "./settings/ApiTokenSettings.js";
 import { UserAvatar } from "./UserAvatar.js";
-import { ADMIN_BASE } from "../lib/paths.js";
 
 // ============================================================================
 // Types

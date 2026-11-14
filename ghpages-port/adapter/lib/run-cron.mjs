@@ -22,14 +22,20 @@ const now = new Date(arg("now") ?? Date.now());
 const since = new Date(arg("since") ?? now.getTime() - 3600_000);
 const configured = (config.plugins ?? []).filter((p) => p.cron?.length);
 const events = dueCronEvents(configured, since, now);
-console.log(`${events.length} cron job(s) due between ${since.toISOString()} and ${now.toISOString()}`);
+console.log(
+	`${events.length} cron job(s) due between ${since.toISOString()} and ${now.toISOString()}`,
+);
 if (!events.length) process.exit(0);
 
 const require = createRequire(join(process.cwd(), "package.json"));
 const plugins = [];
 for (const p of configured) {
 	const mod = await import(pathToFileURL(require.resolve(p.module)).href);
-	plugins.push({ plugin: { id: p.id, version: p.version }, definition: mod.default ?? mod, settings: p.settings });
+	plugins.push({
+		plugin: { id: p.id, version: p.version },
+		definition: mod.default ?? mod,
+		settings: p.settings,
+	});
 }
 const results = await runHooks({ plugins, events, site: config.site });
 const failed = results.filter((r) => !r.ok).length;
