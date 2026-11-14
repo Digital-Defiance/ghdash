@@ -2,8 +2,15 @@
 // Imports a Jekyll site or a folder of Markdown files into content/ using EmDash's own content handlers,
 // so slugs, revisions, taxonomies and search behave as if the entries were created in the studio.
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash, randomBytes } from "node:crypto";
+import {
+	copyFileSync,
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	statSync,
+	writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -181,6 +188,55 @@ for (const e of entries) {
 	created++;
 }
 
+const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const newId = () => {
+	let t = Date.now();
+	let head = "";
+	for (let i = 0; i < 10; i++) {
+		head = CROCKFORD[t % 32] + head;
+		t = Math.floor(t / 32);
+	}
+	return head + [...randomBytes(16)].map((b) => CROCKFORD[b % 32]).join("");
+};
+const MIME = {
+	".png": "image/png",
+	".jpg": "image/jpeg",
+	".jpeg": "image/jpeg",
+	".gif": "image/gif",
+	".webp": "image/webp",
+	".svg": "image/svg+xml",
+	".avif": "image/avif",
+};
+let listed = 0;
+for (const key of new Set(copied.values())) {
+	if (raw.selectValue("select count(*) from media where storage_key = ?", [key]) > 0) continue;
+	const ext = (/\.[^.]+$/.exec(key) ?? [""])[0];
+	await db
+		.insertInto("media")
+		.values({
+			id: newId(),
+			filename: key.replace(/^[0-9a-f]{8}-/, ""),
+			mime_type: MIME[ext] ?? "application/octet-stream",
+			size: statSync(join("media", key)).size,
+			width: null,
+			height: null,
+			focal_x: null,
+			focal_y: null,
+			alt: null,
+			caption: null,
+			storage_key: key,
+			content_hash: null,
+			blurhash: null,
+			dominant_color: null,
+			status: "ready",
+			created_at: new Date().toISOString(),
+			author_id: null,
+			folder_id: null,
+		})
+		.execute();
+	listed++;
+}
+
 let written = 0;
 for (const change of diffFiles(baseFiles, snapshot(raw, freshNames))) {
 	const text = snapshot(raw, freshNames).get(change.path);
@@ -190,7 +246,7 @@ for (const change of diffFiles(baseFiles, snapshot(raw, freshNames))) {
 	written++;
 }
 console.log(
-	`imported ${created} entries, skipped ${skipped.length} that already exist, copied ${copied.size} image(s), wrote ${written} file(s) in content/`,
+	`imported ${created} entries, skipped ${skipped.length} that already exist, copied ${copied.size} image(s) (${listed} added to the media library), wrote ${written} file(s) in content/`,
 );
 for (const s of skipped) console.log(`  skipped ${s}`);
 for (const w of warnings) console.warn("WARNING:", w);

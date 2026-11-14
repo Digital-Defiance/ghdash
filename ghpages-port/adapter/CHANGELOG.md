@@ -4,6 +4,10 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.13.1 [adapter-v0.13.1]
+- `import-markdown` now also lists the images it copies in the studio's media library, so imported posts' images can be found, reused and deleted there. The package page links to the repository's `main` branch.
+- In your site: nothing. Run the importer again on a fresh checkout to get the library entries; images imported earlier can be added by uploading them in the studio.
+
 ## 0.13.0 [adapter-v0.13.0]
 - Optional "Sign in with GitHub" in the studio, with a token-exchange Worker (`worker/github-oauth.mjs`) that holds your GitHub App's client secret. Uses PKCE and a one-time state. Off unless `globalThis.__STUDIO_OAUTH__` is set; pasting a token still works.
 - In your site: nothing, unless you want the button; see "Sign in with GitHub" in the README.
