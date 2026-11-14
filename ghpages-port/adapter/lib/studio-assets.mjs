@@ -1,7 +1,7 @@
-// Writes the data the in-browser admin loads: public/studio-data/{content.json,empty.db}.
+// Writes the data the in-browser admin loads: public/studio-data/{content.json,empty.db}, and the media service worker at public/studio/media-sw.js.
 // Run after `ghdash-pages build-db`. content.json is the repo's content/ tree as one file.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,5 +30,7 @@ const meta = {
 	branch: process.env.STUDIO_BRANCH || process.env.GITHUB_REF_NAME || sh("git", ["branch", "--show-current"]) || "main",
 	head: process.env.GITHUB_SHA || sh("git", ["rev-parse", "HEAD"]),
 };
+mkdirSync("public/studio", { recursive: true });
+copyFileSync(fileURLToPath(new URL("../studio/media-sw.js", import.meta.url)), "public/studio/media-sw.js");
 writeFileSync(join(out, "content.json"), JSON.stringify({ ddl, tables, meta }));
 execFileSync(process.execPath, [fileURLToPath(new URL("./make-empty-db.mjs", import.meta.url)), "data.db", dir, join(out, "empty.db")], { stdio: "inherit" });

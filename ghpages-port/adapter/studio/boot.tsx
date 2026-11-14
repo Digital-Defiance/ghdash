@@ -25,6 +25,12 @@ const { db: raw, database, freshNames } = openDb(sqlite, empty, content);
 const db = new Kysely({ dialect: new SqliteDialect({ database }) });
 const realFetch = globalThis.fetch.bind(globalThis);
 const pendingMedia = new Map();
+if ("serviceWorker" in navigator) {
+	navigator.serviceWorker.addEventListener("message", (e) => {
+		if (e.data?.type === "studio-media") e.ports[0]?.postMessage(pendingMedia.get(e.data.key) ?? null);
+	});
+	navigator.serviceWorker.register(`${site}/studio/media-sw.js`).catch(() => {});
+}
 const controller = createController({ db: raw, freshNames, baseFiles: snapshot(raw, freshNames), meta: content.meta, pendingMedia });
 const rawApi = createBrowserApi({
 	db,
