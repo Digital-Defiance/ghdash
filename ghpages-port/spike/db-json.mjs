@@ -17,7 +17,7 @@ import { DatabaseSync } from "node:sqlite";
 const SKIP = [
 	/^_emdash_fts_/, // FTS shadow data, rebuilt on import
 	/^_emdash_migrations/,
-	/_lock$/,
+	/_locks?$/,
 	/^_emdash_media_usage_/,
 	/^_emdash_redirect_state$/,
 	/^_emdash_rate_limits$/,

@@ -242,6 +242,12 @@ Surprises:
 - Known gaps: users and passkey routes are meaningless on a static site; media upload and settings saves are untested; the `media-usage` activation check logs a harmless error; the entry-lock routes write to a lock table, which the pending-changes diff must ignore; deep links still 404 on a plain static server (2b.6). The demo does not yet fetch the chunks from a release asset (see TODO 2b.4).
 - Draft semantics are EmDash's own: saving a published post writes a draft revision, so the list keeps the live title until the change is published.
 
+## 14b. Tray results (2026-11-14)
+- Diffing is at file granularity, as D11 lays the repo out: an edited post is one `ec_*/<id>.json`; settings, menus and the like are one file per table. The snapshot of a freshly loaded DB equals `content/` byte for byte, so there are no phantom changes. Transient tables (entry locks, rate limits, FTS, sessions) are skipped; the lock table's name was `_emdash_entry_locks`, which the first skip rule missed, and the same fix went into `db-json.mjs`.
+- The tray sits in the admin header through a `HeaderExtras` slot in the fork (additive; unused by default). When the tray changes data behind the API (discard, merge, restore), the studio resets the admin's query cache through `onQueryClient` and remounts it.
+- Commit uses the Git Data API with an expected head. On a 422 or a moved head the tray keeps the changes and offers "Update my copy".
+- Not done: schema-change merge and discard, media, and a way to see a diff of one row's fields.
+
 ## 15. Pending-changes tray and release tarballs (2026-11-13)
 **Pending changes (D14).** The in-browser database is the working copy and the repo JSON loaded at start is the baseline.
 - A change is any row that differs from the baseline: added, modified or removed. The list is computed by diffing the two, so it needs no change tracking in the handlers. Each item is labelled from the row (a post's title, a setting's name).

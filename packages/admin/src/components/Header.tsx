@@ -9,7 +9,7 @@ import { useCurrentUser } from "../lib/api/current-user";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserAvatar } from "./UserAvatar.js";
-import { ADMIN_BASE } from "../lib/paths.js";
+import { ADMIN_BASE, HeaderExtras } from "../lib/paths.js";
 
 export type { CurrentUser } from "../lib/api/current-user";
 
@@ -65,6 +65,8 @@ export function Header({ staging = false }: { staging?: boolean }) {
 							<Badge variant="warning">{t`Staging`}</Badge>
 						</span>
 					))}
+
+				{HeaderExtras && <HeaderExtras />}
 
 				{/* View site link */}
 				<LinkButton variant="ghost" size="sm" href="/" external>

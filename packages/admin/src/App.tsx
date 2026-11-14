@@ -25,7 +25,7 @@ import { getLoadedDateLocale, waitForDateLocale } from "./locales/date-locale.js
 import { LocaleDirectionProvider } from "./locales/index.js";
 import { KumoTranslationsProvider } from "./locales/KumoTranslationsProvider.js";
 import { createAdminRouter } from "./router";
-import { ADMIN_BASE } from "./lib/paths.js";
+import { ADMIN_BASE, onQueryClient } from "./lib/paths.js";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -38,6 +38,7 @@ const queryClient = new QueryClient({
 });
 
 refetchCurrentUserOnForbidden(queryClient);
+onQueryClient?.(queryClient);
 
 // Create the router with query client context
 const router = createAdminRouter(queryClient);

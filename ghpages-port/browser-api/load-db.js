@@ -12,6 +12,7 @@ export function openDb(sqlite, freshBytes, { ddl, tables }) {
 			sqlite.capi.SQLITE_DESERIALIZE_FREEONCLOSE | sqlite.capi.SQLITE_DESERIALIZE_RESIZEABLE);
 		if (rc) throw new Error("sqlite3_deserialize failed: " + rc);
 	}
+	const freshNames = new Set(db.selectValues("select name from sqlite_master"));
 	db.exec("PRAGMA foreign_keys=OFF; BEGIN");
 	for (const o of ddl.filter((o) => o.type === "table")) db.exec(o.sql);
 	for (const o of ddl.filter((o) => o.type === "trigger")) db.exec(o.sql);
@@ -41,5 +42,5 @@ export function openDb(sqlite, freshBytes, { ddl, tables }) {
 			};
 		},
 	};
-	return { db, database };
+	return { db, database, freshNames };
 }

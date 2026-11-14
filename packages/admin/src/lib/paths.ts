@@ -1,3 +1,6 @@
+import type { QueryClient } from "@tanstack/react-query";
+import type { ComponentType } from "react";
+
 /**
  * Where the admin lives and where its API is, for deployments that don't serve
  * the admin at /_emdash/admin (for example a static site under a base path).
@@ -12,6 +15,10 @@ export interface EmDashPaths {
 	apiBase?: string;
 	/** Replaces `fetch` for every `apiFetch` call, so the API can run without a server. */
 	fetch?: typeof fetch;
+	/** Rendered in the header, before the "View Site" link. */
+	HeaderExtras?: ComponentType;
+	/** Called once with the admin's query client, so a host that changes data behind the API can reset cached screens. */
+	onQueryClient?: (client: QueryClient) => void;
 }
 
 const configured = (globalThis as { __EMDASH_PATHS__?: EmDashPaths }).__EMDASH_PATHS__;
@@ -24,6 +31,8 @@ export const DEFAULT_API_BASE = "/_emdash/api";
 export const ADMIN_BASE = trim(configured?.adminBase ?? DEFAULT_ADMIN_BASE);
 export const API_BASE = trim(configured?.apiBase ?? DEFAULT_API_BASE);
 export const customFetch = configured?.fetch;
+export const HeaderExtras = configured?.HeaderExtras;
+export const onQueryClient = configured?.onQueryClient;
 
 /** Rewrites a hardcoded `/_emdash/api...` URL to the configured API prefix. */
 export function resolveApiUrl<T extends string | URL | Request>(input: T): T {
