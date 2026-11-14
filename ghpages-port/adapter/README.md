@@ -46,7 +46,7 @@ Imported images are not listed in the studio's media library yet, but they displ
 
 ## Install and upgrade
 
-From npm: `npm install @digitaldefiance/ghdash-pages`. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
+From npm: `npm install @digitaldefiance/ghdash-pages`. Maintainers: publish the first version by hand from `ghpages-port/adapter` (`npm login`, then `npm publish --access public`), then add a Trusted Publisher on the package's npm settings page (GitHub Actions, organization `Digital-Defiance`, repository `ghdash`, workflow `publish-adapter.yml`). After that, pushing a tag `adapter-v<version>` publishes it with provenance and no token. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
 
 ## The in-browser studio
 
