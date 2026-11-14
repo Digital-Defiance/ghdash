@@ -35,9 +35,11 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2b.2 Demo consumes the fork: `GHDash-example` branch `studio-experiment` vendors the fork's admin tarball (`vendor/emdash-cms-admin-1.5.0.tgz`, 11 MB, npm `overrides`). Only admin is vendored; `emdash` core still comes from npm. Not merged to `main` yet because of the 11 MB binary.
 - [x] 2b.3 Admin boots under a base path: `/GHDash-example/studio/` mounts `AdminApp`, and its first requests go to `/GHDash-example/_api/manifest` and `/_api/auth/me`. It then shows "Failed to fetch manifest" because nothing answers those calls yet.
 - [ ] 2b.4 **Next: the browser API.** A local router that answers the admin's `/_api/*` calls: `manifest` (built by `emdash.getManifest()` on the server today), `auth/me` (a fixed repo-collaborator user), then content list/get/create/update/publish, schema, settings, taxonomies, menus, media. It runs core handlers on `@sqlite.org/sqlite-wasm`, loaded from the repo JSON (spike/browser-handlers). Needs an additive core export so handlers and the manifest builder can be imported from the published package.
-- [ ] 2b.5 Commit saves from the router (diff the DB against the loaded JSON, write changed rows through `github-commit.mjs`).
+- [ ] 2b.5 Pending-changes tray (SPEC D14, §15): diff the in-browser DB against the loaded JSON, toolbar icon with a count and dropdown of changes, view/discard, and a Commit button that writes the changed rows as one commit through `github-commit.mjs`.
+- [ ] 2b.5a Persist pending changes to IndexedDB, and restore them only if the baseline head hasn't moved.
+- [ ] 2b.5b Conflict handling: keep changes after a stale head, reload the baseline, re-apply non-clashing rows.
 - [ ] 2b.6 Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
-- [ ] 2b.7 Decide how fork tarballs are distributed so they don't bloat the demo repo's history (release assets, a `vendor` branch, or publish under our own scope).
+- [~] 2b.7 Tarballs as GitHub release assets (SPEC D13). Workflow `pages-tarballs.yml` is written and pushed. **Still to do:** run it by pushing tag `pages-v0.1.0` (tag pushes are refused from the cloud session, so push it from a local clone), then switch `GHDash-example` from the vendored tarball to the release URL and delete `vendor/`.
 **2b notes from reading the admin:** `packages/admin` hardcodes `ADMIN_BASEPATH = "/_emdash/admin"` (App.tsx) and `API_BASE = "/_emdash/api"` (lib/api/client.ts). Serving it under `/<repo>/admin/` needs both made configurable, and a fetch transport that calls the browser handlers (spike/browser-handlers) instead of the network. Those are small upstream changes but touch the admin's boot calls (manifest, current user, setup status), which still need mapping.
 - [ ] 2.1 Admin static bundle served at `/admin/`.
 - [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
@@ -82,3 +84,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Minimal editor (2a) built and deployed to GHDash-example `/admin/`. Retry added for font flake.
 - 2026-11-13: The sandbox network allowlist now includes `digital-defiance.github.io`, so the live site can be tested from a session. Live check passed.
 - 2026-11-13: Admin paths made configurable in the fork. The real admin boots at `/studio/` in the demo (branch `studio-experiment`) and asks for `manifest` and `auth/me`. The browser API (2b.4) is next.
+- 2026-11-13: Decided release-asset tarballs (D13) and a pending-changes tray with a commit button (D14), both from Jessica. Release workflow pushed; the first tag still needs pushing from a local clone.

@@ -41,6 +41,8 @@ Target audience: open source projects and personal sites. **Everything in the re
 | D9 | Search uses **Pagefind**, generated at build time. | FTS5 queries need a server at request time. |
 | D10 | Scheduled publishing is a cron-triggered Action that flips due entries and rebuilds. | No cron on Pages. |
 | D11 | The repo store is **table-shaped JSON**: one file per row for `ec_*` tables, one file per small system table, and `_ddl.json` for objects that migrations don't create. **The seed format is not used.** | The spike showed this round-trips losslessly. Re-applying a seed gives new IDs and resets `published_at`/`created_at` to the time of the seed, so dates would change on every build. |
+| D13 | Fork tarballs are distributed as **GitHub release assets** on `Digital-Defiance/ghdash`, built by `.github/workflows/pages-tarballs.yml` (tags `pages-v*`). Sites depend on the release asset URL through an npm `overrides` entry. No binaries are committed to site repos. | Keeps site history small and gives every build a versioned, public URL. Jessica's suggestion. |
+| D14 | The admin **accumulates edits as pending changes** instead of committing on every save. A toolbar icon with a count opens a dropdown listing each pending change (entry or setting, with its type: new, edited, deleted). From it the editor can review a diff, discard one change, or **Commit** everything as one commit with a message. Pending changes live in the in-browser database and are persisted to IndexedDB so a reload doesn't lose them. | Matches how git works, gives one meaningful commit per editing session, and turns every settings screen into a batch edit. Jessica's suggestion. |
 | D12 | The admin data layer uses **Option A**: the core handlers run in the browser on the official `@sqlite.org/sqlite-wasm` build. | The spike showed the handlers bundle with five small shims, and that content, settings, taxonomy, menu and schema handlers work on the WASM build (content was also checked in headless Chromium). sql.js was rejected because it has no FTS5. |
 
 ## 4. Architecture
@@ -231,3 +233,14 @@ Surprises:
 - **Boot sequence observed:** the admin requests `GET /_api/manifest` and `GET /_api/auth/me` first. `manifest` is produced server-side by `emdash.getManifest()` plus branding, timezone, auth mode and plugin state. `auth/me` returns the current user. The browser router has to produce both from the in-browser database.
 - **What the router can reuse:** the handlers in `packages/core/src/api/handlers/*` (proven in the spike). The route files add zod validation, permissions and the `{ data }` envelope, which the router must reproduce or reuse (SPEC §9 Q7).
 - **Known limits to handle:** Pages has no SPA fallback, so deep links need a shim (2b.6). The `emdash` package doesn't export the handlers, so an additive export is needed.
+
+## 15. Pending-changes tray and release tarballs (2026-11-13)
+**Pending changes (D14).** The in-browser database is the working copy and the repo JSON loaded at start is the baseline.
+- A change is any row that differs from the baseline: added, modified or removed. The list is computed by diffing the two, so it needs no change tracking in the handlers. Each item is labelled from the row (a post's title, a setting's name).
+- The tray is a toolbar icon with a count badge. The dropdown lists the changes and offers: view diff, discard this change, discard all, and **Commit** (message box prefilled, for example "Edit 2 posts, 1 setting").
+- Commit writes only the changed files in one commit through `github-commit.mjs`, using the baseline head SHA for conflict detection. After a conflict the tray keeps the changes and offers to rebase them: reload the new baseline, then re-apply the changed rows that don't clash.
+- Persistence: baseline head SHA plus the list of changed rows in IndexedDB, restored on load only if the baseline head is unchanged.
+- The minimal editor (§13) still commits per save. It could adopt the tray later.
+- Settings are rows in `options.json`, so they are covered by the same mechanism.
+
+**Release tarballs (D13).** The workflow builds the monorepo with an 8 GB heap, packs `admin` and `core`, and creates or updates a release for the tag. It was pushed on `spike/ghpages-phase0`, but GitHub only allows manual dispatch for workflows on the default branch, so the first run needs a `pages-v*` tag push. This session's git proxy refused tag pushes.
