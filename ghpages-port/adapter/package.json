@@ -4,6 +4,22 @@
   "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Digital-Defiance/ghdash.git",
+    "directory": "ghpages-port/adapter"
+  },
+  "homepage": "https://github.com/Digital-Defiance/ghdash/tree/spike/ghpages-phase0/ghpages-port/adapter#readme",
+  "bugs": {
+    "url": "https://github.com/Digital-Defiance/ghdash/issues"
+  },
+  "keywords": [
+    "emdash",
+    "cms",
+    "github-pages",
+    "static-site",
+    "jamstack"
+  ],
   "bin": {
     "ghdash-pages": "bin/ghdash-pages.mjs"
   },
@@ -12,7 +28,8 @@
     "lib",
     "studio",
     "!lib/*.test.mjs",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test lib/*.test.mjs"
@@ -44,5 +61,9 @@
     "react-dom": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
