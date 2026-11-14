@@ -8,8 +8,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 - **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path.
 - **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.7.0` (admin, core, browser API, adapter).
 - **Needs the site owner:** giscus comments (4.1) are merged but stay off until Discussions is enabled, the giscus app is installed and `giscus.json` is committed.
-- **Next:** `revisions.json` size, image optimisation, plugins (Phase 5), hardening (Phase 6).
-- **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; image optimisation isn't done; the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
+- **Next:** plugins (Phase 5), hardening (Phase 6).
+- **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; images are only downscaled (no srcset or WebP yet); the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
 **Done 2026-11-13.** Results are in SPEC §11, and the code is in `spike/`.
@@ -29,7 +29,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 1.4a Template changes in `GHDash-example`: `getStaticPaths()` on the dynamic routes; path-based pagination (`/posts/page/2/`, `/tag/<slug>/page/2/`, same for categories; `PAGE_SIZE` env var overrides the default of 20 at build time); `/search/` is a static page that queries a Pagefind index in the browser.
 - [x] 1.4b `revisions` is one file per row (`content/revisions/<id>.json`), like content rows, so a save touches one small file. Older `revisions.json` is still read; `ghdash-pages split-revisions` migrates it. The tray folds a revision into its post's change. Adapter 0.3.0 (needs tag `pages-v0.8.0`); demo branch `split-revisions` waits for that release.
 - [x] 1.7 Font downloads: the workflow now retries the build up to 3 times, so a transient Google font fetch failure no longer fails the deploy.
-- [~] 1.5 Media: the build copies repo `media/` to `public/media/` and rewrites `/_emdash/api/media/file/<key>` to `<base>/media/<key>`. **Still to do:** image optimisation (resizing, srcset).
+- [~] 1.5 Media: the build copies repo `media/` to `public/media/` and rewrites `/_emdash/api/media/file/<key>` to `<base>/media/<key>`. The copy downscales images wider than `MEDIA_MAX_WIDTH` (default 2000px) with sharp (adapter 0.4.0, needs tag `pages-v0.9.0`). **Still to do:** srcset and WebP.
 - [x] 1.6 `sitemap.xml` and `robots.txt` are generated endpoints in `GHDash-example` (absolute URLs including the base path; `/studio/` and `/admin/` disallowed). The RSS feed links now include the base path too (they didn't before). Redirects: `scripts/redirects.mjs` turns enabled rows of `content/_emdash_redirects.json` into meta-refresh pages after the build; pattern redirects are skipped with a warning (static hosting can't do them). Unit-tested; e2e covers sitemap, robots and feed.
 
 ## Phase 2: Browser admin with PAT editing · est. 2–3 weeks

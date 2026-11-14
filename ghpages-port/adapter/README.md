@@ -8,7 +8,7 @@ ghdash-pages publish-due         publish scheduled entries that are due and upda
 ghdash-pages due                 prints true or false: is a scheduled entry due? (for a scheduled workflow)
 ghdash-pages studio-assets       public/studio-data/ for the in-browser admin
 ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
-ghdash-pages copy-media          media/ -> public/media/
+ghdash-pages copy-media          media/ -> public/media/, downscaling images wider than MEDIA_MAX_WIDTH (default 2000, 0 = off; needs sharp, which Astro installs)
 ghdash-pages finish [dist]       after `astro build`: base path, media URLs, redirect pages (BASE_PATH)
 ghdash-pages export-content      data.db -> content/
 ghdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
