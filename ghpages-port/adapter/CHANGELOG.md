@@ -4,6 +4,10 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.12.1 [adapter-v0.12.1]
+- Published to npm from GitHub Actions with provenance, so `npm install @digitaldefiance/ghdash-pages` works without a release URL. No code changes.
+- In your site: optionally replace the release URL in `package.json` with `^0.12.1` and run `npm install`.
+
 ## 0.12.0 [pages-v0.17.0]
 - The package is renamed from `@digital-defiance/ghdash-pages` to `@digitaldefiance/ghdash-pages`, to match the npm scope it is published under. The release file is now `digitaldefiance-ghdash-pages-<version>.tgz`.
 - In your site: change the dependency name and URL in `package.json`, and every import of `@digital-defiance/ghdash-pages/...` (for example in `src/pages/studio/index.astro` and your tests) to `@digitaldefiance/ghdash-pages/...`, then run `npm install`.
