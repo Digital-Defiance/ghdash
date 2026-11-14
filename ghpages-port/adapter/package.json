@@ -1,11 +1,47 @@
 {
   "name": "@digital-defiance/ghdash-pages",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",
-  "bin": { "ghdash-pages": "bin/ghdash-pages.mjs" },
-  "files": ["bin", "lib", "!lib/*.test.mjs", "README.md"],
-  "scripts": { "test": "node --test lib/*.test.mjs" },
-  "engines": { "node": ">=22.5" }
+  "bin": {
+    "ghdash-pages": "bin/ghdash-pages.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "studio",
+    "!lib/*.test.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test lib/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "exports": {
+    "./studio/*": "./studio/*",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@emdash-cms/admin": "*",
+    "@sqlite.org/sqlite-wasm": "*",
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "@emdash-cms/admin": {
+      "optional": true
+    },
+    "@sqlite.org/sqlite-wasm": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  }
 }

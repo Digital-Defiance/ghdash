@@ -17,7 +17,22 @@ ghdash-pages serve               serve dist/client under BASE_PATH, like Pages
 A typical site build script:
 
 ```
-ghdash-pages build-db && ghdash-pages studio-assets && ghdash-pages fetch-browser-api && ghdash-pages copy-media && astro build && ghdash-pages finish && pagefind --site dist/client
+ghdash-pages build-db && ghdash-pages fetch-browser-api && ghdash-pages publish-due && ghdash-pages studio-assets && ghdash-pages copy-media && astro build && ghdash-pages finish && pagefind --site dist/client
 ```
 
-The in-browser studio (`src/studio/`) and the Pagefind search page are still part of the site template. See `GHDash-example` for a working site.
+## The in-browser studio
+
+`@digital-defiance/ghdash-pages/studio/boot.tsx` mounts the real EmDash admin in the browser, with a pending-changes tray. A site needs a page at `/studio/` that sets `__EMDASH_PATHS__` and loads it:
+
+```astro
+<script is:inline>
+	const site = location.pathname.replace(/\/studio(\/.*)?$/, "");
+	globalThis.__EMDASH_PATHS__ = { adminBase: site + "/studio", apiBase: site + "/_api", siteBase: site + "/" };
+</script>
+<div id="admin-root"></div>
+<script>import "@digital-defiance/ghdash-pages/studio/boot.tsx";</script>
+```
+
+The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js` and `studio/github-commit.js`.
+
+The Pagefind search page and the page templates are part of the site template. See `GHDash-example` for a working site.

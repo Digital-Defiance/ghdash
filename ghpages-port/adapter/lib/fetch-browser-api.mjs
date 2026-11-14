@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const TAG = process.env.BROWSER_API_TAG || "pages-v0.6.0";
+const TAG = process.env.BROWSER_API_TAG || "pages-v0.7.0";
 const url = process.env.BROWSER_API_URL || `https://github.com/Digital-Defiance/ghdash/releases/download/${TAG}/ghdash-browser-api-${TAG}.tgz`;
 const out = "public/studio-api";
 
