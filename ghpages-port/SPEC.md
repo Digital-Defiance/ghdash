@@ -244,3 +244,5 @@ Surprises:
 - Settings are rows in `options.json`, so they are covered by the same mechanism.
 
 **Release tarballs (D13).** The workflow builds the monorepo with an 8 GB heap, packs `admin` and `core`, and creates or updates a release for the tag. It was pushed on `spike/ghpages-phase0`, but GitHub only allows manual dispatch for workflows on the default branch, so the first run needs a `pages-v*` tag push. This session's git proxy refused tag pushes.
+
+**Status of D13:** done. `pages-v0.1.0` carries the admin and core tarballs, and the demo's `studio-experiment` branch installs the admin from `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.1.0/emdash-cms-admin-1.5.0.tgz` through npm `overrides`. The release was started by pushing the tag from a local clone.
