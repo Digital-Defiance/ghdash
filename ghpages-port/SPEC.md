@@ -163,23 +163,27 @@ Expected fit for bundled plugins: `color`, `field-kit` and `embeds` should port 
 
 ## 6. Feature matrix
 
-| Feature                                            | Status on Pages                                                 |
-| -------------------------------------------------- | --------------------------------------------------------------- |
-| Posts, pages, custom collections, fields           | ✅                                                              |
-| Drafts and revisions                               | ✅ public, with git history as revisions                        |
-| Taxonomies, menus, widgets, sections, bylines, SEO | ✅                                                              |
-| Media                                              | ✅ within GitHub's size limits                                  |
-| Search                                             | 🔁 Pagefind                                                     |
-| Scheduled publishing                               | 🔁 cron Action (granularity limited by the schedule)            |
-| Redirects                                          | 🔁 static stubs (no 301 status)                                 |
-| Sitemap and robots                                 | ✅ build time                                                   |
-| Comments                                           | 🔁 giscus or issue Action, GitHub account needed                |
-| Forms                                              | ⚠️ needs an external receiver, submissions kept out of the repo |
-| Users, roles, passkeys, magic links                | ❌ replaced by GitHub repo permissions                          |
-| API tokens, MCP, OAuth server                      | ❌                                                              |
-| Real-time co-editing, entry locks                  | ❌ (concurrency is handled by commit SHA)                       |
-| Visual editing and preview                         | 🔁 possible in the browser admin, later                         |
-| Plugin public routes                               | ❌                                                              |
+| Feature                                            | Status on Pages                                                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Posts, pages, custom collections, fields           | ✅                                                                                                                      |
+| Drafts and revisions                               | ✅ public, with git history as revisions                                                                                |
+| Taxonomies, menus, widgets, sections, bylines, SEO | ✅                                                                                                                      |
+| Media                                              | ✅ within GitHub's size limits                                                                                          |
+| Search                                             | ✅ Pagefind at build time                                                                                               |
+| Scheduled publishing                               | 🔁 cron Action (granularity limited by the schedule)                                                                    |
+| Redirects                                          | 🔁 static stubs (no 301 status)                                                                                         |
+| Sitemap and robots                                 | ✅ build time                                                                                                           |
+| Comments                                           | ✅ giscus, GitHub account needed                                                                                        |
+| Forms                                              | ✅ `/contact` page: form service or own Worker (email), or a pre-filled public GitHub issue; nothing stored in the repo |
+| Sign in with GitHub                                | ✅ optional: GitHub App and a token-exchange Worker; the token path stays                                               |
+| Import from Jekyll or Markdown                     | ✅ `ghdash-pages import-markdown`                                                                                       |
+| Responsive images                                  | ✅ WebP variants and `srcset` at build time                                                                             |
+| Plugins: before-save hooks, after-hooks, cron      | ✅ in the browser, in the Action, and in the hourly Action                                                              |
+| Visual editing and preview                         | 🔁 possible in the browser admin, later                                                                                 |
+| Users, roles, passkeys, magic links                | ❌ replaced by GitHub repo permissions                                                                                  |
+| API tokens, MCP, OAuth server                      | ❌                                                                                                                      |
+| Real-time co-editing, entry locks                  | ❌ (concurrency is handled by commit SHA)                                                                               |
+| Plugin public routes                               | ❌                                                                                                                      |
 
 ## 7. Security notes
 
@@ -195,9 +199,9 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 
 1. ~~Do Astro live collections work during a static build?~~ Yes (§11).
 2. ~~Option A or B for the admin data layer?~~ Option A (D12).
-3. Revisions: keep the `revisions` rows in JSON (split per entry, e.g. `revisions/<entry-id>.json`), or rely on git history only?
-4. Where does the browser get the migrated empty DB? Either ship `fresh.db` (~1.5 MB) as a build artifact, or bundle the Kysely migrator and run migrations in the browser (untested).
-5. The route layer: write a local router that calls the handlers directly, or reuse the Astro route files with a fake `APIContext`? The route files add validation (zod `parseBody`) and permission checks we'd like to keep.
+3. ~~Revisions~~ Kept as JSON, one file per revision row under `content/revisions/` (adapter 0.3.0).
+4. ~~Where the browser gets the migrated empty DB~~ `studio-assets` ships `empty.db` as a build artifact.
+5. ~~The route layer~~ EmDash's own route files run with a fake `APIContext` (D15).
 6. One repo for the site and content, or a separate content repo?
 7. Custom domains and base paths: project Pages sites live under `/<repo>/`, so check base-path support.
 
@@ -206,6 +210,7 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 - 2026-11-13: Feasibility assessed. D1–D10 agreed with Jessica. Public drafts are OK. A GitHub account is required for comments.
 - 2026-11-13: Phase 0 spike approved and run. D11 (table-shaped JSON, not seed) and D12 (Option A on sqlite-wasm) were added from the results.
 - 2026-11-13: The live PAT commit test passed against `Digital-Defiance/GHDash-example`, which is now the demo and test repo for later phases. Phase 0 is complete.
+- 2026-11-14: D16 to D20, see §21. The port moved to the fork's `main` branch.
 
 ## 11. Phase 0 spike results (2026-11-13)
 
@@ -345,3 +350,12 @@ None of the bundled UI plugins (`color`, `field-kit`, `embeds`) has hooks, so th
 - The `hooks` job runs after `deploy`. Its range starts at the `hooks-last` tag (moved after each successful run) or, the first time, at the push's previous commit. This means a run cancelled by the workflow's `cancel-in-progress` setting does not lose notifications; the next run covers them. A failed run does not move the tag, so a retry can repeat notifications that already went out.
 - Scheduled publishing counts too: the commit made by the hourly run is part of the range, so a post that goes live on schedule is notified.
 - Limits: no media hooks, no `content:afterPublish` (the status in the row says whether it is published), and a large import sends one call per entry.
+
+## 21. Later additions and decisions (2026-11-14, evening)
+
+- **D16, stable install path.** The adapter is published to npm as `@digitaldefiance/ghdash-pages` (0.12.1 was the first release from Actions). Releases are made by pushing an `adapter-v<version>` tag; `publish-adapter.yml` checks the tag against `package.json`, runs the tests, and publishes with npm trusted publishing and provenance, with no token. The patched admin, core and browser API stay `pages-v*` release assets.
+- **D17, sign in with GitHub.** Optional. A GitHub App (Contents read and write) and a small Cloudflare Worker (`worker/github-oauth.mjs`) that holds the client secret and trades the one-time code for a token. The studio uses PKCE and a one-time state; the Worker accepts only the site's origin and redirect addresses and returns only the token. Tokens last eight hours and are not refreshed. The pasted fine-grained token still works, so the site needs no extra service unless an owner wants the button.
+- **D18, contact forms.** `contact.json` picks one of: a form-service endpoint, the demo's own Worker (`worker/contact-worker.mjs`, email through Resend, origin check, honeypot, optional Turnstile), or `issueRepo` (a pre-filled public GitHub issue, no extra service). Submissions never go into the repository.
+- **D19, importer.** `import-markdown` creates entries through EmDash's own content handlers in Node (so slugs, revisions and taxonomies match the studio), copies images to `media/` and lists them in the media library. Checked on the minimal-mistakes docs (121 entries). Liquid includes are dropped with a warning, not converted.
+- **D20, build-time media and plugins.** Responsive images (WebP variants and `srcset`), a service worker that shows uncommitted uploads inside the studio, browser before-save hooks, after-hooks and cron in the Action (`hooks.config.json`), and a manual smoke test for cron on a real runner.
+- Upstream: the only change to EmDash's own code is the optional paths and fetch hook in `packages/admin` (about 90 lines). A draft Discussion post is in the project files; the owner posts it, as EmDash's AI policy requires.

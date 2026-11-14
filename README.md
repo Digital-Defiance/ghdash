@@ -12,26 +12,30 @@ The fork stays close to upstream on purpose. Changes are additive (for example, 
 
 ## What changes
 
-|               | EmDash                                     | GHDash                                                                                             |
-| ------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Content store | SQLite, D1 or Postgres                     | JSON files in the repo (one file per row)                                                          |
-| Rendering     | On each request                            | Static build in a GitHub Action                                                                    |
-| Admin         | Served by the site, signs in with passkeys | Static admin in the browser, signs in with a fine-grained token                                    |
-| Saving        | Writes to the database                     | One atomic commit through the GitHub API                                                           |
-| Comments      | Built in                                   | giscus (commenters need a GitHub account)                                                          |
-| Plugins       | Sandboxed runtime                          | Browser admin UI and before-hooks, plus build-time after-hooks; public plugin HTTP routes are lost |
+|               | EmDash                                     | GHDash                                                                                                      |
+| ------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Content store | SQLite, D1 or Postgres                     | JSON files in the repo (one file per row)                                                                   |
+| Rendering     | On each request                            | Static build in a GitHub Action                                                                             |
+| Admin         | Served by the site, signs in with passkeys | EmDash's own admin, running in the browser at `/studio/`; signs in with a fine-grained token or GitHub      |
+| Saving        | Writes to the database                     | Pending-changes tray, then one atomic commit through the GitHub API                                         |
+| Comments      | Built in                                   | giscus (commenters need a GitHub account)                                                                   |
+| Plugins       | Sandboxed runtime                          | Browser admin UI and before-hooks, plus build-time after-hooks and cron; public plugin HTTP routes are lost |
 
 Drafts are public because the repo is public, so GHDash suits open source sites.
 
-## Status
+## What works today
 
-Experimental. Done so far: the static build, a lossless JSON round trip, EmDash's handlers running in the browser on SQLite compiled to WebAssembly, a live Pages deploy, a minimal browser editor, and a configurable admin that boots under a repo base path. In progress: the browser API that lets the full admin work, then a pending-changes tray with a commit button. Still to do: media, search, scheduled publishing, and plugins.
+The demo site and its editor are working end to end. You can create and edit posts and pages, upload media, schedule posts, and change content types and settings, all from the browser. The site gets search, a sitemap, redirects, responsive images, scheduled publishing, webhooks and plugin cron jobs in the build. You can import a Jekyll site or a Markdown folder, add a contact form, and offer "Sign in with GitHub". Not available: users and passkeys, and anything that needs a server at request time (public plugin routes, anonymous comments without a GitHub account).
 
-Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). The work is on `main`.
+Experimental: it works and is tested, but expect rough edges, and the patched admin and core come from release files on this repository rather than from EmDash itself. Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). Steps only the site owner can do are in [OWNER-STEPS.md](ghpages-port/OWNER-STEPS.md).
 
-## Try it
+## Set up your own site
 
-Fork [GHDash-example](https://github.com/Digital-Defiance/GHDash-example), enable Pages (Settings, Pages, Source: GitHub Actions), and open `/admin/` on your site with a fine-grained token (Contents: read and write, that repo only).
+1. Use [GHDash-example](https://github.com/Digital-Defiance/GHDash-example) as a template (**Use this template**, public repository) or fork it.
+2. Turn on Pages: Settings, Pages, Source: **GitHub Actions**. The workflow builds and deploys, and the site appears at `https://<owner>.github.io/<repo>/`.
+3. Open `/studio/` on your site and sign in with a fine-grained token (Contents: read and write, that repo only). Edit, then **Commit**.
+
+[SETUP.md](https://github.com/Digital-Defiance/GHDash-example/blob/main/SETUP.md) has the full walkthrough and the optional extras: comments, scheduled posts, webhooks, plugin cron, importing a Jekyll site, a contact form, and GitHub sign-in. The build scripts and studio are the npm package [`@digitaldefiance/ghdash-pages`](https://www.npmjs.com/package/@digitaldefiance/ghdash-pages) ([README](ghpages-port/adapter/README.md)).
 
 The rest of this README is EmDash's own, kept as is.
 

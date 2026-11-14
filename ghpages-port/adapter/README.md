@@ -10,7 +10,9 @@ ghdash-pages due                 prints true or false: is a scheduled entry due?
 ghdash-pages studio-assets       public/studio-data/ for the in-browser admin
 ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
 ghdash-pages copy-media          media/ -> public/media/, downscaling images wider than MEDIA_MAX_WIDTH (default 2000, 0 = off; needs sharp, which Astro installs)
-ghdash-pages finish [dist]       after `astro build`: base path, media URLs, redirect pages (BASE_PATH)
+ghdash-pages finish [dist]       after `astro build`: base path, media URLs, responsive images (WebP + srcset), redirect pages (BASE_PATH)
+ghdash-pages run-cron [--since <iso>]  run plugin cron jobs that fell due (reads hooks.config.json)
+ghdash-pages import-markdown <dir>  bring a Jekyll site or Markdown folder into content/ (--dry-run first)
 ghdash-pages export-content      data.db -> content/
 ghdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
 ghdash-pages serve               serve dist/client under BASE_PATH, like Pages
