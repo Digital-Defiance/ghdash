@@ -1,6 +1,6 @@
 # EmDash on GitHub Pages: Port Spec
 
-Status: **Phase 0 done. Phase 1 in progress: the demo site is in `Digital-Defiance/GHDash-example`, and the Pages deploy waits on enabling Pages. See §11–§12.**
+Status: **Phase 0 done. Phase 1 in progress: the demo site is live at https://digital-defiance.github.io/GHDash-example/. See §11–§12.**
 Last updated: 2026-11-13
 Owner: Jessica
 Companion file: [TODO.md](./TODO.md), the checkable work list. Update both files as work proceeds.
@@ -216,3 +216,5 @@ Surprises:
 - **Base path:** Astro prefixes its own assets, but the template hardcodes root-absolute links like `href="/posts/x"`. `scripts/rebase-urls.mjs` rewrites those in the built output. A cleaner fix is for templates to use `import.meta.env.BASE_URL` (TODO 1.4a).
 - **Dependabot** opened a run on the repo as soon as `package.json` landed. It is harmless but may open PRs.
 - `content/options.json` is committed in its normalised form, so the first import doesn't produce a diff.
+- **Font fetch flake:** `astro build` downloads Google font files, and one CI run failed on a `CannotFetchFontFile` error before passing on rerun (TODO 1.7).
+- **First deploy:** live 2026-11-13 after Pages was enabled. The Action deploys `dist/client` only.
