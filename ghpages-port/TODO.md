@@ -30,7 +30,14 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2a.1 PAT sign-in with push-permission check, session-storage only.
 - [x] 2a.2 Create and edit posts and pages as single commits, with a stale-head conflict check.
 - [ ] 2a.3 Try it against the real repo from a real browser (Jessica), and show an Actions status link after saving.
-**2b prerequisite:** `GHDash-example` currently installs the published `emdash@1.5.0` from npm, not our fork (`Digital-Defiance/ghdash`). To change the admin, the example must consume the fork: build the fork's packages and install them as tarballs or a git/workspace dependency, or publish them under our own scope. Decide this first.
+**2b progress (2026-11-13):**
+- [x] 2b.1 Fork admin made configurable: new `packages/admin/src/lib/paths.ts` reads `globalThis.__EMDASH_PATHS__ = { adminBase, apiBase, fetch }` (defaults unchanged). `apiFetch` rewrites `/_emdash/api` to `apiBase` and uses `fetch` if given. 12 admin files use `ADMIN_BASE` instead of the literal `/_emdash/admin`. Admin `typecheck` (tsgo) and `oxlint` are clean. Committed on `spike/ghpages-phase0`. Admin unit/browser tests were not run.
+- [x] 2b.2 Demo consumes the fork: `GHDash-example` branch `studio-experiment` vendors the fork's admin tarball (`vendor/emdash-cms-admin-1.5.0.tgz`, 11 MB, npm `overrides`). Only admin is vendored; `emdash` core still comes from npm. Not merged to `main` yet because of the 11 MB binary.
+- [x] 2b.3 Admin boots under a base path: `/GHDash-example/studio/` mounts `AdminApp`, and its first requests go to `/GHDash-example/_api/manifest` and `/_api/auth/me`. It then shows "Failed to fetch manifest" because nothing answers those calls yet.
+- [ ] 2b.4 **Next: the browser API.** A local router that answers the admin's `/_api/*` calls: `manifest` (built by `emdash.getManifest()` on the server today), `auth/me` (a fixed repo-collaborator user), then content list/get/create/update/publish, schema, settings, taxonomies, menus, media. It runs core handlers on `@sqlite.org/sqlite-wasm`, loaded from the repo JSON (spike/browser-handlers). Needs an additive core export so handlers and the manifest builder can be imported from the published package.
+- [ ] 2b.5 Commit saves from the router (diff the DB against the loaded JSON, write changed rows through `github-commit.mjs`).
+- [ ] 2b.6 Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
+- [ ] 2b.7 Decide how fork tarballs are distributed so they don't bloat the demo repo's history (release assets, a `vendor` branch, or publish under our own scope).
 **2b notes from reading the admin:** `packages/admin` hardcodes `ADMIN_BASEPATH = "/_emdash/admin"` (App.tsx) and `API_BASE = "/_emdash/api"` (lib/api/client.ts). Serving it under `/<repo>/admin/` needs both made configurable, and a fetch transport that calls the browser handlers (spike/browser-handlers) instead of the network. Those are small upstream changes but touch the admin's boot calls (manifest, current user, setup status), which still need mapping.
 - [ ] 2.1 Admin static bundle served at `/admin/`.
 - [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
@@ -74,3 +81,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Pages enabled by Jessica and the first successful deploy is live. A font-fetch flake needed one rerun.
 - 2026-11-13: Minimal editor (2a) built and deployed to GHDash-example `/admin/`. Retry added for font flake.
 - 2026-11-13: The sandbox network allowlist now includes `digital-defiance.github.io`, so the live site can be tested from a session. Live check passed.
+- 2026-11-13: Admin paths made configurable in the fork. The real admin boots at `/studio/` in the demo (branch `studio-experiment`) and asks for `manifest` and `auth/me`. The browser API (2b.4) is next.

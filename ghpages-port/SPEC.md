@@ -224,3 +224,10 @@ Surprises:
 - It edits only `title`, `excerpt`, `content` (as plain paragraphs), `status`, `published_at`, `updated_at` and `version` on the row. It does not touch `revisions.json`, bylines, taxonomies or images. That is safe for rendering because published pages read the `ec_*` columns directly (checked with a rebuild), but it means edits made here leave no EmDash revision history, only git history.
 - Paragraph-only round trip: a body is editable only if every block is a plain `normal` paragraph with one unformatted span. Anything else is locked rather than flattened.
 - The real admin (2b) needs `ADMIN_BASEPATH` and `API_BASE` made configurable plus a browser transport. See TODO Phase 2.
+
+## 14. Phase 2b: running the real admin (2026-11-13)
+- **Paths are configurable in the fork.** `packages/admin/src/lib/paths.ts` exports `ADMIN_BASE`, `API_BASE` and `customFetch`, read once from `globalThis.__EMDASH_PATHS__`, so the config must be set before the admin bundle loads (the demo does it in an inline `<script>`). `apiFetch` rewrites the 54 hardcoded `/_emdash/api` literals to `apiBase`, so they didn't need touching one by one.
+- **Distribution:** the demo vendors a tarball of the fork's admin, built with `pnpm pack`, and pins it with npm `overrides`. `emdash` core stays the published 1.5.0 for now. Core changes later will need its tarball too (6 MB).
+- **Boot sequence observed:** the admin requests `GET /_api/manifest` and `GET /_api/auth/me` first. `manifest` is produced server-side by `emdash.getManifest()` plus branding, timezone, auth mode and plugin state. `auth/me` returns the current user. The browser router has to produce both from the in-browser database.
+- **What the router can reuse:** the handlers in `packages/core/src/api/handlers/*` (proven in the spike). The route files add zod validation, permissions and the `{ data }` envelope, which the router must reproduce or reuse (SPEC §9 Q7).
+- **Known limits to handle:** Pages has no SPA fallback, so deep links need a shim (2b.6). The `emdash` package doesn't export the handlers, so an additive export is needed.
