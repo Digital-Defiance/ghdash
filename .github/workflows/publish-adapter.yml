@@ -1,8 +1,8 @@
 name: Publish adapter to npm
 
-# Publishes @digital-defiance/ghdash-pages when a tag named adapter-v<version> is pushed.
+# Publishes @digitaldefiance/ghdash-pages when a tag named adapter-v<version> is pushed.
 # The tag must match the version in ghpages-port/adapter/package.json.
-# Needs a repository secret NPM_TOKEN (an npm automation token with publish rights to the @digital-defiance scope).
+# Needs a repository secret NPM_TOKEN (an npm automation token with publish rights to the @digitaldefiance scope).
 
 on:
   push:

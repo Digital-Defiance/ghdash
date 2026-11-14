@@ -4,6 +4,10 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.12.0 [pages-v0.17.0]
+- The package is renamed from `@digital-defiance/ghdash-pages` to `@digitaldefiance/ghdash-pages`, to match the npm scope it is published under. The release file is now `digitaldefiance-ghdash-pages-<version>.tgz`.
+- In your site: change the dependency name and URL in `package.json`, and every import of `@digital-defiance/ghdash-pages/...` (for example in `src/pages/studio/index.astro` and your tests) to `@digitaldefiance/ghdash-pages/...`, then run `npm install`.
+
 ## 0.11.0 [pages-v0.16.0]
 - New `import-markdown` command: brings a Jekyll site or a folder of Markdown into `content/`.
 - In your site: nothing required.

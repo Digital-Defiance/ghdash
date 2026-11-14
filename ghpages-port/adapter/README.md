@@ -1,4 +1,4 @@
-# @digital-defiance/ghdash-pages
+# @digitaldefiance/ghdash-pages
 
 Build-side commands for an EmDash site that is published to GitHub Pages, with its content kept as JSON in the repository (`content/`). Run them from the site's root.
 
@@ -46,11 +46,11 @@ Imported images are not listed in the studio's media library yet, but they displ
 
 ## Install and upgrade
 
-From npm: `npm install @digital-defiance/ghdash-pages`. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.16.0/digital-defiance-ghdash-pages-0.11.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
+From npm: `npm install @digitaldefiance/ghdash-pages`. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
 
 ## The in-browser studio
 
-`@digital-defiance/ghdash-pages/studio/boot.tsx` mounts the real EmDash admin in the browser, with a pending-changes tray. A site needs a page at `/studio/` that sets `__EMDASH_PATHS__` and loads it:
+`@digitaldefiance/ghdash-pages/studio/boot.tsx` mounts the real EmDash admin in the browser, with a pending-changes tray. A site needs a page at `/studio/` that sets `__EMDASH_PATHS__` and loads it:
 
 ```astro
 <script is:inline>
@@ -58,7 +58,7 @@ From npm: `npm install @digital-defiance/ghdash-pages`. From a GitHub release (w
 	globalThis.__EMDASH_PATHS__ = { adminBase: site + "/studio", apiBase: site + "/_api", siteBase: site + "/" };
 </script>
 <div id="admin-root"></div>
-<script>import "@digital-defiance/ghdash-pages/studio/boot.tsx";</script>
+<script>import "@digitaldefiance/ghdash-pages/studio/boot.tsx";</script>
 ```
 
 The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js` and `studio/github-commit.js`.
@@ -137,4 +137,4 @@ The hook gets `{ name, data, scheduledAt }` and the same in-memory context as af
 }
 ```
 
-`{ "env": "NAME" }` reads the value from the environment (use Actions secrets); a variable that is not set leaves the setting unset. The hook gets `kv` and `settings` seeded from these values, in-memory `storage`, `http.fetch` and `log`. Content, media and schema access are not provided, and nothing a plugin stores outlives the run. Media uploads do not trigger `media:afterUpload`. The programmatic API is `@digital-defiance/ghdash-pages/hooks`.
+`{ "env": "NAME" }` reads the value from the environment (use Actions secrets); a variable that is not set leaves the setting unset. The hook gets `kv` and `settings` seeded from these values, in-memory `storage`, `http.fetch` and `log`. Content, media and schema access are not provided, and nothing a plugin stores outlives the run. Media uploads do not trigger `media:afterUpload`. The programmatic API is `@digitaldefiance/ghdash-pages/hooks`.
