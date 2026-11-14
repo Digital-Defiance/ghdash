@@ -406,7 +406,8 @@ async function uploadToSignedUrl(
 		headers["Content-Type"] = file.type;
 	}
 
-	const response = await fetch(uploadInfo.uploadUrl, {
+	const send = uploadInfo.uploadUrl.startsWith("/") ? apiFetch : fetch;
+	const response = await send(uploadInfo.uploadUrl, {
 		method: uploadInfo.method,
 		headers,
 		body: file,

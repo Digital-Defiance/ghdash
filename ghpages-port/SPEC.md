@@ -260,3 +260,11 @@ Surprises:
 **Release tarballs (D13).** The workflow builds the monorepo with an 8 GB heap, packs `admin` and `core`, and creates or updates a release for the tag. It was pushed on `spike/ghpages-phase0`, but GitHub only allows manual dispatch for workflows on the default branch, so the first run needs a `pages-v*` tag push. This session's git proxy refused tag pushes.
 
 **Status of D13:** done. `pages-v0.1.0` carries the admin and core tarballs, and the demo's `studio-experiment` branch installs the admin from `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.1.0/emdash-cms-admin-1.5.0.tgz` through npm `overrides`. The release was started by pushing the tag from a local clone.
+
+## 14c. Media results (2026-11-14)
+
+- Storage backend in the browser API: `upload` keeps bytes in a `pendingMedia` map (shared with the host so it can persist them), `download` reads the map first and then `<site>/media/<key>`, `getPublicUrl` is `<site>/media/<key>`, `getSignedUploadUrl` throws `NOT_SUPPORTED` so the core route falls back to its direct-upload route.
+- The admin's direct upload used a raw `fetch` for the PUT; it now goes through `apiFetch` when the upload URL is a relative path, so a host-provided `fetch` sees it. Absolute (signed) URLs are unchanged.
+- Tray: an upload is `@media/<key>` in the change list (label is the filename) and replaces the `media.json` entry while file changes exist. Commit sends `media/<key>` as a blob; a deleted committed row sends `media/<key>: null`. Discard removes the pending bytes and the row, or restores a deleted row.
+- Build: `scripts/copy-media.mjs` copies `media/` to `public/media/`, and `rebase-urls.mjs` rewrites media URLs in built HTML and XML.
+- Covered by two e2e tests (upload, reload, commit bytes; discard).

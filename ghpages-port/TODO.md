@@ -28,7 +28,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [~] 1.4a Template changes: `getStaticPaths()` on the 4 dynamic routes is done (in `GHDash-example`). **Still to do:** path-based pagination instead of `?cursor=` (lists show page 1 only), and a replacement for `/search`.
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
 - [x] 1.7 Font downloads: the workflow now retries the build up to 3 times, so a transient Google font fetch failure no longer fails the deploy.
-- [ ] 1.5 Copy media and optimise images at build time.
+- [~] 1.5 Media: the build copies repo `media/` to `public/media/` and rewrites `/_emdash/api/media/file/<key>` to `<base>/media/<key>`. **Still to do:** image optimisation (resizing, srcset).
 - [ ] 1.6 Sitemap, robots and static redirect stubs.
 
 ## Phase 2: Browser admin with PAT editing · est. 2–3 weeks
@@ -55,8 +55,8 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2.4 (pluggable `apiFetch`) is done as 2b.1; 2.6 (save flow and conflicts) is 2b.5 and 2b.5b.
 
 ## Phase 3: Media, search, scheduling · est. 1–2 weeks
-- [ ] 3.1 Media upload commits to `media/`, with size warnings and limits.
-- [ ] 3.2 Media library backed by `media/_index.json`.
+- [x] 3.1 Media upload: files go to an in-memory pending map, show in the tray as `Media` changes, persist in IndexedDB, and commit as blobs under `media/<key>`. Limit 10 MB per file (`MAX_UPLOAD`); the browser API reports `NOT_SUPPORTED` for signed uploads so the admin uses its direct-upload path. Needs release `pages-v0.4.0`. **Known gaps:** images already in the repo only display after the site is rebuilt; the editor's inline images keep `/_emdash/api/media/file/...` URLs inside the studio.
+- [x] 3.2 Media library: the `media` table (`content/media.json`) is the index, so no separate `_index.json`. Deleting a committed item shows in the tray as a deleted file and is committed as a removal.
 - [ ] 3.3 Pagefind index in the build, plus search UI in templates.
 - [ ] 3.4 Cron Action for scheduled publishing.
 

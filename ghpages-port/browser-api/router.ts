@@ -23,6 +23,8 @@ export interface BrowserApiOptions {
 	user: BrowserUser;
 	apiBase: string;
 	passthrough?: typeof fetch;
+	/** Uploads not yet committed, keyed by storage key. Pass your own map to read or restore them. */
+	pendingMedia?: Map<string, PendingFile>;
 }
 
 const fail = (code: string, message: string, status: number) =>
@@ -65,13 +67,50 @@ async function buildManifest(db: Kysely<any>) {
 }
 
 
+export interface PendingFile {
+	bytes: Uint8Array;
+	contentType: string;
+}
+
+const MAX_UPLOAD = 10 * 1024 * 1024;
+
+async function toBytes(body: Uint8Array | ReadableStream<Uint8Array>): Promise<Uint8Array> {
+	if (body instanceof Uint8Array) return body;
+	return new Uint8Array(await new Response(body).arrayBuffer());
+}
+
+/** Media storage for a static site: new uploads wait in memory until committed; committed files are plain files under <site>/media/. */
+function makeStorage(siteBase: string, pending: Map<string, PendingFile>, passthrough: typeof fetch) {
+	const publicUrl = (key: string) => `${siteBase}/media/${key}`;
+	return {
+		async upload({ key, body, contentType }: { key: string; body: Uint8Array | ReadableStream<Uint8Array>; contentType: string }) {
+			const bytes = await toBytes(body);
+			pending.set(key, { bytes, contentType });
+			return { key, url: publicUrl(key), size: bytes.length };
+		},
+		async download(key: string) {
+			const p = pending.get(key);
+			if (p) return { body: new Response(p.bytes).body!, contentType: p.contentType, size: p.bytes.length };
+			const res = await passthrough(publicUrl(key));
+			if (!res.ok) throw new Error(`media file not found: ${key}`);
+			const bytes = new Uint8Array(await res.arrayBuffer());
+			return { body: new Response(bytes).body!, contentType: res.headers.get("content-type") ?? "application/octet-stream", size: bytes.length };
+		},
+		async delete(key: string) { pending.delete(key); },
+		async exists(key: string) { return pending.has(key) || (await passthrough(publicUrl(key), { method: "HEAD" })).ok; },
+		async list() { return { files: [] as never[] }; },
+		async getSignedUploadUrl(): Promise<never> { throw Object.assign(new Error("Signed uploads are not available on a static site"), { code: "NOT_SUPPORTED" }); },
+		getPublicUrl: publicUrl,
+	};
+}
+
 // The runtime's handleXxx methods are thin wrappers over these handlers that add plugin hooks.
-function makeEmdash(db: Kysely<any>) {
+function makeEmdash(db: Kysely<any>, storage: ReturnType<typeof makeStorage>) {
 	const em: Record<string, any> = {
 		db,
-		config: {},
+		config: { maxUploadSize: MAX_UPLOAD },
 		hooks: undefined,
-		storage: undefined,
+		storage,
 		email: undefined,
 		rooms: undefined,
 		configuredPlugins: [],
@@ -128,12 +167,29 @@ function match(path: string) {
 	return null;
 }
 
-export function createBrowserApi({ db, user, apiBase, passthrough }: BrowserApiOptions) {
+export function createBrowserApi({ db, user, apiBase, passthrough, pendingMedia }: BrowserApiOptions) {
 	const base = apiBase.replace(/\/+$/, "");
-	const emdash = makeEmdash(db);
+	const siteBase = base.replace(/\/_api$/, "");
+	const pending = pendingMedia ?? new Map<string, PendingFile>();
+	const realFetch: typeof fetch = passthrough ?? fetch.bind(globalThis);
+	const emdash = makeEmdash(db, makeStorage(siteBase, pending, realFetch));
+	const blobUrls = new Map<string, string>();
+	// Admin screens load images with plain <img> tags, which can't reach this API, so media URLs point at the static file, or at a blob for an upload that isn't committed yet.
+	const mediaUrl = (key: string) => {
+		const p = pending.get(key);
+		if (!p) return `${siteBase}/media/${key}`;
+		if (!blobUrls.has(key)) blobUrls.set(key, URL.createObjectURL(new Blob([p.bytes], { type: p.contentType })));
+		return blobUrls.get(key)!;
+	};
+	const rewriteMediaUrls = (value: unknown): unknown => {
+		if (typeof value === "string") return value.replace(/\/_emdash\/api\/media\/file\/([^"?#\s]+)/g, (_m, key) => mediaUrl(decodeURIComponent(key)));
+		if (Array.isArray(value)) return value.map(rewriteMediaUrls);
+		if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, rewriteMediaUrls(v)]));
+		return value;
+	};
 	const locals = { emdash, user: { ...user, role: ADMIN_ROLE, isFirstLogin: false } };
 	const cookies = { get: () => undefined, has: () => false, set() {}, delete() {}, headers: () => [][Symbol.iterator]() };
-	return async function browserFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+	async function browserFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const req = new Request(input, init);
 		const url = new URL(req.url);
 		const path = url.pathname.startsWith(base) ? url.pathname.slice(base.length) : null;
@@ -148,13 +204,18 @@ export function createBrowserApi({ db, user, apiBase, passthrough }: BrowserApiO
 			const mod = await found.r.load();
 			const handler = mod[req.method];
 			if (!handler) return fail("METHOD_NOT_ALLOWED", `${req.method} ${path}`, 405);
-			return await handler({
+			const res: Response = await handler({
 				params: found.params, request: req, url, locals, cookies, cache: undefined, site: url.origin,
 				clientAddress: "127.0.0.1", redirect: (to: string) => Response.redirect(new URL(to, url).href, 302),
 			});
+			if (path.startsWith("/media") && (res.headers.get("content-type") ?? "").includes("json")) {
+				return Response.json(rewriteMediaUrls(await res.json()), { status: res.status });
+			}
+			return res;
 		} catch (error) {
 			console.error("[browser-api]", req.method, path, error);
 			return fail("INTERNAL_ERROR", "The in-browser API failed", 500);
 		}
-	};
+	}
+	return Object.assign(browserFetch, { pendingMedia: pending });
 }
