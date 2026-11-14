@@ -1,0 +1,11 @@
+{
+  "name": "@digital-defiance/ghdash-pages",
+  "version": "0.1.0",
+  "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
+  "type": "module",
+  "license": "MIT",
+  "bin": { "ghdash-pages": "bin/ghdash-pages.mjs" },
+  "files": ["bin", "lib", "!lib/*.test.mjs", "README.md"],
+  "scripts": { "test": "node --test lib/*.test.mjs" },
+  "engines": { "node": ">=22.5" }
+}

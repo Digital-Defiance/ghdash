@@ -53,6 +53,10 @@ jobs:
           bash ghpages-port/browser-api/build.sh
           tar -czf "out/ghdash-browser-api-${TAG}.tgz" -C ghpages-port/browser-api/dist .
           ls -la out
+      - name: Pack the Pages adapter
+        run: |
+          (cd ghpages-port/adapter && npm test && npm pack --pack-destination "$GITHUB_WORKSPACE/out")
+          ls -la out
       - name: Create or update the release
         env:
           GH_TOKEN: ${{ github.token }}

@@ -7,8 +7,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/ including path-based pagination and Pagefind search; 2a minimal editor at `/admin/`; Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, release tarballs, real-token commit verified); media upload (3.1, 3.2) and Pagefind (3.3), all merged to `main` of `GHDash-example`.
 - **Live:** `/studio/` at https://digital-defiance.github.io/GHDash-example/studio/, release `pages-v0.4.0`. e2e: 23 tests in CI.
-- **Next:** the adapter package (last big Phase 1 item), `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
-- **Open from Phase 1:** adapter package, `revisions.json`, image optimisation.
+- **Next:** (Phase 1 done once `pages-v0.5.0` is released and the adapter branch is merged) `revisions.json` size, and header "View Site" base path. After that: scheduling (3.4), comments (Phase 4), plugins (Phase 5), hardening (Phase 6).
+- **Open from Phase 1:** `revisions.json`, image optimisation, moving `src/studio/` into a package.
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -23,7 +23,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 ## Phase 1: Static site from repo JSON · est. 1 week
 Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be enabled).
 - [x] 1.1 `content/` layout finalised as in SPEC §4.1 (sorted keys, one file per row). Committed in `GHDash-example`.
-- [~] 1.2 `json-to-sqlite` is now `scripts/db-json.mjs` + `scripts/build-db.mjs` inside `GHDash-example`, installed from the published `emdash@1.5.0`. **Still to do:** move it into a reusable adapter package (SPEC §8).
+- [x] 1.2 The build scripts live in the adapter package `@digital-defiance/ghdash-pages` (`ghpages-port/adapter/`, a `ghdash-pages` command: build-db, export-content, studio-assets, fetch-browser-api, copy-media, finish, serve). It is packed as a release asset by `pages-tarballs.yml`, and `GHDash-example` installs it from the release URL. **Still in the site template:** the in-browser studio (`src/studio/`), the Pagefind search page and the page templates. Needs release `pages-v0.5.0`.
 - [x] 1.3 GitHub Action (`GHDash-example/.github/workflows/pages.yml`) deployed the site: https://digital-defiance.github.io/GHDash-example/. Checked in headless Chromium on the live site: every page returns 200 except `/search/` (404, known: needs Pagefind), styling and fonts render, no failed requests, and every internal link carries the base path. The first run failed fetching a Google font file and passed on rerun (see 1.7).
 - [x] 1.4 Base-path support for project sites (`/<repo>/`): `astro.config.mjs` reads `BASE_PATH`/`SITE_URL`, and `scripts/rebase-urls.mjs` prefixes the template's root-absolute links in built HTML/XML. Verified in a local build.
 - [x] 1.4a Template changes in `GHDash-example`: `getStaticPaths()` on the dynamic routes; path-based pagination (`/posts/page/2/`, `/tag/<slug>/page/2/`, same for categories; `PAGE_SIZE` env var overrides the default of 20 at build time); `/search/` is a static page that queries a Pagefind index in the browser.
