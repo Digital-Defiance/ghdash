@@ -4,6 +4,10 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.13.0 [adapter-v0.13.0]
+- Optional "Sign in with GitHub" in the studio, with a token-exchange Worker (`worker/github-oauth.mjs`) that holds your GitHub App's client secret. Uses PKCE and a one-time state. Off unless `globalThis.__STUDIO_OAUTH__` is set; pasting a token still works.
+- In your site: nothing, unless you want the button; see "Sign in with GitHub" in the README.
+
 ## 0.12.1 [adapter-v0.12.1]
 - Published to npm from GitHub Actions with provenance, so `npm install @digitaldefiance/ghdash-pages` works without a release URL. No code changes.
 - In your site: optionally replace the release URL in `package.json` with `^0.12.1` and run `npm install`.

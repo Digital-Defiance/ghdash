@@ -31,7 +31,17 @@ if ("serviceWorker" in navigator) {
 	});
 	navigator.serviceWorker.register(`${site}/studio/media-sw.js`).catch(() => {});
 }
-const controller = createController({ db: raw, freshNames, baseFiles: snapshot(raw, freshNames), meta: content.meta, pendingMedia });
+// Sites that offer "Sign in with GitHub" set this before loading the studio: `clientId` of their GitHub App and `exchangeUrl` of the token-exchange Worker.
+const studioOAuth = (globalThis as any).__STUDIO_OAUTH__ as { clientId: string; exchangeUrl: string } | undefined;
+const studioUrl = `${location.origin}${location.pathname}`;
+const controller = createController({
+	db: raw,
+	freshNames,
+	baseFiles: snapshot(raw, freshNames),
+	meta: content.meta,
+	pendingMedia,
+	oauth: studioOAuth?.clientId && studioOAuth?.exchangeUrl ? { ...studioOAuth, redirectUri: studioUrl } : null,
+});
 const rawApi = createBrowserApi({
 	db,
 	apiBase: paths.apiBase,
@@ -53,6 +63,7 @@ let queryClient: { resetQueries(): Promise<void> } | undefined;
 	onQueryClient: (client: typeof queryClient) => { queryClient = client; },
 };
 await controller.restore();
+if (await controller.finishOAuth(location.search)) history.replaceState(null, "", studioUrl + location.hash);
 
 const { AdminApp } = await import("@emdash-cms/admin");
 const { loadMessages } = await import("@emdash-cms/admin/locales");

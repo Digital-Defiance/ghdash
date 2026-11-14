@@ -40,6 +40,17 @@ npx ghdash-pages import-markdown ../my-jekyll-site
 
 Imported images are not listed in the studio's media library yet, but they display on the site and in the editor. Front matter other than the fields above (custom layouts, permalinks) is ignored.
 
+## Sign in with GitHub
+
+By default an editor pastes a fine-grained token into the studio. To offer a "Sign in with GitHub" button as well, set up a GitHub App and the small token-exchange Worker in `worker/github-oauth.mjs`. GitHub's token endpoint needs the app's client secret and does not allow browser requests, so something has to hold the secret. The Worker stores nothing, logs nothing, accepts requests only from your site and only for your site's addresses, and returns just the token. The token path keeps working.
+
+1. On GitHub, Settings, Developer settings, GitHub Apps, **New GitHub App**. Callback URL: the studio address, for example `https://you.github.io/your-repo/studio/`. Untick Webhook. Repository permissions: Contents, read and write. Create it, note the **Client ID**, and generate a **client secret**.
+2. Install the app on your site's repository (the app's **Install App** tab). The sign-in token can then only reach repositories that the editor can write to and the app is installed on.
+3. Deploy the Worker from your site: `npx wrangler deploy node_modules/@digitaldefiance/ghdash-pages/worker/github-oauth.mjs --name ghdash-sign-in --var ALLOWED_ORIGIN:https://you.github.io --var GITHUB_CLIENT_ID:<client id>`, then `npx wrangler secret put GITHUB_CLIENT_SECRET --name ghdash-sign-in` and paste the secret at the prompt. Never put the secret in a file, a commit or a chat.
+4. In your `/studio/` page, set `globalThis.__STUDIO_OAUTH__ = { clientId: "<client id>", exchangeUrl: "https://ghdash-sign-in.<you>.workers.dev/" }` before loading the studio. The client ID and the Worker address are public.
+
+GitHub App tokens expire after eight hours by default, after which the studio asks the editor to sign in again. Pending edits are kept in the browser meanwhile.
+
 ## Responsive images
 
 `finish` makes 480, 960 and 1600 px WebP copies of each JPEG or PNG under `media/` that is wider than the copy, and adds a `srcset` and `sizes="100vw"` to built `<img>` tags that point at it. The original stays as the `src` and as the largest candidate. Tags that already have a `srcset`, and small images, are left alone. It needs `sharp` and does nothing without it. Set `RESPONSIVE_WIDTHS=480,800` to choose the widths, `RESPONSIVE_WIDTHS=` to turn it off, and `RESPONSIVE_SIZES` to change the `sizes` value for a narrower layout.

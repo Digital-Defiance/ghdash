@@ -1,3 +1,4 @@
+import { finishSignIn, startSignIn } from "./oauth.js";
 import { checkAccess, commitFiles, getHead, GitHubError } from "./github-commit.js";
 import { applyFile, canonical, diffFiles, mergeRemote, expandLegacyRevisions, revisionPathsFor, applyDdl, snapshot, visibleChanges } from "./tray.js";
 
@@ -33,7 +34,7 @@ function idb(name = "ghdash-studio") {
 const MEDIA = "@media/";
 const mediaRows = (files) => { const t = files.get("media.json"); return t ? JSON.parse(t) : []; };
 
-export function createController({ db, freshNames, baseFiles, meta, pendingMedia = new Map(), fetchImpl = globalThis.fetch.bind(globalThis), storage = safe(() => sessionStorage, null), store = safe(() => idb(), null) }) {
+export function createController({ db, freshNames, baseFiles, meta, pendingMedia = new Map(), fetchImpl = globalThis.fetch.bind(globalThis), storage = safe(() => sessionStorage, null), store = safe(() => idb(), null), oauth = null }) {
 	const [owner, repo] = meta.repo.split("/");
 	const prefix = "content/";
 	let base = baseFiles;
@@ -159,7 +160,7 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 
 	function describeError(e) {
 		if (e instanceof GitHubError) {
-			if (e.status === 401) { storage?.removeItem(TOKEN_KEY); set({ hasToken: false }); return "GitHub rejected the token. Paste a new one."; }
+			if (e.status === 401) { storage?.removeItem(TOKEN_KEY); set({ hasToken: false }); return "GitHub rejected the token. Sign in again."; }
 			if (e.status === 403 || e.status === 404) return "The token can't write to this repository. It needs Contents: read and write for this repo.";
 			return e.message;
 		}
@@ -192,6 +193,22 @@ export function createController({ db, freshNames, baseFiles, meta, pendingMedia
 			} catch (e) {
 				set({ status: { kind: "error", message: describeError(e) } });
 			}
+		},
+		get oauthAvailable() { return Boolean(oauth); },
+		beginOAuth() { return startSignIn({ clientId: oauth.clientId, redirectUri: oauth.redirectUri, storage }); },
+		/** Call at start-up with location.search. Returns true when the page was a GitHub redirect, so the caller can clean the address. */
+		async finishOAuth(search) {
+			if (!oauth) return false;
+			let token;
+			try {
+				token = await finishSignIn({ exchangeUrl: oauth.exchangeUrl, redirectUri: oauth.redirectUri, storage, search, fetchImpl });
+			} catch (e) {
+				set({ status: { kind: "error", message: describeError(e) } });
+				return true;
+			}
+			if (!token) return false;
+			await this.signIn(token);
+			return true;
 		},
 		signOut() { storage?.removeItem(TOKEN_KEY); set({ hasToken: false }); },
 		async commit(message) {

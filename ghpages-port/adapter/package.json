@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ghdash-pages",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",
@@ -27,6 +27,7 @@
     "bin",
     "lib",
     "studio",
+    "worker",
     "!lib/*.test.mjs",
     "README.md",
     "CHANGELOG.md"
@@ -39,6 +40,7 @@
   },
   "exports": {
     "./studio/*": "./studio/*",
+    "./worker/*": "./worker/*",
     "./package.json": "./package.json",
     "./hooks": "./lib/hooks-runner.mjs"
   },

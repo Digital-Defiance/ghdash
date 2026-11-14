@@ -15,6 +15,8 @@ type Controller = {
 	discardAll(): void;
 	signIn(token: string): Promise<void>;
 	signOut(): void;
+	oauthAvailable: boolean;
+	beginOAuth(): Promise<string>;
 	commit(message: string): Promise<void>;
 	updateFromRemote(): Promise<void>;
 	repoInfo: { owner: string; repo: string; branch: string };
@@ -106,6 +108,12 @@ export function makeTray(c: Controller) {
 							</p>
 						)}
 
+						{!s.hasToken && c.oauthAvailable && (
+							<div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+								<button type="button" data-testid="tray-github-signin" disabled={busy} style={btn(true, busy)} onClick={() => { void c.beginOAuth().then((url) => location.assign(url)); }}>Sign in with GitHub</button>
+								<span style={{ fontSize: 12, color: "var(--text-color-kumo-subtle)" }}>Or paste a token instead:</span>
+							</div>
+						)}
 						{!s.hasToken ? (
 							<form style={{ marginTop: 10, display: "grid", gap: 6 }} onSubmit={(e) => { e.preventDefault(); void c.signIn(token.trim()); }}>
 								<label style={{ fontSize: 12, color: "var(--text-color-kumo-subtle)" }} htmlFor="tray-token">
