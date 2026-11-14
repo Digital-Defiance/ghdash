@@ -43,7 +43,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 2b.5 **Next:** Pending-changes tray (SPEC D14, §15): diff the in-browser DB against the loaded JSON, toolbar icon with a count and dropdown of changes, view/discard, and a Commit button that writes the changed rows as one commit through `github-commit.mjs`.
 - [ ] 2b.5a Persist pending changes to IndexedDB, and restore them only if the baseline head hasn't moved.
 - [ ] 2b.5b Conflict handling: keep changes after a stale head, reload the baseline, re-apply non-clashing rows.
-- [ ] 2b.6 Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
+- [x] 2b.6 (done 2026-11-14: the 404 page redirects `/studio/*` to `/studio/?p=...` and the studio entry restores the path) Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
 - [x] 2b.7 Tarballs as GitHub release assets (SPEC D13): release `pages-v0.1.0` on `Digital-Defiance/ghdash` holds `emdash-cms-admin-1.5.0.tgz` and `emdash-1.5.0.tgz`. `GHDash-example` (branch `studio-experiment`) installs the admin from the release URL and `vendor/` is gone from that branch's tip. The old 11 MB blob remains in that branch's history, which is fine because it is not merged to `main`. **Note:** this first tag had to be pushed from a local clone, because the cloud session's git connection drops on tag pushes. To publish a new build: push a new `pages-v*` tag, then update the URLs in the demo's `package.json`.
 - [ ] 2.1 Admin static bundle served at `/admin/` → superseded by `/studio/` (2b.3); decide whether `/admin/` becomes the real admin once 2b is stable.
 - [ ] 2.2 PAT sign-in screen for the real admin (reuse 2a.1): validate `permissions.push`, sessionStorage, optional remember-me. Feeds `auth/me` in 2b.4.
@@ -75,7 +75,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 ## Phase 6: Hardening and docs
 - [ ] 6.1 Admin CSP and PAT handling review.
 - [ ] 6.2 "Create a site from this template" repo and a setup guide (PAT creation, Pages settings, secrets).
-- [ ] 6.3 Tests: JSON round trip, commit/conflict flow, static build smoke test.
+- [~] 6.3 Tests: Playwright suite in `GHDash-example/e2e/` (14 tests: static pages and links, studio load, every sidebar page, edit and create a post, deep link) and `.github/workflows/e2e.yml`. Studio tests skip in CI until the browser API bundle is built into `dist/` (release asset, 2b.4). **Still to do:** JSON round trip, commit/conflict flow, tray tests.
 - [ ] 6.4 Rebase plan and checklist for pulling in upstream EmDash.
 
 ## Log
@@ -92,3 +92,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Release `pages-v0.1.0` built by the workflow (success) with the admin and core tarballs. The demo's `studio-experiment` branch now installs from it.
 - 2026-11-14: Switched to running EmDash's own route files in the browser (D15); all sidebar pages load.
 - 2026-11-14: Browser API first cut: admin shell renders at /studio/ with real collections. Dashboard and content routes next.
+- 2026-11-14: e2e suite added (14 passing locally); deep links fixed.
