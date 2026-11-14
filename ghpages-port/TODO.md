@@ -5,6 +5,7 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
+- **Owner-only steps** (release tags, sign-in GitHub App and Worker, contact form choices, giscus, webhooks, open decisions) are in [OWNER-STEPS.md](OWNER-STEPS.md).
 - **Done and merged to `main` of `GHDash-example`:** npm package `@digitaldefiance/ghdash-pages` with trusted publishing (7.2); Jekyll/Markdown importer (7.1); Phase 0 spike; plugin UI for `color`, `field-kit` and `embeds` (5.1, release `pages-v0.11.0`); after-hooks in the Action (5.3, release `pages-v0.12.0`); the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; template repo and `SETUP.md` (6.2); revisions split per row (1.4b); image downscale (1.5); Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digitaldefiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path; CSP on /studio/ (6.1); token explainer (6.1b).
 - **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.12.0` (admin, core, browser API, adapter).
 - **Needs the site owner:** giscus comments (4.1) are merged but stay off until Discussions is enabled, the giscus app is installed and `giscus.json` is committed.
