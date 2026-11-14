@@ -23,4 +23,12 @@ jobs:
           echo "---"
           gh api -X POST "repos/${GITHUB_REPOSITORY}/git/refs" -f ref=refs/tags/probe-permissions-tag -f sha="${GITHUB_SHA}" 2>&1 | head -c 400
           gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/probe-permissions-tag" 2>&1 | head -c 200
+          echo "=== published release on a new tag, exactly as pages-tarballs does it"
+          echo probe > probe.txt
+          gh release create probe-pages-tmp-1 probe.txt --title probe-pages-tmp-1 --notes probe --target "${GITHUB_SHA}" 2>&1 | head -c 400
+          gh release delete probe-pages-tmp-1 --yes --cleanup-tag 2>&1 | head -c 200
+          echo "=== published release on an existing tag"
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/git/refs" -f ref=refs/tags/probe-pages-tmp-2 -f sha="${GITHUB_SHA}" 2>&1 | head -c 100
+          gh release create probe-pages-tmp-2 probe.txt --title probe-pages-tmp-2 --notes probe --target "${GITHUB_SHA}" 2>&1 | head -c 400
+          gh release delete probe-pages-tmp-2 --yes --cleanup-tag 2>&1 | head -c 200
           true
