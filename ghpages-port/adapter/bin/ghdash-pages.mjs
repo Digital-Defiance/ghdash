@@ -18,6 +18,7 @@ const commands = {
 	"split-revisions": ["Split an older content/revisions.json into one file per revision [dir]", () => run("split-revisions", rest)],
 	"run-hooks": ["Run plugin after-hooks for content changed between commits: run-hooks --base <sha> --head <sha>", () => run("run-hooks", rest)],
 	"run-cron": ["Run plugin cron jobs from hooks.config.json that fell due: run-cron [--since <iso>]", () => run("run-cron", rest)],
+	"import-markdown": ["Import a Jekyll site or Markdown folder into content/: import-markdown <dir> [--dry-run]", () => run("import-markdown", rest)],
 	"publish-due": ["Publish scheduled entries that are due, and write content/ back", () => run("publish-due", rest)],
 	due: ["Print true if a scheduled entry is due (reads content/ only)", () => run("due", rest)],
 	"studio-assets": ["Write public/studio-data for the in-browser admin", () => run("studio-assets")],

@@ -22,6 +22,24 @@ A typical site build script:
 ghdash-pages build-db && ghdash-pages fetch-browser-api && ghdash-pages publish-due && ghdash-pages studio-assets && ghdash-pages copy-media && astro build && ghdash-pages finish && pagefind --site dist/client
 ```
 
+## Importing an existing site
+
+`ghdash-pages import-markdown <dir>` imports a Jekyll site or any folder of Markdown files into `content/`. Run it from your GHDash site's root, review the result with `git diff`, then commit.
+
+```
+npx ghdash-pages import-markdown ../my-jekyll-site --dry-run   # list what it found
+npx ghdash-pages import-markdown ../my-jekyll-site
+```
+
+- Files under `_posts` or named `YYYY-MM-DD-name.md` become posts, files under `_drafts` become drafts, everything else becomes a page. `published: false` makes a draft.
+- Front matter `title`, `date`, `slug`, `tags`, `categories`, `description` or `excerpt` are used. A missing title comes from the first `# heading`, then from the file name. Dates are kept as the publish date.
+- Tags and categories are created if they don't exist. Local images (relative paths or `/assets/...` under `--root`, default the folder itself) are copied to `media/` and linked.
+- Simple Liquid (`{{ site.baseurl }}`, `relative_url`, `raw`, `highlight`) is converted. Other Liquid tags are removed and counted in a warning, because they have no static equivalent.
+- It uses EmDash's own content handlers, so slugs, revisions, taxonomies and search work as if you had written the entries in the studio. Entries whose slug already exists are skipped, so running it twice is safe.
+- Options: `--root <dir>` (where `/assets/...` images live), `--posts <collection>` and `--pages <collection>` (default `posts` and `pages`), `--dry-run`.
+
+Imported images are not listed in the studio's media library yet, but they display on the site and in the editor. Front matter other than the fields above (custom layouts, permalinks) is ignored.
+
 ## Responsive images
 
 `finish` makes 480, 960 and 1600 px WebP copies of each JPEG or PNG under `media/` that is wider than the copy, and adds a `srcset` and `sizes="100vw"` to built `<img>` tags that point at it. The original stays as the `src` and as the largest candidate. Tags that already have a `srcset`, and small images, are left alone. It needs `sharp` and does nothing without it. Set `RESPONSIVE_WIDTHS=480,800` to choose the widths, `RESPONSIVE_WIDTHS=` to turn it off, and `RESPONSIVE_SIZES` to change the `sizes` value for a narrower layout.

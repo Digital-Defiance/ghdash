@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 (globalThis as any).Buffer ??= Buffer;
 export { createBrowserApi, saveRejected } from "./router.js";
 export type { BrowserUser, BrowserApiOptions, BrowserPlugin, BeforeSaveEvent } from "./router.js";
+export { markdownToPortableText } from "../../packages/core/src/client/portable-text.js";
 export { Kysely, SqliteDialect } from "../../packages/core/node_modules/kysely/dist/index.js";
 import { publishDueContent } from "../../packages/core/src/scheduled-publish.js";
 /** Publishes every entry whose scheduled time has passed, as the platform scheduler would. Returns what it published. */
