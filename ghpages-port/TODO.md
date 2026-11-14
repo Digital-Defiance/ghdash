@@ -17,7 +17,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be enabled).
 - [x] 1.1 `content/` layout finalised as in SPEC §4.1 (sorted keys, one file per row). Committed in `GHDash-example`.
 - [~] 1.2 `json-to-sqlite` is now `scripts/db-json.mjs` + `scripts/build-db.mjs` inside `GHDash-example`, installed from the published `emdash@1.5.0`. **Still to do:** move it into a reusable adapter package (SPEC §8).
-- [x] 1.3 GitHub Action (`GHDash-example/.github/workflows/pages.yml`) deployed the site: https://digital-defiance.github.io/GHDash-example/. Home, a post, nav and post links were checked through a page fetch. Not yet checked by eye: styling and fonts. The first run failed fetching a Google font file and passed on rerun (see 1.7).
+- [x] 1.3 GitHub Action (`GHDash-example/.github/workflows/pages.yml`) deployed the site: https://digital-defiance.github.io/GHDash-example/. Checked in headless Chromium on the live site: every page returns 200 except `/search/` (404, known: needs Pagefind), styling and fonts render, no failed requests, and every internal link carries the base path. The first run failed fetching a Google font file and passed on rerun (see 1.7).
 - [x] 1.4 Base-path support for project sites (`/<repo>/`): `astro.config.mjs` reads `BASE_PATH`/`SITE_URL`, and `scripts/rebase-urls.mjs` prefixes the template's root-absolute links in built HTML/XML. Verified in a local build.
 - [~] 1.4a Template changes: `getStaticPaths()` on the 4 dynamic routes is done (in `GHDash-example`). **Still to do:** path-based pagination instead of `?cursor=` (lists show page 1 only), and a replacement for `/search`.
 - [ ] 1.4b Split `revisions.json` per entry, or drop it (SPEC §9 Q3).
@@ -30,6 +30,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2a.1 PAT sign-in with push-permission check, session-storage only.
 - [x] 2a.2 Create and edit posts and pages as single commits, with a stale-head conflict check.
 - [ ] 2a.3 Try it against the real repo from a real browser (Jessica), and show an Actions status link after saving.
+**2b prerequisite:** `GHDash-example` currently installs the published `emdash@1.5.0` from npm, not our fork (`Digital-Defiance/ghdash`). To change the admin, the example must consume the fork: build the fork's packages and install them as tarballs or a git/workspace dependency, or publish them under our own scope. Decide this first.
 **2b notes from reading the admin:** `packages/admin` hardcodes `ADMIN_BASEPATH = "/_emdash/admin"` (App.tsx) and `API_BASE = "/_emdash/api"` (lib/api/client.ts). Serving it under `/<repo>/admin/` needs both made configurable, and a fetch transport that calls the browser handlers (spike/browser-handlers) instead of the network. Those are small upstream changes but touch the admin's boot calls (manifest, current user, setup status), which still need mapping.
 - [ ] 2.1 Admin static bundle served at `/admin/`.
 - [ ] 2.2 PAT sign-in screen: validate with `permissions.push`, sessionStorage, optional remember-me.
@@ -72,3 +73,4 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Phase 1 first cut pushed to `Digital-Defiance/GHDash-example` (main). Local clean-clone build gives 18 pages with the right base path. The Pages deploy waits on enabling Pages in repo settings.
 - 2026-11-13: Pages enabled by Jessica and the first successful deploy is live. A font-fetch flake needed one rerun.
 - 2026-11-13: Minimal editor (2a) built and deployed to GHDash-example `/admin/`. Retry added for font flake.
+- 2026-11-13: The sandbox network allowlist now includes `digital-defiance.github.io`, so the live site can be tested from a session. Live check passed.
