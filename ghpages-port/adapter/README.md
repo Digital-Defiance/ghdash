@@ -66,8 +66,6 @@ Only the admin side runs in the browser. Plugin routes and server hooks do not r
 Add a plain browser function to the plugin's entry in `__STUDIO_PLUGINS__.plugins`. It runs before every content create and update made in the studio. Return the data to save, or nothing to keep it, or throw to refuse the save and show the editor your message:
 
 ```ts
-import { saveRejected } from "…"; // or throw Object.assign(new Error("…"), { name: "SaveRejected" })
-
 plugins: [{
 	id: "title-rules",
 	beforeSave: ({ data, collection, isNew, id }) => {
