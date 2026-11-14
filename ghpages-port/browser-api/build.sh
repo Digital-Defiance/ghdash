@@ -4,7 +4,8 @@
 set -euo pipefail
 HERE="$PWD/ghpages-port/browser-api"
 ESB=$(ls -d node_modules/.pnpm/esbuild@0.27.3/node_modules/esbuild/bin/esbuild)
-"$ESB" "$HERE/entry.ts" --bundle --platform=browser --format=esm --outfile="$HERE/api.js" \
+rm -rf "$HERE/dist"
+"$ESB" "$HERE/entry.ts" --bundle --splitting --platform=browser --format=esm --alias:node:module="$HERE/shims/node-module.js" --inject:"$HERE/shims/buffer-inject.js" --alias:buffer="$PWD/ghpages-port/spike/browser-handlers/node_modules/buffer" --external:node:* --external:astro:* --external:virtual:* --external:cloudflare:* --outdir="$HERE/dist" --chunk-names="chunks/[name]-[hash]" \
 	--alias:node:async_hooks="$PWD/ghpages-port/spike/browser-handlers/shims/async_hooks.js" \
 	--alias:node:path="$PWD/ghpages-port/spike/browser-handlers/node_modules/path-browserify" \
 	--alias:virtual:emdash/config="$PWD/ghpages-port/spike/browser-handlers/shims/virtual-config.js" \

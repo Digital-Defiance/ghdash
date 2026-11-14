@@ -6,7 +6,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
 - **Done:** Phase 0 spike; Phase 1 static site live at https://digital-defiance.github.io/GHDash-example/; 2a minimal editor at `/admin/`; 2b.1–2b.3 and 2b.7 (admin paths configurable, admin boots at `/studio/`, release tarballs).
-- **Next:** 2b.4, the browser API that answers the admin's `/_api/*` calls. Then the pending-changes tray (2b.5).
+- **Next:** release-asset packaging for the browser API, then the pending-changes tray (2b.5).
 - **Open from Phase 1:** pagination, search, adapter package, `revisions.json`, media, sitemap.
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -39,8 +39,8 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 2b.1 Fork admin made configurable: new `packages/admin/src/lib/paths.ts` reads `globalThis.__EMDASH_PATHS__ = { adminBase, apiBase, fetch }` (defaults unchanged). `apiFetch` rewrites `/_emdash/api` to `apiBase` and uses `fetch` if given. 12 admin files use `ADMIN_BASE` instead of the literal `/_emdash/admin`. Admin `typecheck` (tsgo) and `oxlint` are clean. Committed on `spike/ghpages-phase0`. Admin unit/browser tests were not run.
 - [x] 2b.2 Demo consumes the fork: `GHDash-example` branch `studio-experiment` vendors the fork's admin tarball (`vendor/emdash-cms-admin-1.5.0.tgz`, 11 MB, npm `overrides`). Only admin is vendored; `emdash` core still comes from npm. Not merged to `main` yet because of the 11 MB binary.
 - [x] 2b.3 Admin boots under a base path: `/GHDash-example/studio/` mounts `AdminApp`, and its first requests go to `/GHDash-example/_api/manifest` and `/_api/auth/me`. It then shows "Failed to fetch manifest" because nothing answers those calls yet.
-- [~] 2b.4 **Browser API, first cut done 2026-11-14:** `ghpages-port/browser-api/` (router.ts, load-db.js, make-empty-db.mjs, build.sh, test.mjs) answers `manifest` and `auth/me`; no core change was needed because the bundle imports `buildManifestCollections` and `selectTaxonomyDefs` from source. The demo's `studio-experiment` branch loads `studio-data/{content.json,empty.db}`, opens sqlite-wasm and the admin shell renders with real collections (screenshot: studio-milestone.png). The dashboard shows "Could not load dashboard data" because its routes are not implemented. `api.js` (1.6 MB) is vendored in the demo for now; move it to release assets. **Original plan:** A local router that answers the admin's `/_api/*` calls: `manifest` (built by `emdash.getManifest()` on the server today), `auth/me` (a fixed repo-collaborator user), then content list/get/create/update/publish, schema, settings, taxonomies, menus, media. It runs core handlers on `@sqlite.org/sqlite-wasm`, loaded from the repo JSON (spike/browser-handlers). Needs an additive core export so handlers and the manifest builder can be imported from the published package.
-- [ ] 2b.5 Pending-changes tray (SPEC D14, §15): diff the in-browser DB against the loaded JSON, toolbar icon with a count and dropdown of changes, view/discard, and a Commit button that writes the changed rows as one commit through `github-commit.mjs`.
+- [~] 2b.4 **Browser API: working (2026-11-14), see SPEC D15 and §14a.** EmDash's route files run in the browser on sqlite-wasm; every sidebar page of the real admin loads at `/studio/` and a post edit saves. **Still to do:** ship the 22 MB chunk bundle as a release asset instead of copying it into the demo's `public/` (workflow + demo build step), test media upload and settings saves, hide users/passkey UI, make the lock routes not touch the DB (or ignore them in the tray).
+- [ ] 2b.5 **Next:** Pending-changes tray (SPEC D14, §15): diff the in-browser DB against the loaded JSON, toolbar icon with a count and dropdown of changes, view/discard, and a Commit button that writes the changed rows as one commit through `github-commit.mjs`.
 - [ ] 2b.5a Persist pending changes to IndexedDB, and restore them only if the baseline head hasn't moved.
 - [ ] 2b.5b Conflict handling: keep changes after a stale head, reload the baseline, re-apply non-clashing rows.
 - [ ] 2b.6 Deep links: Pages serves `404.html` for unknown paths, so `/studio/content/posts` on refresh needs a redirect shim or hash routing.
@@ -90,4 +90,5 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-13: Decided release-asset tarballs (D13) and a pending-changes tray with a commit button (D14), both from Jessica. Release workflow pushed; the first tag still needs pushing from a local clone.
 - 2026-11-14: README and TODO refreshed; browser API (2b.4) starting.
 - 2026-11-13: Release `pages-v0.1.0` built by the workflow (success) with the admin and core tarballs. The demo's `studio-experiment` branch now installs from it.
+- 2026-11-14: Switched to running EmDash's own route files in the browser (D15); all sidebar pages load.
 - 2026-11-14: Browser API first cut: admin shell renders at /studio/ with real collections. Dashboard and content routes next.
