@@ -5,10 +5,10 @@ Read [SPEC.md](./SPEC.md) first. Tick items as they're done, add notes inline (`
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` dropped (say why)
 
 ## Status (2026-11-14)
-- **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; plugin admin UI for `color` (5.1, release `pages-v0.11.0`); the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; template repo and `SETUP.md` (6.2); revisions split per row (1.4b); image downscale (1.5); Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path; CSP on /studio/ (6.1); token explainer (6.1b).
+- **Done and merged to `main` of `GHDash-example`:** Phase 0 spike; plugin UI for `color` and `field-kit` (5.1, release `pages-v0.11.0`); the studio as part of the adapter package (release `pages-v0.7.0`); giscus comments; template repo and `SETUP.md` (6.2); revisions split per row (1.4b); image downscale (1.5); Phase 1 (static site, path pagination, Pagefind search, sitemap/robots/redirects, adapter package `@digital-defiance/ghdash-pages`); Phase 2b (real admin at `/studio/`, pending-changes tray, one-commit saves, real-token commit verified); media upload (3.1–3.3); scheduled publishing (3.4); header "View Site" base path; CSP on /studio/ (6.1); token explainer (6.1b).
 - **Live:** https://digital-defiance.github.io/GHDash-example/ and `/studio/`; releases up to `pages-v0.11.0` (admin, core, browser API, adapter).
 - **Needs the site owner:** giscus comments (4.1) are merged but stay off until Discussions is enabled, the giscus app is installed and `giscus.json` is committed.
-- **Next:** `embeds` (5.1), then 5.2 (before-hooks in the browser) and 5.3 (after-hooks in the Action).
+- **Next:** 5.2 (before-hooks in the browser) and 5.3 (after-hooks in the Action), then the open test items (6.3).
 - **Known gaps:** media over 10 MB is rejected; editor-inline images keep `/_emdash/api/media/file/...` URLs inside the studio; images are only downscaled (no srcset or WebP yet); the admin's Comments screen only lists server-side comments; `test/live.mjs` has not run (needs the Bearer secret in a session).
 
 ## Phase 0: Spike (prove the risky parts) · est. 1–2 weeks
@@ -66,7 +66,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [ ] 4.2 (Optional) Issue-form link, plus an `issues: opened` Action that runs comment hooks, commits JSON and rebuilds.
 
 ## Phase 5: Plugins · est. 2–4 weeks
-- [~] 5.1 Plugin admin UI in the studio: `createBrowserApi({ plugins })` reports plugins in the manifest, the studio passes `pluginAdmins` to the admin, and the demo loads `color` and `field-kit` (widgets render; Plugins screen lists both). Adapter 0.6.0, release `pages-v0.11.0`. **Still to do:** `embeds` (needs site-side components as well, so it is a separate piece); the manifest entry is copied by hand per plugin.
+- [x] 5.1 Plugin UI in the studio for the bundled UI plugins `color`, `field-kit` and `embeds`. `createBrowserApi({ plugins })` reports plugins in the manifest and the studio passes `pluginAdmins` to the admin (adapter 0.6.0, `pages-v0.11.0`). `embeds` also renders at build time (`embedsPlugin()` in `astro.config.mjs`; a YouTube block became a `lite-youtube` element in a local build) and its blocks appear in the editor menu. Known limits: the manifest entry is copied by hand per plugin, and CI does not build a post that contains an embed.
 - [ ] 5.2 Run before-hooks in the browser before the commit.
 - [ ] 5.3 Run after-hooks in the Action for changed entries, with secrets from Actions secrets.
 - [ ] 5.4 Plugin cron mapped to a scheduled Action.
