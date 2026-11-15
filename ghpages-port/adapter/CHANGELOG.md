@@ -4,6 +4,10 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.13.2
+
+- Fixed: creating a new content type (collection) in the studio failed with "Failed to create collection". The empty database the studio starts from had lost a row EmDash needs when it adds a collection. Rebuild the site to pick up the fix.
+
 ## 0.13.1 [adapter-v0.13.1]
 - `import-markdown` now also lists the images it copies in the studio's media library, so imported posts' images can be found, reused and deleted there. The package page links to the repository's `main` branch.
 - In your site: nothing. Run the importer again on a fresh checkout to get the library entries; images imported earlier can be added by uploading them in the studio.

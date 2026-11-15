@@ -14,12 +14,20 @@ const order = { trigger: 0, index: 1, table: 2 };
 for (const o of ddl.toSorted((a, b) => order[a.type] - order[b.type]))
 	db.exec(`DROP ${o.type.toUpperCase()} IF EXISTS "${o.name}"`);
 db.exec("PRAGMA foreign_keys=OFF");
+const keep = [
+	"INSERT INTO _emdash_media_usage_activation (task_key, state) VALUES ('incremental_capture', 'expanded')",
+];
 const left = db
 	.prepare("select name from sqlite_master where type='table' and name not like 'sqlite_%'")
 	.all();
 for (const { name } of left) {
 	try {
 		db.exec(`DELETE FROM "${name}"`);
+	} catch {}
+}
+for (const sql of keep) {
+	try {
+		db.exec(sql.replace("INSERT INTO", "INSERT OR IGNORE INTO"));
 	} catch {}
 }
 db.exec("VACUUM");
