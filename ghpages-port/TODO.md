@@ -123,3 +123,9 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-14: studio-experiment merged to GHDash-example main; /studio/ is live and checked.
 - 2026-11-14: Jessica's real-token commit from /studio/ worked (dbb2413).
 - 2026-11-14: Real-token live test passes in Actions (`live.yml`, secret `GHDASH_LIVE_TOKEN`); 6.3 closed.
+
+## Plugins repo (2026-11-14)
+
+- Digital-Defiance/ghdash-plugins (MIT) holds `@digitaldefiance/ghdash-team` (team collection, TeamGrid, /team pages) and `@digitaldefiance/ghdash-fonts` (Google Fonts chosen in the studio, self-hosted at build).
+- Both are unpublished. Jessica publishes 0.1.0 of each by hand from the package folder (`npm publish --access public --provenance=false`), then adds the trusted publisher (repo `ghdash-plugins`, workflow `publish.yml`). Later releases: tags `team-v<version>` and `fonts-v<version>`.
+- After publishing, wire the demo: `npm i @digitaldefiance/ghdash-team @digitaldefiance/ghdash-fonts`, replace its copied TeamGrid with the package import, run `npx ghdash-fonts init`, add `<FontStyles />` before `</head>` in `src/layouts/Base.astro`, and put `ghdash-fonts build &&` before `astro build` in the build script. Tested locally with symlinks; works.
