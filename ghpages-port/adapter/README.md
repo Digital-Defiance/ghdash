@@ -79,6 +79,10 @@ export default defineConfig({ site: siteUrl(), base: basePath(), output: "static
 
 `gitdash-pages add-host netlify` writes a `netlify.toml`, `gitdash-pages add-host cloudflare` a `wrangler.toml` (the build command and variables are set in the Cloudflare dashboard; the file lists them), and `gitdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
 
+### Publishing on GitLab Pages
+
+`gitdash-pages add-host gitlab` writes a `.gitlab-ci.yml` that publishes `dist/client` with GitLab Pages. Set the site's visibility to public: Settings → General → Visibility, project features, permissions → **Pages** → **Everyone With Access**. A public project can still have Pages limited to "Only Project Members", and then GitLab answers every request that isn't logged in with a 404. The site loads for you, because you're signed in, but the studio's own files fail with 404s in the browser console, with a message about `projects.gitlab.io/auth`.
+
 ### Committing to GitLab
 
 On GitLab the studio commits through GitLab's REST API, which allows browser requests, so no proxy is needed. Editors paste a personal access token with the `api` scope (GitLab has no narrower scope that can commit through the API); a project access token works too. The token must be allowed to push to the branch, so with the default branch protection that means Maintainer. Conflicts are caught as on GitHub: the branch head is checked before committing, and every changed or deleted file carries its last commit, so GitLab refuses the commit if someone changed one of those files in the meantime.

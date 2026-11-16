@@ -1,4 +1,5 @@
 # Builds the site from content/*.json and publishes it with GitLab Pages.
+# Set Settings > General > Visibility > Pages to "Everyone With Access", or visitors that aren't signed in to GitLab (and the studio's own files) get 404s.
 # The site's address and base path come from GitLab (CI_PAGES_URL), so project sites under /<project>/ and
 # unique-domain sites both work. The studio at /studio/ commits back to this project through the GitLab API.
 #
