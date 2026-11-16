@@ -113,7 +113,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 8.7 GitLab conflict check: each update and delete carries the file's `last_commit_id`, so a push in the window between head check and commit is refused instead of overwritten (test with a simulated race).
 - [x] 8.8 Sign in with GitLab: OAuth with PKCE straight to `<gitlab>/oauth/token` (CORS checked on gitlab.com), no Worker; `__STUDIO_OAUTH__ = { clientId }`.
 - [x] 8.9 `studio-assets` fails a hosted build when the repository can't be told (Cloudflare without an origin remote), naming `STUDIO_REPO`.
-- [ ] 8.10 Comments on GitLab: giscus still needs a GitHub repository. Option offered to Jessica: GitLab-issue comments pulled in at build time.
+- [x] 8.10 Comments on GitLab: when the repository is on GitLab, each post's comments are the notes on a GitLab issue titled `Comments: <term>`, read at build time by `ghdash-pages gitlab-comments` (GITLAB_TOKEN optional). A post without an issue links to GitLab's new-issue form. `comments.json` `provider` overrides (gitlab, giscus, off). Netlify and Cloudflare follow wherever the repository lives.
 - [ ] 8.11 `.gitlab-ci.yml` not yet run on a real runner; GitLab sign-in not yet tried against a real application.
 
 ## Log
