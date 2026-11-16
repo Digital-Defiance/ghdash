@@ -12,7 +12,7 @@ The fork stays close to upstream on purpose. Changes are additive (for example, 
 
 ## What changes
 
-|               | EmDash                                     | GitDash                                                                                                      |
+|               | EmDash                                     | GitDash                                                                                                     |
 | ------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | Content store | SQLite, D1 or Postgres                     | JSON files in the repo (one file per row)                                                                   |
 | Rendering     | On each request                            | Static build in a GitHub Action                                                                             |
