@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Templates link to root-absolute paths like href="/posts/x". On a GitHub Pages project site the
 // site lives under /<repo>/, so prefix those paths in the built HTML, CSS and XML.
-// Usage: ghdash-pages finish <distDir>   (the base path comes from host.mjs: BASE_PATH, or the host's own settings)
+// Usage: gitdash-pages finish <distDir>   (the base path comes from host.mjs: BASE_PATH, or the host's own settings)
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 

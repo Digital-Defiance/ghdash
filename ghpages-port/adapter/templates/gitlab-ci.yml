@@ -3,9 +3,9 @@
 # unique-domain sites both work. The studio at /studio/ commits back to this project through the GitLab API.
 #
 # Optional, for scheduled posts, plugin after-hooks and cron (see SETUP.md, "Hosting on GitLab Pages"):
-#   - CI/CD variable GHDASH_PUSH_TOKEN: a project access token, role Maintainer, scope write_repository.
+#   - CI/CD variable GITDASH_PUSH_TOKEN: a project access token, role Maintainer, scope write_repository.
 #   - A pipeline schedule (Build > Pipeline schedules), hourly, on the default branch.
-# When Netlify or Cloudflare Pages hosts the site, set the CI/CD variable GHDASH_HOST to "netlify" or "cloudflare-pages":
+# When Netlify or Cloudflare Pages hosts the site, set the CI/CD variable GITDASH_HOST to "netlify" or "cloudflare-pages":
 # the pages job then stays off, and scheduled posts, hooks and cron still run here.
 
 default:
@@ -25,16 +25,16 @@ stages: [build, after]
 
 .push_back: &push_back |
   push_back() {
-    [ -n "$GHDASH_PUSH_TOKEN" ] || { echo "GHDASH_PUSH_TOKEN is not set, so nothing is pushed back."; return 1; }
-    git config user.name "GHDash CI"
-    git config user.email "ghdash-ci@users.noreply.${CI_SERVER_HOST}"
-    git remote set-url origin "https://oauth2:${GHDASH_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    [ -n "$GITDASH_PUSH_TOKEN" ] || { echo "GITDASH_PUSH_TOKEN is not set, so nothing is pushed back."; return 1; }
+    git config user.name "GitDash CI"
+    git config user.email "gitdash-ci@users.noreply.${CI_SERVER_HOST}"
+    git remote set-url origin "https://oauth2:${GITDASH_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
   }
 
 pages:
   stage: build
   rules:
-    - if: $GHDASH_HOST && $GHDASH_HOST != "gitlab-pages"
+    - if: $GITDASH_HOST && $GITDASH_HOST != "gitlab-pages"
       when: never
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -63,9 +63,9 @@ scheduled-publish:
   script:
     - *push_back
     - |
-      if [ "$(npx ghdash-pages due)" != "true" ]; then echo "No scheduled content is due."; exit 0; fi
+      if [ "$(npx gitdash-pages due)" != "true" ]; then echo "No scheduled content is due."; exit 0; fi
       npm run db
-      npx ghdash-pages publish-due
+      npx gitdash-pages publish-due
       push_back || exit 1
       git add content
       git commit -m "Publish scheduled content"
@@ -88,7 +88,7 @@ hooks:
       git fetch --force origin "refs/tags/hooks-last:refs/tags/hooks-last" 2>/dev/null || true
       base=$(git rev-parse -q --verify hooks-last || echo "$CI_COMMIT_BEFORE_SHA")
       case "$base" in ""|0000000000000000000000000000000000000000) base=$(git rev-parse HEAD~1);; esac
-      npx ghdash-pages run-hooks --base "$base" --head HEAD
+      npx gitdash-pages run-hooks --base "$base" --head HEAD
       if push_back; then git tag -f hooks-last HEAD && git push --force origin refs/tags/hooks-last; fi
 
 # Plugin cron jobs that fell due since the last run, from the same hourly schedule.
@@ -104,5 +104,5 @@ cron:
       git fetch --force origin "refs/tags/cron-last:refs/tags/cron-last" 2>/dev/null || true
       since=$(git for-each-ref refs/tags/cron-last --format='%(creatordate:iso-strict)')
       now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-      npx ghdash-pages run-cron ${since:+--since "$since"} --now "$now"
+      npx gitdash-pages run-cron ${since:+--since "$since"} --now "$now"
       if push_back; then git tag -f -a cron-last -m "$now" HEAD && git push --force origin refs/tags/cron-last; fi

@@ -1,5 +1,5 @@
 // Writes the data the in-browser admin loads: public/studio-data/{content.json,empty.db}, and the media service worker at public/studio/media-sw.js.
-// Run after `ghdash-pages build-db`. content.json is the repo's content/ tree as one file.
+// Run after `gitdash-pages build-db`. content.json is the repo's content/ tree as one file.
 import { execFileSync } from "node:child_process";
 import {
 	copyFileSync,

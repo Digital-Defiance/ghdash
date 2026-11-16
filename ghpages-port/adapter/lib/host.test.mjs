@@ -18,12 +18,12 @@ const localGit = (cmd, args) =>
 test("GitHub Actions: the workflow's BASE_PATH and SITE_URL are used as given", () => {
 	const env = {
 		GITHUB_ACTIONS: "true",
-		BASE_PATH: "/GHDash-example",
+		BASE_PATH: "/GitDash-example",
 		SITE_URL: "https://o.github.io",
 	};
 	assert.equal(hostName(env), "github-pages");
-	assert.equal(basePath(env), "/GHDash-example");
-	assert.equal(basePrefix(env), "/GHDash-example");
+	assert.equal(basePath(env), "/GitDash-example");
+	assert.equal(basePrefix(env), "/GitDash-example");
 	assert.equal(siteUrl(env), "https://o.github.io");
 });
 
@@ -57,11 +57,11 @@ test("GitLab Pages: a project site lives under its path, a unique-domain site at
 });
 
 test("remotes: GitHub and GitLab over https and ssh, credentials dropped, others unknown", () => {
-	assert.deepEqual(parseRemote("git@github.com:Digital-Defiance/GHDash-example.git"), {
+	assert.deepEqual(parseRemote("git@github.com:Digital-Defiance/GitDash-example.git"), {
 		provider: "github",
 		webUrl: "https://github.com",
 		apiUrl: "https://api.github.com",
-		path: "Digital-Defiance/GHDash-example",
+		path: "Digital-Defiance/GitDash-example",
 	});
 	assert.deepEqual(parseRemote("https://oauth2:secret@gitlab.com/group/sub/site.git"), {
 		provider: "gitlab",

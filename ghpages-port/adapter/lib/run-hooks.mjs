@@ -1,4 +1,4 @@
-// ghdash-pages run-hooks --base <sha> --head <sha>
+// gitdash-pages run-hooks --base <sha> --head <sha>
 // Runs the after-hooks of the plugins listed in hooks.config.json for content that changed between the two commits.
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";

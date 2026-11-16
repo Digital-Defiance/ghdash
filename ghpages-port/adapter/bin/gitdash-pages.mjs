@@ -41,7 +41,7 @@ const commands = {
 	],
 	due: ["Print true if a scheduled entry is due (reads content/ only)", () => run("due", rest)],
 	"gitlab-comments": [
-		"Read comments from GitLab issues into .ghdash/gitlab-comments.json (repositories on GitLab)",
+		"Read comments from GitLab issues into .gitdash/gitlab-comments.json (repositories on GitLab)",
 		() => run("gitlab-comments", rest),
 	],
 	"studio-assets": [
@@ -71,7 +71,7 @@ const commands = {
 			};
 			const pick = files[rest[0]];
 			if (!pick) {
-				console.error("usage: ghdash-pages add-host <netlify|cloudflare|gitlab>");
+				console.error("usage: gitdash-pages add-host <netlify|cloudflare|gitlab>");
 				process.exit(1);
 			}
 			const [from, to] = pick;
@@ -89,7 +89,7 @@ const commands = {
 
 if (!cmd || !commands[cmd]) {
 	console.error(
-		`usage: ghdash-pages <command>\n\n${Object.entries(commands)
+		`usage: gitdash-pages <command>\n\n${Object.entries(commands)
 			.map(([n, [d]]) => `  ${n.padEnd(18)}${String(d)}`)
 			.join("\n")}`,
 	);

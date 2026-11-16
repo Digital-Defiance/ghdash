@@ -3,7 +3,7 @@
 // "Comments: <term>" (the term is the post's id). The build reads them and the page shows them; visitors comment on GitLab.
 // A post with no issue yet links to GitLab's new-issue form with that title filled in, so nobody has to create issues by hand.
 //
-// Usage: ghdash-pages gitlab-comments [outFile]   (default .ghdash/gitlab-comments.json)
+// Usage: gitdash-pages gitlab-comments [outFile]   (default .gitdash/gitlab-comments.json)
 // Reads public projects without a token; set GITLAB_TOKEN (scope read_api) for a private project or a higher rate limit.
 // Never fails the build: if GitLab can't be reached the file is written empty and a warning is printed.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -89,7 +89,7 @@ export async function fetchGitLabComments({
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const outFile = process.argv[2] ?? ".ghdash/gitlab-comments.json";
+	const outFile = process.argv[2] ?? ".gitdash/gitlab-comments.json";
 	const meta = repoMeta();
 	let data = {};
 	if (meta.provider !== "gitlab" || !meta.repo) {

@@ -2,7 +2,7 @@
 // GitHub Pages can't send 301s, so each enabled redirect from content/_emdash_redirects.json becomes a small
 // HTML page at its source path that forwards the browser (meta refresh) and names the target as canonical.
 // Netlify, Cloudflare Pages and GitLab Pages read a _redirects file and send real redirects, so on those hosts that file is written instead.
-// Pattern redirects can't be pre-rendered and are skipped. Usage: ghdash-pages finish <distDir>
+// Pattern redirects can't be pre-rendered and are skipped. Usage: gitdash-pages finish <distDir>
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

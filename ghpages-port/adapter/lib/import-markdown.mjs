@@ -1,4 +1,4 @@
-// ghdash-pages import-markdown <dir> [--root <siteRoot>] [--posts posts] [--pages pages] [--dry-run]
+// gitdash-pages import-markdown <dir> [--root <siteRoot>] [--posts posts] [--pages pages] [--dry-run]
 // Imports a Jekyll site or a folder of Markdown files into content/ using EmDash's own content handlers,
 // so slugs, revisions, taxonomies and search behave as if the entries were created in the studio.
 import { spawnSync } from "node:child_process";
@@ -31,7 +31,7 @@ const dir = args.find(
 );
 if (!dir) {
 	console.error(
-		"usage: ghdash-pages import-markdown <dir> [--root <siteRoot>] [--posts posts] [--pages pages] [--dry-run]",
+		"usage: gitdash-pages import-markdown <dir> [--root <siteRoot>] [--posts posts] [--pages pages] [--dry-run]",
 	);
 	process.exit(1);
 }
@@ -54,13 +54,13 @@ if (args.includes("--dry-run")) {
 	process.exit(0);
 }
 
-const bin = fileURLToPath(new URL("../bin/ghdash-pages.mjs", import.meta.url));
+const bin = fileURLToPath(new URL("../bin/gitdash-pages.mjs", import.meta.url));
 const step = (cmd) => {
 	const r = spawnSync(process.execPath, [bin, cmd], { stdio: "inherit" });
 	if (r.status !== 0) process.exit(r.status ?? 1);
 };
 if (!existsSync("content/_ddl.json")) {
-	console.error("content/_ddl.json not found: run this from the root of a GHDash site");
+	console.error("content/_ddl.json not found: run this from the root of a GitDash site");
 	process.exit(1);
 }
 step("build-db");

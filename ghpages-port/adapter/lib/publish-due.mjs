@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Publishes entries whose scheduled time has passed, using EmDash's own publish logic from the browser API bundle,
 // then writes the result back to content/ so the repository shows what the site shows.
-// Run after `ghdash-pages build-db` and `fetch-browser-api`. Usage: publish-due [db] [contentDir]
+// Run after `gitdash-pages build-db` and `fetch-browser-api`. Usage: publish-due [db] [contentDir]
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";

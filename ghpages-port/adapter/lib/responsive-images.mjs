@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Adds WebP variants of media under <distDir>/media and a srcset to built <img> tags that point at them.
 // Needs `sharp` (Astro installs it); does nothing without it.
-// Usage: BASE_PATH=/repo ghdash-pages finish <distDir>   (set RESPONSIVE_WIDTHS="" to turn it off)
+// Usage: BASE_PATH=/repo gitdash-pages finish <distDir>   (set RESPONSIVE_WIDTHS="" to turn it off)
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";

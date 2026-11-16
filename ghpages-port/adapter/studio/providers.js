@@ -95,7 +95,7 @@ function gitlab(meta, fetchImpl) {
 		apiHost: new URL(apiUrl).host,
 		commitUrl: (sha) => `${webUrl}/${project}/-/commit/${sha}`,
 		buildsUrl: `${webUrl}/${project}/-/pipelines`,
-		tokenUrl: `${webUrl}/-/user_settings/personal_access_tokens?name=${encodeURIComponent("GHDash studio")}&scopes=api`,
+		tokenUrl: `${webUrl}/-/user_settings/personal_access_tokens?name=${encodeURIComponent("GitDash studio")}&scopes=api`,
 		oauth: (config) => ({
 			start: { authorizeUrl: `${webUrl}/oauth/authorize`, scope: "api" },
 			finish: { tokenUrl: `${webUrl}/oauth/token`, clientId: config.clientId, label: "GitLab" },

@@ -6,6 +6,6 @@
 #   if the studio says it can't tell which repository to commit to.
 # `name` must be the Pages project's name, because Cloudflare reads this file as the project's configuration.
 # Scheduled posts, plugin after-hooks and cron still run in the repository's own CI: see SETUP.md, "Hosting on Cloudflare Pages".
-name = "my-ghdash-site"
+name = "my-gitdash-site"
 pages_build_output_dir = "dist/client"
 compatibility_date = "2026-11-01"

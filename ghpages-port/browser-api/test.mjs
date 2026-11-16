@@ -22,7 +22,7 @@ const { database } = openDb(sqlite, readFileSync(freshDb), { ddl, tables });
 const db = new A.Kysely({ dialect: new A.SqliteDialect({ database }) });
 const api = A.createBrowserApi({
 	db,
-	apiBase: "/GHDash-example/_api",
+	apiBase: "/GitDash-example/_api",
 	user: { id: "gh-1", email: "a@b.c", name: "Tester" },
 });
 let bad = 0;
@@ -30,7 +30,7 @@ const check = (name, cond) => {
 	console.log(cond ? "PASS" : "FAIL", name);
 	if (!cond) bad++;
 };
-const m = await (await api("https://x.test/GHDash-example/_api/manifest")).json();
+const m = await (await api("https://x.test/GitDash-example/_api/manifest")).json();
 check("manifest ok", m.success && Object.keys(m.data.collections).includes("posts"));
 console.log(
 	"  collections:",
@@ -40,11 +40,11 @@ console.log(
 	"title:",
 	m.data.siteTitle,
 );
-const me = await (await api("https://x.test/GHDash-example/_api/auth/me")).json();
+const me = await (await api("https://x.test/GitDash-example/_api/auth/me")).json();
 check("auth/me admin", me.success && me.data.role === 50);
-const nf = await api("https://x.test/GHDash-example/_api/nope");
+const nf = await api("https://x.test/GitDash-example/_api/nope");
 check("unknown route 404 json", nf.status === 404 && (await nf.json()).error.code === "NOT_FOUND");
-const B = "https://x.test/GHDash-example/_api";
+const B = "https://x.test/GitDash-example/_api";
 const call = async (method, path, body) => {
 	const r = await api(B + path, {
 		method,
@@ -83,7 +83,7 @@ check("lock acquire", lk.json.success);
 console.log("  lock:", JSON.stringify(lk.json.data));
 const guarded = A.createBrowserApi({
 	db,
-	apiBase: "/GHDash-example/_api",
+	apiBase: "/GitDash-example/_api",
 	user: { id: "gh-1", email: "a@b.c", name: "Tester" },
 	plugins: [
 		{

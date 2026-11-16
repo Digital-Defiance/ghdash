@@ -2,7 +2,7 @@
 // Hosts: GitHub Pages (GitHub Actions), GitLab Pages (GitLab CI), Netlify and Cloudflare Pages (both building from GitHub or GitLab).
 // Explicit settings always win: SITE_URL, BASE_PATH, STUDIO_PROVIDER, STUDIO_REPO, STUDIO_API_URL, STUDIO_WEB_URL, STUDIO_BRANCH.
 //
-//   import { siteUrl, basePath, repoMeta } from "@digitaldefiance/ghdash-pages/host";
+//   import { siteUrl, basePath, repoMeta } from "@digitaldefiance/gitdash-pages/host";
 //   export default defineConfig({ site: siteUrl(), base: basePath(), ... });
 import { execFileSync } from "node:child_process";
 
@@ -20,9 +20,9 @@ function trimSlash(s) {
 	return s.slice(0, end);
 }
 
-/** "netlify", "cloudflare-pages", "gitlab-pages", "github-pages" or "local". GHDASH_HOST overrides the guess. */
+/** "netlify", "cloudflare-pages", "gitlab-pages", "github-pages" or "local". GITDASH_HOST overrides the guess. */
 export function hostName(env = process.env) {
-	if (env.GHDASH_HOST) return env.GHDASH_HOST;
+	if (env.GITDASH_HOST) return env.GITDASH_HOST;
 	if (env.NETLIFY === "true") return "netlify";
 	if (env.CF_PAGES === "1") return "cloudflare-pages";
 	if (env.GITLAB_CI) return "gitlab-pages";

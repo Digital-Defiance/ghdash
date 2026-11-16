@@ -1,37 +1,37 @@
-# @digitaldefiance/ghdash-pages
+# @digitaldefiance/gitdash-pages
 
 Build-side commands for an EmDash site that is published to GitHub Pages, GitLab Pages, Netlify or Cloudflare Pages, with its content kept as JSON in the repository (`content/`). The studio commits to GitHub or GitLab. Run the commands from the site's root.
 
 ```
-ghdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
-ghdash-pages publish-due         publish scheduled entries that are due and update content/ (after fetch-browser-api)
-ghdash-pages run-hooks --base <sha> --head <sha>  run plugin after-hooks for content that changed between two commits (reads hooks.config.json)
-ghdash-pages due                 prints true or false: is a scheduled entry due? (for a scheduled workflow)
-ghdash-pages studio-assets       public/studio-data/ for the in-browser admin
-ghdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
-ghdash-pages copy-media          media/ -> public/media/, downscaling images wider than MEDIA_MAX_WIDTH (default 2000, 0 = off; needs sharp, which Astro installs)
-ghdash-pages finish [dist]       after `astro build`: base path, media URLs, responsive images (WebP + srcset), redirect pages (BASE_PATH)
-ghdash-pages run-cron [--since <iso>]  run plugin cron jobs that fell due (reads hooks.config.json)
-ghdash-pages import-markdown <dir>  bring a Jekyll site or Markdown folder into content/ (--dry-run first)
-ghdash-pages export-content      data.db -> content/
-ghdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
-ghdash-pages serve               serve dist/client under BASE_PATH, like Pages
-ghdash-pages add-host <netlify|cloudflare|gitlab>  write netlify.toml, wrangler.toml or .gitlab-ci.yml for the site
+gitdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
+gitdash-pages publish-due         publish scheduled entries that are due and update content/ (after fetch-browser-api)
+gitdash-pages run-hooks --base <sha> --head <sha>  run plugin after-hooks for content that changed between two commits (reads hooks.config.json)
+gitdash-pages due                 prints true or false: is a scheduled entry due? (for a scheduled workflow)
+gitdash-pages studio-assets       public/studio-data/ for the in-browser admin
+gitdash-pages fetch-browser-api   public/studio-api/ from a pages-v* release (BROWSER_API_TAG, BROWSER_API_URL, BROWSER_API_DIR)
+gitdash-pages copy-media          media/ -> public/media/, downscaling images wider than MEDIA_MAX_WIDTH (default 2000, 0 = off; needs sharp, which Astro installs)
+gitdash-pages finish [dist]       after `astro build`: base path, media URLs, responsive images (WebP + srcset), redirect pages (BASE_PATH)
+gitdash-pages run-cron [--since <iso>]  run plugin cron jobs that fell due (reads hooks.config.json)
+gitdash-pages import-markdown <dir>  bring a Jekyll site or Markdown folder into content/ (--dry-run first)
+gitdash-pages export-content      data.db -> content/
+gitdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
+gitdash-pages serve               serve dist/client under BASE_PATH, like Pages
+gitdash-pages add-host <netlify|cloudflare|gitlab>  write netlify.toml, wrangler.toml or .gitlab-ci.yml for the site
 ```
 
 A typical site build script:
 
 ```
-ghdash-pages build-db && ghdash-pages fetch-browser-api && ghdash-pages publish-due && ghdash-pages studio-assets && ghdash-pages copy-media && astro build && ghdash-pages finish && pagefind --site dist/client
+gitdash-pages build-db && gitdash-pages fetch-browser-api && gitdash-pages publish-due && gitdash-pages studio-assets && gitdash-pages copy-media && astro build && gitdash-pages finish && pagefind --site dist/client
 ```
 
 ## Importing an existing site
 
-`ghdash-pages import-markdown <dir>` imports a Jekyll site or any folder of Markdown files into `content/`. Run it from your GHDash site's root, review the result with `git diff`, then commit.
+`gitdash-pages import-markdown <dir>` imports a Jekyll site or any folder of Markdown files into `content/`. Run it from your GitDash site's root, review the result with `git diff`, then commit.
 
 ```
-npx ghdash-pages import-markdown ../my-jekyll-site --dry-run   # list what it found
-npx ghdash-pages import-markdown ../my-jekyll-site
+npx gitdash-pages import-markdown ../my-jekyll-site --dry-run   # list what it found
+npx gitdash-pages import-markdown ../my-jekyll-site
 ```
 
 - Files under `_posts` or named `YYYY-MM-DD-name.md` become posts, files under `_drafts` become drafts, everything else becomes a page. `published: false` makes a draft.
@@ -49,8 +49,8 @@ By default an editor pastes a fine-grained token into the studio. To offer a "Si
 
 1. On GitHub, Settings, Developer settings, GitHub Apps, **New GitHub App**. Callback URL: the studio address, for example `https://you.github.io/your-repo/studio/`. Untick Webhook. Repository permissions: Contents, read and write. Create it, note the **Client ID**, and generate a **client secret**.
 2. Install the app on your site's repository (the app's **Install App** tab). The sign-in token can then only reach repositories that the editor can write to and the app is installed on.
-3. Deploy the Worker from your site: `npx wrangler deploy node_modules/@digitaldefiance/ghdash-pages/worker/github-oauth.mjs --name ghdash-sign-in --var ALLOWED_ORIGIN:https://you.github.io --var GITHUB_CLIENT_ID:<client id>`, then `npx wrangler secret put GITHUB_CLIENT_SECRET --name ghdash-sign-in` and paste the secret at the prompt. Never put the secret in a file, a commit or a chat.
-4. In your `/studio/` page, set `globalThis.__STUDIO_OAUTH__ = { clientId: "<client id>", exchangeUrl: "https://ghdash-sign-in.<you>.workers.dev/" }` before loading the studio. The client ID and the Worker address are public.
+3. Deploy the Worker from your site: `npx wrangler deploy node_modules/@digitaldefiance/gitdash-pages/worker/github-oauth.mjs --name gitdash-sign-in --var ALLOWED_ORIGIN:https://you.github.io --var GITHUB_CLIENT_ID:<client id>`, then `npx wrangler secret put GITHUB_CLIENT_SECRET --name gitdash-sign-in` and paste the secret at the prompt. Never put the secret in a file, a commit or a chat.
+4. In your `/studio/` page, set `globalThis.__STUDIO_OAUTH__ = { clientId: "<client id>", exchangeUrl: "https://gitdash-sign-in.<you>.workers.dev/" }` before loading the studio. The client ID and the Worker address are public.
 
 GitHub App tokens expire after eight hours by default, after which the studio asks the editor to sign in again. Pending edits are kept in the browser meanwhile.
 
@@ -60,10 +60,10 @@ GitHub App tokens expire after eight hours by default, after which the studio as
 
 ## Hosts: GitHub Pages, GitLab Pages, Netlify, Cloudflare Pages
 
-`@digitaldefiance/ghdash-pages/host` reads the build environment and says where the site is served and where its repository is. Use it in `astro.config.mjs` so the same site builds on every host:
+`@digitaldefiance/gitdash-pages/host` reads the build environment and says where the site is served and where its repository is. Use it in `astro.config.mjs` so the same site builds on every host:
 
 ```js
-import { basePath, siteUrl } from "@digitaldefiance/ghdash-pages/host";
+import { basePath, siteUrl } from "@digitaldefiance/gitdash-pages/host";
 export default defineConfig({ site: siteUrl(), base: basePath(), output: "static" /* ... */ });
 ```
 
@@ -75,9 +75,9 @@ export default defineConfig({ site: siteUrl(), base: basePath(), output: "static
 | Cloudflare Pages | `CF_PAGES_URL` (this deployment's own address; set `SITE_URL` to the production one), always `/` | the `origin` remote, or `STUDIO_REPO` (and `STUDIO_PROVIDER=gitlab`), because Cloudflare doesn't say which repository it built |
 | Local            | `SITE_URL`, `BASE_PATH`                                                                          | the `origin` remote                                                                                                            |
 
-`SITE_URL`, `BASE_PATH`, `GHDASH_HOST` (`github-pages`, `gitlab-pages`, `netlify`, `cloudflare-pages`) and `STUDIO_PROVIDER` (`github`, `gitlab`), `STUDIO_REPO`, `STUDIO_BRANCH`, `STUDIO_API_URL`, `STUDIO_WEB_URL` override the guesses. `ghdash-pages finish` uses the same base path. On Netlify, Cloudflare Pages and GitLab Pages, redirects are written to a `_redirects` file and are real 301/302 responses; on GitHub Pages they stay HTML forwarding pages.
+`SITE_URL`, `BASE_PATH`, `GITDASH_HOST` (`github-pages`, `gitlab-pages`, `netlify`, `cloudflare-pages`) and `STUDIO_PROVIDER` (`github`, `gitlab`), `STUDIO_REPO`, `STUDIO_BRANCH`, `STUDIO_API_URL`, `STUDIO_WEB_URL` override the guesses. `gitdash-pages finish` uses the same base path. On Netlify, Cloudflare Pages and GitLab Pages, redirects are written to a `_redirects` file and are real 301/302 responses; on GitHub Pages they stay HTML forwarding pages.
 
-`ghdash-pages add-host netlify` writes a `netlify.toml`, `ghdash-pages add-host cloudflare` a `wrangler.toml` (the build command and variables are set in the Cloudflare dashboard; the file lists them), and `ghdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
+`gitdash-pages add-host netlify` writes a `netlify.toml`, `gitdash-pages add-host cloudflare` a `wrangler.toml` (the build command and variables are set in the Cloudflare dashboard; the file lists them), and `gitdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
 
 ### Committing to GitLab
 
@@ -87,15 +87,15 @@ On GitLab the studio commits through GitLab's REST API, which allows browser req
 
 ### Comments on GitLab
 
-When the repository is on GitLab (wherever the site is served), comments can live in GitLab issues instead of giscus. `ghdash-pages gitlab-comments` (run it before `astro build`) reads every issue titled `Comments: <post id>` and writes its notes to `.ghdash/gitlab-comments.json`; a page component shows them with a "Comment on GitLab" link. A post with no issue yet links to GitLab's new-issue form with the title filled in, so the first commenter opens it. System notes, internal notes and confidential issues are never shown; closing or locking an issue closes comments on that post. New comments appear after the next build (the hourly schedule, or any push). Public projects need no token; set `GITLAB_TOKEN` (scope `read_api`) for a private one. If GitLab can't be reached the build carries on without comments.
+When the repository is on GitLab (wherever the site is served), comments can live in GitLab issues instead of giscus. `gitdash-pages gitlab-comments` (run it before `astro build`) reads every issue titled `Comments: <post id>` and writes its notes to `.gitdash/gitlab-comments.json`; a page component shows them with a "Comment on GitLab" link. A post with no issue yet links to GitLab's new-issue form with the title filled in, so the first commenter opens it. System notes, internal notes and confidential issues are never shown; closing or locking an issue closes comments on that post. New comments appear after the next build (the hourly schedule, or any push). Public projects need no token; set `GITLAB_TOKEN` (scope `read_api`) for a private one. If GitLab can't be reached the build carries on without comments.
 
 ## Install and upgrade
 
-From npm: `npm install @digitaldefiance/ghdash-pages`. Maintainers: publish the first version by hand from `ghpages-port/adapter` (`npm login`, then `npm publish --access public`), then add a Trusted Publisher on the package's npm settings page (GitHub Actions, organization `Digital-Defiance`, repository `ghdash`, workflow `publish-adapter.yml`). After that, pushing a tag `adapter-v<version>` publishes it with provenance and no token. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
+From npm: `npm install @digitaldefiance/gitdash-pages`. Maintainers: publish the first version by hand from `ghpages-port/adapter` (`npm login`, then `npm publish --access public`), then add a Trusted Publisher on the package's npm settings page (GitHub Actions, organization `Digital-Defiance`, repository `gitdash`, workflow `publish-adapter.yml`). After that, pushing a tag `adapter-v<version>` publishes it with provenance and no token. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/gitdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz` (releases before the rename carry the old name). `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
 
 ## The in-browser studio
 
-`@digitaldefiance/ghdash-pages/studio/boot.tsx` mounts the real EmDash admin in the browser, with a pending-changes tray. A site needs a page at `/studio/` that sets `__EMDASH_PATHS__` and loads it:
+`@digitaldefiance/gitdash-pages/studio/boot.tsx` mounts the real EmDash admin in the browser, with a pending-changes tray. A site needs a page at `/studio/` that sets `__EMDASH_PATHS__` and loads it:
 
 ```astro
 <script is:inline>
@@ -103,12 +103,12 @@ From npm: `npm install @digitaldefiance/ghdash-pages`. Maintainers: publish the 
 	globalThis.__EMDASH_PATHS__ = { adminBase: site + "/studio", apiBase: site + "/_api", siteBase: site + "/" };
 </script>
 <div id="admin-root"></div>
-<script>import "@digitaldefiance/ghdash-pages/studio/boot.tsx";</script>
+<script>import "@digitaldefiance/gitdash-pages/studio/boot.tsx";</script>
 ```
 
 The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js`, `studio/providers.js`, `studio/github-commit.js` and `studio/gitlab-commit.js`.
 
-The Pagefind search page and the page templates are part of the site template. See `GHDash-example` for a working site.
+The Pagefind search page and the page templates are part of the site template. See `GitDash-example` for a working site.
 
 ## Plugins in the studio
 
@@ -169,7 +169,7 @@ Two limits apply to every plugin. Public plugin HTTP routes don't exist on Pages
 
 ## Plugin cron in the build Action
 
-`ghdash-pages run-cron` runs the `cron` hook of plugins in `hooks.config.json` that list `cron` jobs, for each job that fell due since the last run. Schedules are 5-field cron expressions in UTC or `@hourly`, `@daily`, `@weekly`:
+`gitdash-pages run-cron` runs the `cron` hook of plugins in `hooks.config.json` that list `cron` jobs, for each job that fell due since the last run. Schedules are 5-field cron expressions in UTC or `@hourly`, `@daily`, `@weekly`:
 
 ```json
 {
@@ -183,7 +183,7 @@ The hook gets `{ name, data, scheduledAt }` and the same in-memory context as af
 
 ## Plugin after-hooks in the build Action
 
-`ghdash-pages run-hooks --base <sha> --head <sha>` runs the `content:afterSave` and `content:afterDelete` hooks of the plugins in `hooks.config.json` for each content file that changed between the commits (added or modified: save, with `isNew` for added files; deleted or soft-deleted: delete).
+`gitdash-pages run-hooks --base <sha> --head <sha>` runs the `content:afterSave` and `content:afterDelete` hooks of the plugins in `hooks.config.json` for each content file that changed between the commits (added or modified: save, with `isNew` for added files; deleted or soft-deleted: delete).
 
 ```json
 {
@@ -202,4 +202,4 @@ The hook gets `{ name, data, scheduledAt }` and the same in-memory context as af
 }
 ```
 
-`{ "env": "NAME" }` reads the value from the environment (use Actions secrets); a variable that is not set leaves the setting unset. The hook gets `kv` and `settings` seeded from these values, in-memory `storage`, `http.fetch` and `log`. Content, media and schema access are not provided, and nothing a plugin stores outlives the run. Media uploads do not trigger `media:afterUpload`. The programmatic API is `@digitaldefiance/ghdash-pages/hooks`.
+`{ "env": "NAME" }` reads the value from the environment (use Actions secrets); a variable that is not set leaves the setting unset. The hook gets `kv` and `settings` seeded from these values, in-memory `storage`, `http.fetch` and `log`. Content, media and schema access are not provided, and nothing a plugin stores outlives the run. Media uploads do not trigger `media:afterUpload`. The programmatic API is `@digitaldefiance/gitdash-pages/hooks`.
