@@ -108,13 +108,16 @@ Demo and test target: `Digital-Defiance/GitDash-example` (public, Pages to be en
 - [x] 8.2 Provider-neutral save layer (`studio/providers.js`); GitLab adapter `studio/gitlab-commit.js` (commits API, `can_push` check, tree + raw blobs). Tray text and links follow the host. → unit tests with an in-memory GitLab API; demo e2e `e2e/gitlab.spec.ts` against a mocked GitLab
 - [x] 8.3 `_redirects` (real 301/302) on Netlify, Cloudflare Pages and GitLab Pages
 - [x] 8.4 Templates and `gitdash-pages add-host <netlify|cloudflare|gitlab>`: `netlify.toml`, `wrangler.toml`, `.gitlab-ci.yml` (Pages deploy, scheduled publish from a pipeline schedule with `GITDASH_PUSH_TOKEN`, hooks, cron)
-- [x] 8.5 Demo (branch `hosts-gitlab-netlify` on GitDash-example): `astro.config.mjs` uses `siteUrl()`/`basePath()`, studio CSP uses `studioApiOrigin()`, `netlify.toml` and `.gitlab-ci.yml` committed, `pages.yml` skips the Pages deploy when repo variable `GITDASH_HOST` names another host, GitLab-issue contact form (`issueProject`), SETUP "Other hosts". Built locally as Netlify, Cloudflare and GitLab project site (base `/gitdash-site`). Waits on the `adapter-v0.14.0` tag.
-- [ ] 8.6 Live checks that need accounts: a real GitLab project with the CI file and a real token commit from `/studio/`; a Netlify site; a Cloudflare Pages project. Not run yet.
+- [x] 8.5 Demo (merged to GitDash-example main): `astro.config.mjs` uses `siteUrl()`/`basePath()`, studio CSP uses `studioApiOrigin()`, `netlify.toml` and `.gitlab-ci.yml` committed, `pages.yml` skips the Pages deploy when repo variable `GITDASH_HOST` names another host, GitLab-issue contact form (`issueProject`), SETUP "Other hosts". Built locally as Netlify, Cloudflare and GitLab project site (base `/gitdash-site`).
+- [x] 8.6 Live checks with Jessica's accounts (2026-11-16): GitLab project (CI file, Pages, studio, token commit), Netlify (site, studio with a GitHub token, commit, automatic rebuild), Cloudflare legacy Pages (pages.dev, studio commit) and Cloudflare Workers (workers.dev) all work.
 - [x] 8.7 GitLab conflict check: each update and delete carries the file's `last_commit_id`, so a push in the window between head check and commit is refused instead of overwritten (test with a simulated race).
 - [x] 8.8 Sign in with GitLab: OAuth with PKCE straight to `<gitlab>/oauth/token` (CORS checked on gitlab.com), no Worker; `__STUDIO_OAUTH__ = { clientId }`.
 - [x] 8.9 `studio-assets` fails a hosted build when the repository can't be told (Cloudflare without an origin remote), naming `STUDIO_REPO`.
 - [x] 8.10 Comments on GitLab: when the repository is on GitLab, each post's comments are the notes on a GitLab issue titled `Comments: <term>`, read at build time by `gitdash-pages gitlab-comments` (GITLAB_TOKEN optional). A post without an issue links to GitLab's new-issue form. `comments.json` `provider` overrides (gitlab, giscus, off). Netlify and Cloudflare follow wherever the repository lives.
-- [ ] 8.11 `.gitlab-ci.yml` not yet run on a real runner; GitLab sign-in not yet tried against a real application.
+- [x] 8.11 `.gitlab-ci.yml` ran on a real runner. Not yet tried: "Sign in with GitLab" (OAuth) against a real application.
+- [x] 8.12 Cloudflare Workers Builds (adapter 0.14.1, PR gitdash#7): `WORKERS_CI=1` is detected as the Cloudflare host; the build gets no site address or repository, so `SITE_URL` and `STUDIO_REPO` are build variables. `add-host cloudflare` writes `wrangler.jsonc` (static assets, `dist/client`); `add-host cloudflare-pages` keeps the legacy `wrangler.toml`. The Workers create screen has no variables box: create the Worker, then add build variables under Settings, Build, and retry the build.
+- [x] 8.13 GitLab Pages access control: the project's Pages visibility must be "Everyone With Access", or non-logged-in requests get 404 and the studio's files fail. In SETUP and the adapter README.
+- [ ] 8.14 Not yet tested: building and deploying a brand-new site from the CLI on Cloudflare (`gh repo create --template`, `wrangler login`, build, `wrangler deploy`); needs a Cloudflare API token in the environment's secrets. "Sign in with GitLab" against a real application.
 
 ## Log
 
@@ -138,6 +141,7 @@ Demo and test target: `Digital-Defiance/GitDash-example` (public, Pages to be en
 - 2026-11-14: Jessica's real-token commit from /studio/ worked (dbb2413).
 - 2026-11-14: Real-token live test passes in Actions (`live.yml`, secret `GHDASH_LIVE_TOKEN`); 6.3 closed.
 - 2026-11-16: Phase 8 (GitLab Pages, Netlify, Cloudflare Pages, studio commits to GitLab) written as adapter 0.14.0; see D21.
+- 2026-11-16: All four host routes verified live. Adapter 0.14.1 adds Cloudflare Workers Builds and is published; the demo uses it.
 
 ## Plugins repo (2026-11-14)
 
