@@ -81,7 +81,9 @@ export default defineConfig({ site: siteUrl(), base: basePath(), output: "static
 
 ### Committing to GitLab
 
-On GitLab the studio commits through GitLab's REST API, which allows browser requests, so no proxy is needed. Editors paste a personal access token with the `api` scope (GitLab has no narrower scope that can commit through the API); a project access token works too. The token must be allowed to push to the branch, so with the default branch protection that means Maintainer. GitLab's commits API can't refuse a commit when the branch moved, so the studio checks the branch head just before committing; a push that lands in the second between the check and the commit is not detected. "Sign in with GitHub" is GitHub-only; on GitLab the token is pasted.
+On GitLab the studio commits through GitLab's REST API, which allows browser requests, so no proxy is needed. Editors paste a personal access token with the `api` scope (GitLab has no narrower scope that can commit through the API); a project access token works too. The token must be allowed to push to the branch, so with the default branch protection that means Maintainer. Conflicts are caught as on GitHub: the branch head is checked before committing, and every changed or deleted file carries its last commit, so GitLab refuses the commit if someone changed one of those files in the meantime.
+
+"Sign in with GitLab" needs no Worker, because GitLab's token endpoint allows browser requests. Register an application in GitLab (User settings → Applications, or the group's or instance's), untick **Confidential**, tick the **api** scope, and set the redirect URI to the site's `/studio/` address. Then set `globalThis.__STUDIO_OAUTH__ = { clientId }` before the studio loads. GitLab tokens from this flow last two hours; then the editor signs in again.
 
 ## Install and upgrade
 

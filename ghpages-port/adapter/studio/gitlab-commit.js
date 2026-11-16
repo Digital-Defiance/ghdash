@@ -5,8 +5,8 @@
 //     expectedHeadSha, message, files: { "content/ec_posts/01J.json": "{...}", "media/2026/11/a.png": uint8array, "old.json": null } });
 //   r = { ok: true, commitSha } | { ok: false, conflict: true, headSha } | throws GitLabError
 //
-// GitLab's commits API has no compare-and-swap on the branch head, so the head is checked just before committing.
-// A push that lands in the moment between the check and the commit is not detected, and the commit is placed on top of it.
+// GitLab's commits API has no compare-and-swap on the branch head. The head is checked just before committing, and every
+// update and delete carries the file's last commit, so GitLab refuses the commit if someone changed one of those files since.
 export class GitLabError extends Error {
 	constructor(status, body) {
 		const detail = body?.message ?? body?.error ?? "";
@@ -147,21 +147,41 @@ export async function commitFiles({
 	const headSha = await getHead({ token, apiUrl, project, branch, fetchImpl });
 	if (expectedHeadSha && expectedHeadSha !== headSha) return { ok: false, conflict: true, headSha };
 
-	// GitLab needs "create" or "update" per file, so look up which written files exist, one listing per directory.
-	const written = Object.entries(files).filter(([, c]) => c !== null);
+	// GitLab needs "create" or "update" per file, so look up which files exist, one listing per directory.
 	const existing = new Set();
-	for (const dir of new Set(written.map(([p]) => dirOf(p)))) {
+	for (const dir of new Set(Object.keys(files).map(dirOf))) {
 		// oxlint-disable-next-line no-await-in-loop -- one directory at a time keeps within rate limits
 		for (const n of await listTree({ token, apiUrl, project, ref: headSha, path: dir, fetchImpl }))
 			existing.add(n.path);
 	}
-	const actions = Object.entries(files).map(([path, content]) => {
-		if (content === null) return { action: "delete", file_path: path };
-		const action = existing.has(path) ? "update" : "create";
-		return typeof content === "string"
-			? { action, file_path: path, content }
-			: { action, file_path: path, content: toBase64(content), encoding: "base64" };
-	});
+	const lastCommit = new Map();
+	const known = Object.keys(files).filter((p) => existing.has(p));
+	for (let i = 0; i < known.length; i += 8) {
+		// oxlint-disable-next-line no-await-in-loop -- eight requests at a time
+		await Promise.all(
+			known.slice(i, i + 8).map(async (path) => {
+				const res = await gl(
+					"HEAD",
+					`/projects/${pid(project)}/repository/files/${encodeURIComponent(path)}?ref=${headSha}`,
+					undefined,
+					true,
+				);
+				const id = res.headers.get("x-gitlab-last-commit-id");
+				if (id) lastCommit.set(path, id);
+			}),
+		);
+	}
+	const actions = Object.entries(files)
+		.filter(([path, content]) => content !== null || existing.has(path))
+		.map(([path, content]) => {
+			const last = lastCommit.has(path) ? { last_commit_id: lastCommit.get(path) } : {};
+			if (content === null) return { action: "delete", file_path: path, ...last };
+			const action = existing.has(path) ? "update" : "create";
+			return typeof content === "string"
+				? { action, file_path: path, content, ...last }
+				: { action, file_path: path, content: toBase64(content), encoding: "base64", ...last };
+		});
+	if (!actions.length) return { ok: true, commitSha: headSha };
 	try {
 		const commit = await gl("POST", `/projects/${pid(project)}/repository/commits`, {
 			branch,
@@ -170,7 +190,8 @@ export async function commitFiles({
 		});
 		return { ok: true, commitSha: commit.id };
 	} catch (e) {
-		// 400 "A file with this name already exists" / "doesn't exist": the tree changed after we looked.
+		// 400: a file was created, deleted or changed after we looked ("already exists", "doesn't exist",
+		// "has changed since you started editing it").
 		if (e instanceof GitLabError && e.status === 400) {
 			const now = await getHead({ token, apiUrl, project, branch, fetchImpl });
 			if (now !== headSha) return { ok: false, conflict: true, headSha: now };

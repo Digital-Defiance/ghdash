@@ -12,7 +12,7 @@ import {
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { repoMeta } from "./host.mjs";
+import { hostName, repoMeta } from "./host.mjs";
 
 const out = "public/studio-data";
 mkdirSync(out, { recursive: true });
@@ -35,10 +35,16 @@ for (const n of [...names.filter((x) => !isDir(x)), ...names.filter(isDir)]) {
 	tables[t] = byId.size ? [...new Map([...byId, ...rows.map((r) => [r.id, r])]).values()] : rows;
 }
 const meta = repoMeta();
-if (!meta.repo)
-	console.warn(
-		"studio-assets: could not tell which repository to commit to; set STUDIO_REPO (and STUDIO_PROVIDER for GitLab)",
-	);
+if (!meta.repo) {
+	const message =
+		"studio-assets: could not tell which repository the studio should commit to. Set STUDIO_REPO to owner/repo (and STUDIO_PROVIDER=gitlab for a GitLab project) in the build's environment variables.";
+	// A deployed studio that can't save is worse than a failed build; a local build can go on without one.
+	if (hostName() !== "local") {
+		console.error(message);
+		process.exit(1);
+	}
+	console.warn(message);
+}
 mkdirSync("public/studio", { recursive: true });
 copyFileSync(
 	fileURLToPath(new URL("../studio/media-sw.js", import.meta.url)),

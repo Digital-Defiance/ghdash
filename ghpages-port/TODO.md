@@ -110,7 +110,11 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 8.4 Templates and `ghdash-pages add-host <netlify|cloudflare|gitlab>`: `netlify.toml`, `wrangler.toml`, `.gitlab-ci.yml` (Pages deploy, scheduled publish from a pipeline schedule with `GHDASH_PUSH_TOKEN`, hooks, cron)
 - [x] 8.5 Demo (branch `hosts-gitlab-netlify` on GHDash-example): `astro.config.mjs` uses `siteUrl()`/`basePath()`, studio CSP uses `studioApiOrigin()`, `netlify.toml` and `.gitlab-ci.yml` committed, `pages.yml` skips the Pages deploy when repo variable `GHDASH_HOST` names another host, GitLab-issue contact form (`issueProject`), SETUP "Other hosts". Built locally as Netlify, Cloudflare and GitLab project site (base `/ghdash-site`). Waits on the `adapter-v0.14.0` tag.
 - [ ] 8.6 Live checks that need accounts: a real GitLab project with the CI file and a real token commit from `/studio/`; a Netlify site; a Cloudflare Pages project. Not run yet.
-- [ ] 8.7 Gaps: GitLab commits have no compare-and-swap (head checked right before committing); no "Sign in with GitLab" (GitLab OAuth with PKCE could work without a Worker, not tried); giscus comments still need a GitHub repository; `.gitlab-ci.yml` not yet run on a real runner; Cloudflare doesn't say which repository it built, so `STUDIO_REPO` may be needed.
+- [x] 8.7 GitLab conflict check: each update and delete carries the file's `last_commit_id`, so a push in the window between head check and commit is refused instead of overwritten (test with a simulated race).
+- [x] 8.8 Sign in with GitLab: OAuth with PKCE straight to `<gitlab>/oauth/token` (CORS checked on gitlab.com), no Worker; `__STUDIO_OAUTH__ = { clientId }`.
+- [x] 8.9 `studio-assets` fails a hosted build when the repository can't be told (Cloudflare without an origin remote), naming `STUDIO_REPO`.
+- [ ] 8.10 Comments on GitLab: giscus still needs a GitHub repository. Option offered to Jessica: GitLab-issue comments pulled in at build time.
+- [ ] 8.11 `.gitlab-ci.yml` not yet run on a real runner; GitLab sign-in not yet tried against a real application.
 
 ## Log
 

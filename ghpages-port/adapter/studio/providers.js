@@ -6,7 +6,8 @@
 //   provider.commitFiles({ token, files, message, expectedHeadSha }) -> { ok, commitSha } | { ok: false, conflict, headSha }
 //   provider.describeError(e)                  -> { status, auth: boolean } for host errors, or null
 //
-// plus the text and links the tray shows: label, apiHost, commitUrl(sha), buildsUrl, tokenUrl, tokenHelp.
+// plus the text and links the tray shows: label, apiHost, commitUrl(sha), buildsUrl, tokenUrl, tokenHelp,
+// and oauth(config): how "Sign in with ..." works for this host, or null when the site's config can't support it.
 //
 // `meta` comes from studio-data/content.json: { provider, repo, branch, apiUrl, webUrl }.
 import * as gh from "./github-commit.js";
@@ -37,6 +38,13 @@ function github(meta, fetchImpl) {
 		commitUrl: (sha) => `${webUrl}/${owner}/${repo}/commit/${sha}`,
 		buildsUrl: `${webUrl}/${owner}/${repo}/actions`,
 		tokenUrl: `${webUrl}/settings/personal-access-tokens/new`,
+		oauth: (config) =>
+			config.exchangeUrl
+				? {
+						start: { authorizeUrl: `${webUrl}/login/oauth/authorize` },
+						finish: { exchangeUrl: config.exchangeUrl, label: "GitHub" },
+					}
+				: null,
 		tokenHelp: {
 			kind: "fine-grained",
 			create: "Create a fine-grained token",
@@ -88,6 +96,10 @@ function gitlab(meta, fetchImpl) {
 		commitUrl: (sha) => `${webUrl}/${project}/-/commit/${sha}`,
 		buildsUrl: `${webUrl}/${project}/-/pipelines`,
 		tokenUrl: `${webUrl}/-/user_settings/personal_access_tokens?name=${encodeURIComponent("GHDash studio")}&scopes=api`,
+		oauth: (config) => ({
+			start: { authorizeUrl: `${webUrl}/oauth/authorize`, scope: "api" },
+			finish: { tokenUrl: `${webUrl}/oauth/token`, clientId: config.clientId, label: "GitLab" },
+		}),
 		tokenHelp: {
 			kind: "personal access",
 			create: "Create a personal access token",

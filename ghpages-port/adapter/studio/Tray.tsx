@@ -282,7 +282,7 @@ export function makeTray(c: Controller) {
 										void c.beginOAuth().then((url) => location.assign(url));
 									}}
 								>
-									Sign in with GitHub
+									Sign in with {host.label}
 								</button>
 								<span style={{ fontSize: 12, color: "var(--text-color-kumo-subtle)" }}>
 									Or paste a token instead:

@@ -21,8 +21,26 @@ const json = (status, body, headers = {}) =>
 		headers: { "content-type": "application/json", ...headers },
 	});
 
-function fakeGitLab({ files = {}, canPush = true, token = "glpat-ok", pageSize = 100 } = {}) {
-	const state = { files: { ...files }, head: "c0", n: 0, commits: [], log: [] };
+const FILE_PATH = /\/repository\/files\/(.+)$/;
+
+/** `beforeCommit(state)` runs when a commit arrives, to stand in for someone else pushing first. */
+function fakeGitLab({
+	files = {},
+	canPush = true,
+	token = "glpat-ok",
+	pageSize = 100,
+	beforeCommit,
+} = {}) {
+	const state = { files: { ...files }, last: {}, head: "c0", n: 0, commits: [], log: [] };
+	for (const p of Object.keys(files)) state.last[p] = "c0";
+	state.push = (changes) => {
+		state.head = `c${++state.n}`;
+		for (const [p, c] of Object.entries(changes)) {
+			if (c === null) delete state.files[p];
+			else state.files[p] = c;
+			state.last[p] = state.head;
+		}
+	};
 	const fetchImpl = async (url, init = {}) => {
 		const u = new URL(url);
 		const method = init.method ?? "GET";
@@ -50,24 +68,47 @@ function fakeGitLab({ files = {}, canPush = true, token = "glpat-ok", pageSize =
 				"x-next-page": page * pageSize < all.length ? String(page + 1) : "",
 			});
 		}
+		const file = path.match(FILE_PATH);
+		if (file && method === "HEAD") {
+			const p = decodeURIComponent(file[1]);
+			if (!(p in state.files)) return new Response(null, { status: 404 });
+			return new Response(null, {
+				status: 200,
+				headers: { "x-gitlab-last-commit-id": state.last[p] },
+			});
+		}
 		const blob = path.match(BLOB_RAW);
 		if (blob) return new Response(state.files[decodeURIComponent(blob[1]).slice(5)]);
 		if (path === `${proj}/repository/commits` && method === "POST") {
 			const body = JSON.parse(init.body);
+			if (beforeCommit) {
+				beforeCommit(state);
+				beforeCommit = undefined;
+			}
 			for (const a of body.actions) {
+				if (a.last_commit_id && a.last_commit_id !== state.last[a.file_path])
+					return json(400, {
+						message:
+							"You are attempting to update a file that has changed since you started editing it.",
+					});
 				const exists = a.file_path in state.files;
 				if (a.action === "create" && exists)
 					return json(400, { message: "A file with this name already exists" });
 				if ((a.action === "update" || a.action === "delete") && !exists)
 					return json(400, { message: "A file with this name doesn't exist" });
 			}
-			for (const a of body.actions) {
-				if (a.action === "delete") delete state.files[a.file_path];
-				else
-					state.files[a.file_path] =
-						a.encoding === "base64" ? Buffer.from(a.content, "base64") : a.content;
-			}
-			state.head = `c${++state.n}`;
+			state.push(
+				Object.fromEntries(
+					body.actions.map((a) => [
+						a.file_path,
+						a.action === "delete"
+							? null
+							: a.encoding === "base64"
+								? Buffer.from(a.content, "base64")
+								: a.content,
+					]),
+				),
+			);
 			state.commits.push(body);
 			return json(201, { id: state.head });
 		}
@@ -187,4 +228,38 @@ test("the provider gives the tray GitLab's links and keeps GitHub as the default
 	assert.equal(g.commitUrl("s"), "https://github.com/o/r/commit/s");
 	assert.equal(g.describeError(new GitLabError(401, {})), null);
 	assert.equal(await getHead(opts(f)), "c0");
+});
+
+test("a push that lands between the head check and the commit doesn't overwrite the other edit", async () => {
+	const f = fakeGitLab({
+		files: { "content/a.json": "1", "content/b.json": "1" },
+		beforeCommit: (state) => state.push({ "content/a.json": "theirs" }),
+	});
+	const r = await commitFiles(
+		opts(f, { expectedHeadSha: "c0", message: "m", files: { "content/a.json": "mine" } }),
+	);
+	assert.deepEqual(r, { ok: false, conflict: true, headSha: "c1" });
+	assert.equal(f.state.files["content/a.json"], "theirs");
+	assert.equal(f.state.commits.length, 0);
+});
+
+test("updates and deletes carry each file's last commit; new files don't", async () => {
+	const f = fakeGitLab({ files: { "content/a.json": "1", "content/gone.json": "x" } });
+	f.state.push({ "content/a.json": "2" });
+	const r = await commitFiles(
+		opts(f, {
+			expectedHeadSha: "c1",
+			message: "m",
+			files: { "content/a.json": "3", "content/gone.json": null, "content/new.json": "{}" },
+		}),
+	);
+	assert.equal(r.ok, true);
+	assert.deepEqual(
+		f.state.commits[0].actions.map((a) => [a.action, a.file_path, a.last_commit_id]),
+		[
+			["update", "content/a.json", "c1"],
+			["delete", "content/gone.json", "c0"],
+			["create", "content/new.json", undefined],
+		],
+	);
 });

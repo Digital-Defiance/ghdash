@@ -68,6 +68,7 @@ export function createController({
 	provider = createProvider(meta, fetchImpl),
 }) {
 	const { owner, repo } = provider;
+	const signInFlow = oauth?.clientId ? provider.oauth(oauth) : null;
 	const prefix = "content/";
 	let base = baseFiles;
 	let head = meta.head;
@@ -278,18 +279,23 @@ export function createController({
 			}
 		},
 		get oauthAvailable() {
-			return Boolean(oauth) && provider.name === "github";
+			return Boolean(signInFlow);
 		},
 		beginOAuth() {
-			return startSignIn({ clientId: oauth.clientId, redirectUri: oauth.redirectUri, storage });
+			return startSignIn({
+				...signInFlow.start,
+				clientId: oauth.clientId,
+				redirectUri: oauth.redirectUri,
+				storage,
+			});
 		},
-		/** Call at start-up with location.search. Returns true when the page was a GitHub redirect, so the caller can clean the address. */
+		/** Call at start-up with location.search. Returns true when the page was a sign-in redirect, so the caller can clean the address. */
 		async finishOAuth(search) {
-			if (!oauth) return false;
+			if (!signInFlow) return false;
 			let signedIn;
 			try {
 				signedIn = await finishSignIn({
-					exchangeUrl: oauth.exchangeUrl,
+					...signInFlow.finish,
 					redirectUri: oauth.redirectUri,
 					storage,
 					search,
