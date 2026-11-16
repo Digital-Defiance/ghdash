@@ -81,7 +81,12 @@ const commands = {
 				process.exit(1);
 			}
 			copyFileSync(fileURLToPath(new URL(`../templates/${from}`, import.meta.url)), to);
-			const names = { netlify: "Netlify", gitlab: "GitLab Pages", cloudflare: "Cloudflare", "cloudflare-pages": "Cloudflare Pages (legacy)" };
+			const names = {
+				netlify: "Netlify",
+				gitlab: "GitLab Pages",
+				cloudflare: "Cloudflare",
+				"cloudflare-pages": "Cloudflare Pages (legacy)",
+			};
 			console.log(`wrote ${to}. Next steps: SETUP.md, "Hosting on ${names[rest[0]]}".`);
 		},
 	],

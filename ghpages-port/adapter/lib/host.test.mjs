@@ -159,6 +159,8 @@ test("Cloudflare Workers Builds is treated like Cloudflare Pages; branch and com
 	assert.equal(basePath(env), "/");
 	assert.equal(siteUrl(env), undefined);
 	assert.equal(siteUrl({ ...env, SITE_URL: "https://x.workers.dev" }), "https://x.workers.dev");
-	const m = repoMeta(env, (cmd, args) => (args[0] === "remote" ? "https://github.com/me/site" : ""));
+	const m = repoMeta(env, (cmd, args) =>
+		args[0] === "remote" ? "https://github.com/me/site" : "",
+	);
 	assert.deepEqual([m.provider, m.repo, m.branch, m.head], ["github", "me/site", "main", "wk1"]);
 });
