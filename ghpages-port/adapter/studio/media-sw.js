@@ -10,9 +10,10 @@ async function pendingFile(clientId, key) {
 	if (!client) return null;
 	return new Promise((resolve) => {
 		const channel = new MessageChannel();
-		const timer = setTimeout(() => resolve(null), 1500);
+		const timer = setTimeout(resolve, 1500, null);
 		channel.port1.onmessage = (e) => {
 			clearTimeout(timer);
+			// oxlint-disable-next-line promise/no-multiple-resolved -- whichever of the timeout and the reply comes first wins
 			resolve(e.data);
 		};
 		client.postMessage({ type: "studio-media", key }, [channel.port2]);

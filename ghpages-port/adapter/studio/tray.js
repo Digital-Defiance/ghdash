@@ -2,6 +2,13 @@
 // the files it was loaded from, and applies files back to the database (discard, merge).
 // The file layout and skip rules mirror ghdash-pages lib/db-json.mjs, which writes content/ at build time.
 
+const RE_1 = /^plugin:[^:]+:settings:/;
+const RE_2 = /"\$emdash"\s*:\s*"plugin-setting"/;
+const RE_3 = /^(ec_[^/]+|revisions)\/(.+)\.json$/;
+const RE_4 = /\.json$/;
+const RE_5 = /^ec_[^/]+\/(.+)\.json$/;
+const RE_6 = /^(\s*create\s+table\s+)("[^"]+"|\S+)/i;
+
 const SKIP = [
 	/^_emdash_fts_/,
 	/^_emdash_migrations/,
@@ -25,14 +32,12 @@ const SKIP = [
 ];
 // Encrypted plugin secret settings are never published, even as ciphertext.
 const isSecretOption = (t, r) =>
-	t === "options" &&
-	/^plugin:[^:]+:settings:/.test(String(r.name)) &&
-	/"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
+	t === "options" && RE_1.test(String(r.name)) && RE_2.test(String(r.value));
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) =>
 	Object.fromEntries(
 		Object.keys(o)
-			.sort()
+			.toSorted()
 			.map((k) => [k, o[k]]),
 	);
 const perRow = (t) => t.startsWith("ec_") || t === "revisions";
@@ -46,7 +51,7 @@ function pkCols(db, t) {
 	const cols = db.selectObjects(`PRAGMA table_info(${q(t)})`);
 	const pk = cols
 		.filter((c) => c.pk > 0)
-		.sort((a, b) => a.pk - b.pk)
+		.toSorted((a, b) => a.pk - b.pk)
 		.map((c) => c.name);
 	return pk.length ? pk : cols.map((c) => c.name);
 }
@@ -58,7 +63,7 @@ export function snapshot(db, freshNames) {
 		.selectObjects("select type,name,sql from sqlite_master where sql is not null order by rowid")
 		.filter((o) => !freshNames.has(o.name) && !FTS_SHADOW.test(o.name))
 		.map((o) => ({ type: o.type, name: o.name, sql: o.sql }))
-		.sort((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
+		.toSorted((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
 	files.set("_ddl.json", stringify(ddl));
 	const tables = db
 		.selectValues("select name from sqlite_master where type='table' order by name")
@@ -121,7 +126,7 @@ function describe(path, base, cur) {
 	const kind = base === undefined ? "added" : cur === undefined ? "deleted" : "modified";
 	if (path === "_ddl.json")
 		return { path, kind, group: "Schema", label: "Database schema", discardable: false };
-	const m = path.match(/^(ec_[^/]+|revisions)\/(.+)\.json$/);
+	const m = path.match(RE_3);
 	if (m && m[1] === "revisions") {
 		const row = JSON.parse(cur ?? base);
 		let title = m[2];
@@ -141,7 +146,7 @@ function describe(path, base, cur) {
 			discardable: true,
 		};
 	}
-	const table = path.replace(/\.json$/, "");
+	const table = path.replace(RE_4, "");
 	return { path, kind, group: "Site", label: TABLE_LABELS[table] ?? table, discardable: true };
 }
 
@@ -150,7 +155,7 @@ export function diffFiles(base, cur) {
 	for (const [path, text] of cur)
 		if (base.get(path) !== text) out.push(describe(path, base.get(path), text));
 	for (const [path, text] of base) if (!cur.has(path)) out.push(describe(path, text, undefined));
-	return out.sort((a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label));
+	return out.toSorted((a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label));
 }
 
 /** Like diffFiles, but a revision row that belongs to a changed entry is folded into that entry's change. */
@@ -158,7 +163,7 @@ export function visibleChanges(base, cur) {
 	const all = diffFiles(base, cur);
 	const owned = new Set();
 	for (const c of all) {
-		const m = c.path.match(/^ec_[^/]+\/(.+)\.json$/);
+		const m = c.path.match(RE_5);
 		if (m) owned.add(m[1]);
 	}
 	return all.filter((c) => {
@@ -170,7 +175,7 @@ export function visibleChanges(base, cur) {
 
 /** Paths of revision rows that belong to the content entry at `path`. */
 export function revisionPathsFor(base, cur, path) {
-	const m = path.match(/^ec_[^/]+\/(.+)\.json$/);
+	const m = path.match(RE_5);
 	if (!m) return [];
 	return diffFiles(base, cur)
 		.map((c) => c.path)
@@ -198,7 +203,7 @@ export function applyDdl(db, text) {
 			continue;
 		}
 		const scratch = `_ddl_scratch_${o.name}`;
-		const scratchSql = o.sql.replace(/^(\s*create\s+table\s+)("[^"]+"|\S+)/i, `$1${q(scratch)}`);
+		const scratchSql = o.sql.replace(RE_6, `$1${q(scratch)}`);
 		if (scratchSql === o.sql) continue;
 		db.exec(`drop table if exists ${q(scratch)}`);
 		db.exec(scratchSql);
@@ -217,13 +222,13 @@ export function applyDdl(db, text) {
 export function applyFile(db, path, text) {
 	if (path === "_ddl.json") return;
 	db.exec("PRAGMA foreign_keys=OFF");
-	const m = path.match(/^(ec_[^/]+|revisions)\/(.+)\.json$/);
+	const m = path.match(RE_3);
 	if (m) {
 		db.exec({ sql: `delete from ${q(m[1])} where id = ?`, bind: [m[2]] });
 		if (text !== null) insertRow(db, m[1], JSON.parse(text));
 		return;
 	}
-	const t = path.replace(/\.json$/, "");
+	const t = path.replace(RE_4, "");
 	db.exec(`delete from ${q(t)}`);
 	if (text !== null) for (const r of JSON.parse(text)) insertRow(db, t, r);
 }

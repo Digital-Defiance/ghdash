@@ -17,6 +17,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { planEntries, slugify } from "./markdown-import.mjs";
 
+const RE_1 = /\.[^.]+$/;
+
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
 	const i = args.indexOf(`--${name}`);
@@ -139,7 +141,7 @@ const copied = new Map();
 const mediaKey = (file) => {
 	if (copied.has(file)) return copied.get(file);
 	const hash = createHash("sha1").update(readFileSync(file)).digest("hex").slice(0, 8);
-	const key = `${hash}-${slugify(basename(file).replace(/\.[^.]+$/, "")) || "image"}${(/\.[^.]+$/.exec(file) ?? [""])[0].toLowerCase()}`;
+	const key = `${hash}-${slugify(basename(file).replace(RE_1, "")) || "image"}${(RE_1.exec(file) ?? [""])[0].toLowerCase()}`;
 	copyFileSync(file, join("media", key));
 	copied.set(file, key);
 	return key;
@@ -153,6 +155,7 @@ for (const e of entries) {
 		continue;
 	}
 	const body = e.body.replace(
+		// oxlint-disable-next-line no-control-regex -- NUL marks image placeholders written by markdown-import
 		/\u0000IMG(\d+)\u0000/g,
 		(_m, i) => `/_emdash/api/media/file/${mediaKey(e.images[Number(i)])}`,
 	);
@@ -196,7 +199,7 @@ const newId = () => {
 		head = CROCKFORD[t % 32] + head;
 		t = Math.floor(t / 32);
 	}
-	return head + [...randomBytes(16)].map((b) => CROCKFORD[b % 32]).join("");
+	return head + Array.from(randomBytes(16), (b) => CROCKFORD[b % 32]).join("");
 };
 const MIME = {
 	".png": "image/png",

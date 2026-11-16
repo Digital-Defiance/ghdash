@@ -73,7 +73,7 @@ export function makeTray(c: Controller) {
 		useEffect(() => {
 			if (!open) return;
 			const close = (e: MouseEvent) => {
-				if (!root.current?.contains(e.target as Node)) setOpen(false);
+				if (!root.current?.contains(e.target)) setOpen(false);
 			};
 			document.addEventListener("mousedown", close);
 			return () => document.removeEventListener("mousedown", close);

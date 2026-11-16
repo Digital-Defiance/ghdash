@@ -6,6 +6,10 @@ import { test } from "node:test";
 
 import { cleanLiquid, parseFrontMatter, planEntries } from "./markdown-import.mjs";
 
+// oxlint-disable-next-line no-control-regex -- NUL marks image placeholders in imported bodies
+const RE_1 = /!\[a\]\(\u0000IMG0\u0000\)/;
+const RE_2 = /missing\.png/;
+
 test("front matter handles quotes, inline and block lists, booleans", () => {
 	const { data, body } = parseFrontMatter(
 		'---\ntitle: "Hello: world"\ntags: [a, "b c"]\ncategories:\n  - news\n  - dev\npublished: false\ndate: 2024-03-05 10:00:00 +0100\n---\nBody here\n',
@@ -46,7 +50,7 @@ test("a Jekyll site becomes posts, drafts and pages with images and tags", () =>
 	writeFileSync(join(root, "README.md"), "skip me");
 	const { entries, warnings } = planEntries(root);
 	const by = Object.fromEntries(entries.map((e) => [`${e.collection}/${e.slug}`, e]));
-	assert.deepEqual(Object.keys(by).sort(), [
+	assert.deepEqual(Object.keys(by).toSorted(), [
 		"pages/about",
 		"pages/docs",
 		"posts/first-post",
@@ -58,8 +62,8 @@ test("a Jekyll site becomes posts, drafts and pages with images and tags", () =>
 	assert.deepEqual(by["posts/first-post"].tags, ["alpha", "beta"]);
 	assert.deepEqual(by["posts/first-post"].categories, ["news"]);
 	assert.equal(by["posts/first-post"].images.length, 1);
-	assert.match(by["posts/first-post"].body, /!\[a\]\(\u0000IMG0\u0000\)/);
-	assert.match(by["posts/first-post"].body, /missing\.png/);
+	assert.match(by["posts/first-post"].body, RE_1);
+	assert.match(by["posts/first-post"].body, RE_2);
 	assert.deepEqual(warnings.filter((w) => w.includes("missing")).length, 1);
 	assert.equal(by["posts/no-title"].title, "From heading");
 	assert.equal(by["posts/no-title"].body.trim(), "text");

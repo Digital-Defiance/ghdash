@@ -4,6 +4,9 @@ import { test } from "node:test";
 
 import { planRedirects } from "./redirects.mjs";
 
+const RE_1 = /url=\/repo\/posts\/new\//;
+const RE_2 = /url=https:\/\/example\.com\/x\?a=1&amp;b=2/;
+
 const row = (o) => ({
 	source: "/old",
 	destination: "/posts/new/",
@@ -16,7 +19,7 @@ test("an internal destination gets the base path and the page lives at the sourc
 	const { pages } = planRedirects([row({})], "/repo");
 	assert.equal(pages.length, 1);
 	assert.equal(pages[0].path, join("/old", "index.html"));
-	assert.match(pages[0].html, /url=\/repo\/posts\/new\//);
+	assert.match(pages[0].html, RE_1);
 });
 
 test("external destinations are left alone and disabled, pattern and unsafe rows are skipped", () => {
@@ -31,6 +34,6 @@ test("external destinations are left alone and disabled, pattern and unsafe rows
 		"/repo",
 	);
 	assert.equal(pages.length, 1);
-	assert.match(pages[0].html, /url=https:\/\/example\.com\/x\?a=1&amp;b=2/);
+	assert.match(pages[0].html, RE_2);
 	assert.equal(skipped.length, 3);
 });

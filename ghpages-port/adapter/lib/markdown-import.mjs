@@ -2,6 +2,21 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative, sep } from "node:path";
 
+const RE_1 = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+const RE_2 = /\r?\n/;
+const RE_3 = /^\s*(#|$)/;
+const RE_4 = /^\s+-\s+(.*)$/;
+const RE_5 = /^-\s+(.*)$/;
+const RE_6 = /^([A-Za-z0-9_-]+):\s*(.*)$/;
+const RE_7 = /^./;
+const RE_8 = /[,\s]+/;
+const RE_9 = /\.(md|markdown)$/i;
+const RE_10 = /^\s+/;
+const RE_11 = /^# +(.+)\r?\n/;
+const RE_12 = /^[a-z][a-z0-9+.-]*:|^\/\//i;
+const RE_13 = /[?#]/;
+const RE_14 = / ([+-]\d{2})(\d{2})$/;
+
 const SKIP_DIRS = new Set([
 	".git",
 	"node_modules",
@@ -30,21 +45,19 @@ function scalar(text) {
 
 /** The common subset of YAML front matter: `key: value`, quoted values, `[a, b]` and `- item` lists. */
 export function parseFrontMatter(source) {
-	const m = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/.exec(source);
+	const m = RE_1.exec(source);
 	if (!m) return { data: {}, body: source };
 	const data = {};
 	let key = null;
-	for (const line of m[1].split(/\r?\n/)) {
-		if (/^\s*(#|$)/.test(line)) continue;
-		const item =
-			/^\s+-\s+(.*)$/.exec(line) ??
-			(key && Array.isArray(data[key]) ? /^-\s+(.*)$/.exec(line) : null);
+	for (const line of m[1].split(RE_2)) {
+		if (RE_3.test(line)) continue;
+		const item = RE_4.exec(line) ?? (key && Array.isArray(data[key]) ? RE_5.exec(line) : null);
 		if (item && key) {
 			if (!Array.isArray(data[key])) data[key] = [];
 			data[key].push(scalar(item[1]));
 			continue;
 		}
-		const kv = /^([A-Za-z0-9_-]+):\s*(.*)$/.exec(line);
+		const kv = RE_6.exec(line);
 		if (!kv) continue;
 		key = kv[1];
 		const v = kv[2].trim();
@@ -70,21 +83,21 @@ export const slugify = (s) =>
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-+|-+$/g, "");
 
-const humanize = (slug) => slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+const humanize = (slug) => slug.replace(/-/g, " ").replace(RE_7, (c) => c.toUpperCase());
 
 function list(value) {
 	if (Array.isArray(value)) return value.map(String);
-	if (typeof value === "string" && value) return value.split(/[,\s]+/);
+	if (typeof value === "string" && value) return value.split(RE_8);
 	return [];
 }
 
 function walk(dir, root = dir) {
 	const out = [];
-	for (const name of readdirSync(dir).sort()) {
+	for (const name of readdirSync(dir).toSorted()) {
 		const p = join(dir, name);
 		if (statSync(p).isDirectory()) {
 			if (!SKIP_DIRS.has(name)) out.push(...walk(p, root));
-		} else if (/\.(md|markdown)$/i.test(name) && !SKIP_FILES.test(name)) out.push(p);
+		} else if (RE_9.test(name) && !SKIP_FILES.test(name)) out.push(p);
 	}
 	return out;
 }
@@ -129,10 +142,7 @@ export function planEntries(
 			? dated
 				? dated[2]
 				: name
-			: rel
-					.slice(0, -1)
-					.concat(name === "index" ? [] : name)
-					.join("-") || "home";
+			: [...rel.slice(0, -1), ...(name === "index" ? [] : [name])].join("-") || "home";
 		let slug = slugify(data.slug || base) || "untitled";
 		for (let n = 2; used.has(`${collection}/${slug}`); n++)
 			slug = `${slugify(data.slug || base)}-${n}`;
@@ -141,9 +151,9 @@ export function planEntries(
 		const cleaned = cleanLiquid(rawBody);
 		if (cleaned.unsupported)
 			warnings.push(`${relative(dir, file)}: ${cleaned.unsupported} Liquid tag(s) removed`);
-		let body = cleaned.text.replace(/^\s+/, "");
+		let body = cleaned.text.replace(RE_10, "");
 		let title = data.title ? String(data.title) : "";
-		const h1 = /^# +(.+)\r?\n/.exec(body);
+		const h1 = RE_11.exec(body);
 		if (!title && h1) {
 			title = h1[1].trim();
 			body = body.slice(h1[0].length);
@@ -152,8 +162,8 @@ export function planEntries(
 
 		const images = [];
 		body = body.replace(IMAGE, (m, pre, url, post) => {
-			if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(url) || url.startsWith("data:")) return m;
-			const clean = decodeURIComponent(url.split(/[?#]/)[0]);
+			if (RE_12.test(url) || url.startsWith("data:")) return m;
+			const clean = decodeURIComponent(url.split(RE_13)[0]);
 			const candidates = clean.startsWith("/")
 				? [join(siteRoot, clean)]
 				: [join(file, "..", clean), join(siteRoot, clean)];
@@ -167,7 +177,7 @@ export function planEntries(
 		});
 
 		const date = data.date ? String(data.date) : dated ? dated[1] : "";
-		const parsed = date ? new Date(date.replace(/ ([+-]\d{2})(\d{2})$/, " $1:$2")) : null;
+		const parsed = date ? new Date(date.replace(RE_14, " $1:$2")) : null;
 		entries.push({
 			file: relative(dir, file),
 			collection,

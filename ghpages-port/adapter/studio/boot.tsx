@@ -8,8 +8,10 @@ import { openDb } from "./load-db.js";
 import { makeTray } from "./Tray.js";
 import { snapshot } from "./tray.js";
 
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the page sets this global before the studio loads
 const paths = (globalThis as any).__EMDASH_PATHS__ as { adminBase: string; apiBase: string };
 // Sites that use plugins set this before loading the studio: `plugins` are the definitions the manifest needs, `admins` the plugins' admin modules.
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the site page sets this global before the studio loads
 const studioPlugins = ((globalThis as any).__STUDIO_PLUGINS__ ?? { plugins: [], admins: {} }) as {
 	plugins: unknown[];
 	admins: Record<string, unknown>;
@@ -38,6 +40,7 @@ if ("serviceWorker" in navigator) {
 	navigator.serviceWorker.register(`${site}/studio/media-sw.js`).catch(() => {});
 }
 // Sites that offer "Sign in with GitHub" set this before loading the studio: `clientId` of their GitHub App and `exchangeUrl` of the token-exchange Worker.
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the site page sets this global before the studio loads
 const studioOAuth = (globalThis as any).__STUDIO_OAUTH__ as
 	| { clientId: string; exchangeUrl: string }
 	| undefined;
@@ -68,9 +71,11 @@ const api: typeof fetch = async (input, init) => {
 	return res;
 };
 let queryClient: { resetQueries(): Promise<void> } | undefined;
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the admin bundle reads this global when it loads
 (globalThis as any).__EMDASH_PATHS__ = {
 	...paths,
 	fetch: api,
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- makeTray only uses the controller methods the tray renders
 	HeaderExtras: makeTray(controller as any),
 	onQueryClient: (client: typeof queryClient) => {
 		queryClient = client;
@@ -86,10 +91,12 @@ const messages = await loadMessages("en");
 root.textContent = "";
 const reactRoot = createRoot(root);
 let generation = 0;
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- plugin admin modules come from the site page, shaped as AdminApp expects
+const pluginAdmins = studioPlugins.admins as any;
 const render = () =>
 	reactRoot.render(
 		<Fragment key={generation}>
-			<AdminApp locale="en" messages={messages} pluginAdmins={studioPlugins.admins as any} />
+			<AdminApp locale="en" messages={messages} pluginAdmins={pluginAdmins} />
 		</Fragment>,
 	);
 controller.onExternalChange(() => {

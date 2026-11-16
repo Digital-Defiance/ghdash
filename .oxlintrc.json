@@ -135,6 +135,7 @@
 		".agents/skills/**/scaffold/**",
 		".claude/skills/**/scaffold/**",
 		"scripts/query-dumps/**",
-		".flue/**"
+		".flue/**",
+		"ghpages-port/spike/**"
 	]
 }

@@ -23,6 +23,7 @@ export interface EmDashPaths {
 	onQueryClient?: (client: QueryClient) => void;
 }
 
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the host page sets this global before the admin loads
 const configured = (globalThis as { __EMDASH_PATHS__?: EmDashPaths }).__EMDASH_PATHS__;
 const TRAILING_SLASHES = /\/+$/;
 const trim = (value: string) => value.replace(TRAILING_SLASHES, "");
@@ -45,6 +46,7 @@ export function resolveApiUrl<T extends string | URL | Request>(input: T): T {
 		input.startsWith(`${DEFAULT_API_BASE}/`) ||
 		input.startsWith(`${DEFAULT_API_BASE}?`)
 	) {
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a string input yields a string
 		return `${API_BASE}${input.slice(DEFAULT_API_BASE.length)}` as T;
 	}
 	return input;

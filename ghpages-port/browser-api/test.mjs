@@ -11,7 +11,7 @@ const [dir, freshDb] = process.argv.slice(2);
 const sqlite = await init({ print() {}, printErr() {} });
 const ddl = JSON.parse(readFileSync(join(dir, "_ddl.json"), "utf8"));
 const tables = {};
-for (const n of readdirSync(dir).sort()) {
+for (const n of readdirSync(dir).toSorted()) {
 	if (n === "_ddl.json") continue;
 	const q = join(dir, n);
 	tables[n.replace(/\.json$/, "")] = statSync(q).isDirectory()

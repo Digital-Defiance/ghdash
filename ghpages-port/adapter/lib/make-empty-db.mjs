@@ -22,7 +22,7 @@ const left = db
 	.all();
 for (const { name } of left) {
 	try {
-		db.exec(`DELETE FROM "${name}"`);
+		db.exec(`DELETE FROM "${String(name)}"`);
 	} catch {}
 }
 for (const sql of keep) {

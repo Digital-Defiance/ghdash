@@ -1,4 +1,5 @@
 import { Buffer } from "buffer";
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- bundled dependencies expect a global Buffer
 (globalThis as any).Buffer ??= Buffer;
 export { createBrowserApi, saveRejected } from "./router.js";
 export type { BrowserUser, BrowserApiOptions, BrowserPlugin, BeforeSaveEvent } from "./router.js";

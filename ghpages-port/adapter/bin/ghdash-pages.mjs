@@ -62,7 +62,7 @@ const commands = {
 if (!cmd || !commands[cmd]) {
 	console.error(
 		`usage: ghdash-pages <command>\n\n${Object.entries(commands)
-			.map(([n, [d]]) => `  ${n.padEnd(18)}${d}`)
+			.map(([n, [d]]) => `  ${n.padEnd(18)}${String(d)}`)
 			.join("\n")}`,
 	);
 	process.exit(cmd ? 1 : 0);
