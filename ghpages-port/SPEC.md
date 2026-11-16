@@ -1,7 +1,7 @@
 # EmDash on GitHub Pages: Port Spec
 
 Status: **Phase 0 and Phase 1 done. Phase 2b: the real admin runs at `/studio/` on the live demo (https://digital-defiance.github.io/GHDash-example/studio/) with a pending-changes tray and one-commit saves; a real-token try-out is the next check. See §11–§14b.**
-Last updated: 2026-11-13
+Last updated: 2026-11-16
 Owner: Jessica
 Companion file: [TODO.md](./TODO.md), the checkable work list. Update both files as work proceeds.
 
@@ -44,6 +44,7 @@ Target audience: open source projects and personal sites. **Everything in the re
 | D13 | Fork tarballs are distributed as **GitHub release assets** on `Digital-Defiance/ghdash`, built by `.github/workflows/pages-tarballs.yml` (tags `pages-v*`). Sites depend on the release asset URL through an npm `overrides` entry. No binaries are committed to site repos.                                                                                                                                                                                                                                   | Keeps site history small and gives every build a versioned, public URL. Jessica's suggestion.                                                                                                                                                  |
 | D14 | The admin **accumulates edits as pending changes** instead of committing on every save. A toolbar icon with a count opens a dropdown listing each pending change (entry or setting, with its type: new, edited, deleted). From it the editor can review a diff, discard one change, or **Commit** everything as one commit with a message. Pending changes live in the in-browser database and are persisted to IndexedDB so a reload doesn't lose them.                                                       | Matches how git works, gives one meaningful commit per editing session, and turns every settings screen into a batch edit. Jessica's suggestion.                                                                                               |
 | D15 | The in-browser API **runs EmDash's own route files**, not a hand-written copy. `browser-api/gen-routes.mjs` lists every file under `packages/core/src/astro/routes/api`, and `router.ts` matches a request path to one, then calls its `GET`/`POST`/... with an Astro-like context: `params`, `request`, `url`, `locals.user` (an admin), and `locals.emdash`, a facade whose `db` is the sqlite-wasm Kysely and whose `handleXxx` methods call the core handlers. Routes are esbuild chunks loaded on demand. | One implementation to maintain, and permission checks, validation and response shapes stay identical to the server. A first hand-written router covered about ten routes; this covers 234 with less code. Closes §9 Q7.                        |
+| D21 | **Other hosts.** The site also builds on GitLab Pages, Netlify and Cloudflare Pages, and the studio commits to GitHub or GitLab. `@digitaldefiance/ghdash-pages/host` reads the build environment for the address, base path and repository; the studio talks to the git host through `studio/providers.js`. GitLab editors paste a token with the `api` scope. Scheduled posts, hooks and cron stay in the repository's CI, which skips its own deploy when `GHDASH_HOST` names another host.                 | Jessica asked for GitLab, Netlify and Cloudflare Pages (2026-11-16). GitLab's API allows browser requests, so no proxy is needed.                                                                                                              |
 | D12 | The admin data layer uses **Option A**: the core handlers run in the browser on the official `@sqlite.org/sqlite-wasm` build.                                                                                                                                                                                                                                                                                                                                                                                  | The spike showed the handlers bundle with five small shims, and that content, settings, taxonomy, menu and schema handlers work on the WASM build (content was also checked in headless Chromium). sql.js was rejected because it has no FTS5. |
 
 ## 4. Architecture
@@ -203,7 +204,7 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 4. ~~Where the browser gets the migrated empty DB~~ `studio-assets` ships `empty.db` as a build artifact.
 5. ~~The route layer~~ EmDash's own route files run with a fake `APIContext` (D15).
 6. One repo for the site and content, or a separate content repo?
-7. Custom domains and base paths: project Pages sites live under `/<repo>/`, so check base-path support.
+7. ~~Custom domains and base paths~~ Handled per host by `host.mjs` (§22).
 
 ## 10. Decision log
 
@@ -211,6 +212,7 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 - 2026-11-13: Phase 0 spike approved and run. D11 (table-shaped JSON, not seed) and D12 (Option A on sqlite-wasm) were added from the results.
 - 2026-11-13: The live PAT commit test passed against `Digital-Defiance/GHDash-example`, which is now the demo and test repo for later phases. Phase 0 is complete.
 - 2026-11-14: D16 to D20, see §21. The port moved to the fork's `main` branch.
+- 2026-11-16: D21, other hosts, see §22.
 
 ## 11. Phase 0 spike results (2026-11-13)
 
@@ -359,3 +361,12 @@ None of the bundled UI plugins (`color`, `field-kit`, `embeds`) has hooks, so th
 - **D19, importer.** `import-markdown` creates entries through EmDash's own content handlers in Node (so slugs, revisions and taxonomies match the studio), copies images to `media/` and lists them in the media library. Checked on the minimal-mistakes docs (121 entries). Liquid includes are dropped with a warning, not converted.
 - **D20, build-time media and plugins.** Responsive images (WebP variants and `srcset`), a service worker that shows uncommitted uploads inside the studio, browser before-save hooks, after-hooks and cron in the Action (`hooks.config.json`), and a manual smoke test for cron on a real runner.
 - Upstream: the only change to EmDash's own code is the optional paths and fetch hook in `packages/admin` (about 90 lines). A draft Discussion post is in the project files; the owner posts it, as EmDash's AI policy requires.
+
+## 22. Other hosts: GitLab Pages, Netlify, Cloudflare Pages (2026-11-16)
+
+- **Host detection** (`lib/host.mjs`): GitHub Pages keeps the workflow's `SITE_URL`/`BASE_PATH`. GitLab Pages uses `CI_PAGES_URL`, so a project site gets `/<project>` and a unique or custom domain gets `/`. Netlify and Cloudflare Pages serve from `/`; Netlify's address is `URL` in production and `DEPLOY_PRIME_URL` otherwise, Cloudflare's `CF_PAGES_URL` is per deployment, so production sets `SITE_URL`. The repository comes from `GITHUB_REPOSITORY`, `CI_PROJECT_PATH` (with `CI_API_V4_URL`, so self-managed GitLab works), Netlify's `REPOSITORY_URL`, or the `origin` remote; Cloudflare gives none, so `STUDIO_REPO` may be needed.
+- **Save layer**: `studio/providers.js` exposes `checkAccess`, `getHead`, `readJsonFiles`, `commitFiles` and the tray's links. GitLab uses `POST /projects/:id/repository/commits` with create/update/delete actions (existence looked up per directory with the tree API) and checks `can_push` on the branch, which accounts for branch protection. GitLab's API sends `Access-Control-Allow-Origin: *`. Its commits API has no compare-and-swap, so the head is checked right before committing; a push in that window is not detected (GitHub's ref update still refuses non-fast-forwards).
+- **Auth on GitLab**: a personal or project access token with scope `api` (no narrower scope can commit through the API). Sign in with GitHub stays GitHub-only.
+- **Redirects**: `_redirects` with real 301/302 on Netlify, Cloudflare Pages and GitLab Pages; HTML stubs on GitHub Pages.
+- **CI**: `.gitlab-ci.yml` builds and deploys Pages on the default branch, commits published scheduled posts back with `GHDASH_PUSH_TOKEN` (project access token, Maintainer, `write_repository`), and runs hooks and cron from an hourly pipeline schedule. On Netlify or Cloudflare Pages, the repository's own CI (GitHub or GitLab) does scheduled posts, hooks and cron and skips its deploy when `GHDASH_HOST` says so.
+- **Comments and forms**: giscus needs a GitHub repository with Discussions, which a site on any host can point at. The contact form can open a public GitLab issue (`issueProject`, `issueHost`).

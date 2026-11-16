@@ -102,6 +102,16 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - [x] 6.3 Tests: 28 Playwright tests in `GHDash-example/e2e/` (static pages, links, pagination, search, sitemap/robots/feed, giscus on/off, studio load, every sidebar page, edit/create/schedule, tray, commit, conflict merge, media upload) and 12 unit tests (`npm test`: tray logic, redirects, publish-due, giscus), both run in `.github/workflows/e2e.yml`. The JSON round trip (`content/` to `data.db` and back, byte-identical) is a unit test too, and it already caught the `_plugin_state` export bug (6.3a). **Real-token run done 2026-11-14:** `.github/workflows/live.yml` (manual, `workflow_dispatch`) runs `test/live.mjs` with the `GHDASH_LIVE_TOKEN` Actions secret (a fine-grained token, Contents read/write on the repo). All three checks pass against real GitHub: one-parent one-file commit, conflict on a moved branch, update-from-remote then commit; the scratch branch is deleted afterwards ([run](https://github.com/Digital-Defiance/GHDash-example/actions/runs/43634928585)). A cloud session cannot run it itself: the connected GitHub App's proxy injection replaces the Network-secret token and refuses raw API writes.
 - [x] 6.4 Rebase plan and checklist for pulling in upstream EmDash (SPEC §17): 15 upstream files touched, a rule for new patches, a seven-step procedure.
 
+## Phase 8: Other hosts (GitLab Pages, Netlify, Cloudflare Pages) · started 2026-11-16
+
+- [x] 8.1 Host detection: `lib/host.mjs` (`@digitaldefiance/ghdash-pages/host`) gives site URL, base path and repository for GitHub Pages, GitLab Pages (`CI_PAGES_URL`, project path or unique domain), Netlify and Cloudflare Pages; `finish` and `studio-assets` use it. → adapter 0.14.0, PR Digital-Defiance/ghdash#4
+- [x] 8.2 Provider-neutral save layer (`studio/providers.js`); GitLab adapter `studio/gitlab-commit.js` (commits API, `can_push` check, tree + raw blobs). Tray text and links follow the host. → unit tests with an in-memory GitLab API; demo e2e `e2e/gitlab.spec.ts` against a mocked GitLab
+- [x] 8.3 `_redirects` (real 301/302) on Netlify, Cloudflare Pages and GitLab Pages
+- [x] 8.4 Templates and `ghdash-pages add-host <netlify|cloudflare|gitlab>`: `netlify.toml`, `wrangler.toml`, `.gitlab-ci.yml` (Pages deploy, scheduled publish from a pipeline schedule with `GHDASH_PUSH_TOKEN`, hooks, cron)
+- [x] 8.5 Demo (branch `hosts-gitlab-netlify` on GHDash-example): `astro.config.mjs` uses `siteUrl()`/`basePath()`, studio CSP uses `studioApiOrigin()`, `netlify.toml` and `.gitlab-ci.yml` committed, `pages.yml` skips the Pages deploy when repo variable `GHDASH_HOST` names another host, GitLab-issue contact form (`issueProject`), SETUP "Other hosts". Built locally as Netlify, Cloudflare and GitLab project site (base `/ghdash-site`). Waits on the `adapter-v0.14.0` tag.
+- [ ] 8.6 Live checks that need accounts: a real GitLab project with the CI file and a real token commit from `/studio/`; a Netlify site; a Cloudflare Pages project. Not run yet.
+- [ ] 8.7 Gaps: GitLab commits have no compare-and-swap (head checked right before committing); no "Sign in with GitLab" (GitLab OAuth with PKCE could work without a Worker, not tried); giscus comments still need a GitHub repository; `.gitlab-ci.yml` not yet run on a real runner; Cloudflare doesn't say which repository it built, so `STUDIO_REPO` may be needed.
+
 ## Log
 
 - 2026-11-13: Spec and TODO created after the feasibility review.
@@ -123,6 +133,7 @@ Demo and test target: `Digital-Defiance/GHDash-example` (public, Pages to be ena
 - 2026-11-14: studio-experiment merged to GHDash-example main; /studio/ is live and checked.
 - 2026-11-14: Jessica's real-token commit from /studio/ worked (dbb2413).
 - 2026-11-14: Real-token live test passes in Actions (`live.yml`, secret `GHDASH_LIVE_TOKEN`); 6.3 closed.
+- 2026-11-16: Phase 8 (GitLab Pages, Netlify, Cloudflare Pages, studio commits to GitLab) written as adapter 0.14.0; see D21.
 
 ## Plugins repo (2026-11-14)
 

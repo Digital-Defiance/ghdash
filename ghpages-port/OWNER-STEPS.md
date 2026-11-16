@@ -49,3 +49,10 @@ Add the plugin's URL as an Actions secret (for the demo, `WEBHOOK_URL`; Jessica 
 
 - ~~Merge the port into the fork's `main` branch~~ Done 2026-11-14 (fast-forward to `894f424`). The old `spike/ghpages-phase0` branch is kept for now.
 - Upstream the browser API and the admin hooks to EmDash, or keep carrying the patched admin and core as release assets.
+
+## Other hosts (optional, 2026-11-16)
+
+- **Release:** after PR #4 merges, push `adapter-v0.14.0` (npm) from the Mac, as in section 1. The demo branch `hosts-gitlab-netlify` then moves to `^0.14.0`.
+- **GitLab Pages:** a GitLab project with this site pushed to it; a personal access token (scope `api`) to try the studio. For scheduled posts and hooks: a project access token (Maintainer, `write_repository`) as masked CI/CD variable `GHDASH_PUSH_TOKEN`, and an hourly pipeline schedule. See the demo's SETUP.md, "Hosting on GitLab Pages".
+- **Netlify:** import the repository in Netlify (the `netlify.toml` covers the settings), then set the repository variable `GHDASH_HOST=netlify` if GitHub Pages should stop deploying.
+- **Cloudflare Pages:** `npx ghdash-pages add-host cloudflare`, set `name`, connect the repository in the dashboard with the build settings in the file, set `SITE_URL`, and `GHDASH_HOST=cloudflare-pages` on the repository.
