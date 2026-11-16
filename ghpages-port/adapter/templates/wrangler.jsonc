@@ -1,0 +1,16 @@
+// Cloudflare (Workers Builds) settings for this site. In the Cloudflare dashboard:
+// Workers & Pages > Create > Import a repository, pick this repository, then set:
+//   Build command: npm run build        Deploy command: npx wrangler deploy (the default)
+//   Build variables: NODE_VERSION = 22, NODE_OPTIONS = --max-old-space-size=4096,
+//   SITE_URL = your site's address (Workers Builds doesn't tell the build one),
+//   and STUDIO_REPO = owner/repo (plus STUDIO_PROVIDER = gitlab on GitLab).
+// `name` becomes the Worker's name and its default address, <name>.<your-subdomain>.workers.dev.
+// Scheduled posts, plugin after-hooks and cron still run in the repository's own CI: see SETUP.md, "Hosting on Cloudflare".
+{
+	"name": "my-gitdash-site",
+	"compatibility_date": "2026-11-01",
+	"assets": {
+		"directory": "./dist/client",
+		"not_found_handling": "404-page"
+	}
+}

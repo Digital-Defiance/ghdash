@@ -4,6 +4,11 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.14.1
+
+- Cloudflare Workers Builds, which is where Cloudflare now sends new Git projects, is supported next to the legacy Pages form: the build is recognised through `WORKERS_CI`, and the branch and commit come from `WORKERS_CI_BRANCH` and `WORKERS_CI_COMMIT_SHA`. `gitdash-pages add-host cloudflare` now writes a `wrangler.jsonc` that publishes `dist/client` as the Worker's static assets; `add-host cloudflare-pages` still writes the Pages `wrangler.toml`.
+- In your site: nothing if you're on Cloudflare Pages already. For a new Cloudflare site, run `npx gitdash-pages add-host cloudflare`, commit the file, and follow "Hosting on Cloudflare" in the template's SETUP.md. Workers Builds doesn't tell the build the site's address, so set `SITE_URL` as a build variable.
+
 ## 0.14.0
 
 - **GHDash is now GitDash, and this package is now `@digitaldefiance/gitdash-pages`.** `@digitaldefiance/ghdash-pages` gets no more releases. The command is `gitdash-pages`; `ghdash-pages` still works as an alias for now. The repositories moved to `Digital-Defiance/gitdash` and `Digital-Defiance/GitDash-example` (the old addresses redirect). Editors stay signed in and keep their pending changes.
