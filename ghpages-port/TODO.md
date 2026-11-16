@@ -114,10 +114,10 @@ Demo and test target: `Digital-Defiance/GitDash-example` (public, Pages to be en
 - [x] 8.8 Sign in with GitLab: OAuth with PKCE straight to `<gitlab>/oauth/token` (CORS checked on gitlab.com), no Worker; `__STUDIO_OAUTH__ = { clientId }`.
 - [x] 8.9 `studio-assets` fails a hosted build when the repository can't be told (Cloudflare without an origin remote), naming `STUDIO_REPO`.
 - [x] 8.10 Comments on GitLab: when the repository is on GitLab, each post's comments are the notes on a GitLab issue titled `Comments: <term>`, read at build time by `gitdash-pages gitlab-comments` (GITLAB_TOKEN optional). A post without an issue links to GitLab's new-issue form. `comments.json` `provider` overrides (gitlab, giscus, off). Netlify and Cloudflare follow wherever the repository lives.
-- [x] 8.11 `.gitlab-ci.yml` ran on a real runner. Not yet tried: "Sign in with GitLab" (OAuth) against a real application.
+- [x] 8.11 `.gitlab-ci.yml` ran on a real runner. "Sign in with GitLab" (OAuth with PKCE) verified live against a real application (2026-11-16).
 - [x] 8.12 Cloudflare Workers Builds (adapter 0.14.1, PR gitdash#7): `WORKERS_CI=1` is detected as the Cloudflare host; the build gets no site address or repository, so `SITE_URL` and `STUDIO_REPO` are build variables. `add-host cloudflare` writes `wrangler.jsonc` (static assets, `dist/client`); `add-host cloudflare-pages` keeps the legacy `wrangler.toml`. The Workers create screen has no variables box: create the Worker, then add build variables under Settings, Build, and retry the build.
 - [x] 8.13 GitLab Pages access control: the project's Pages visibility must be "Everyone With Access", or non-logged-in requests get 404 and the studio's files fail. In SETUP and the adapter README.
-- [ ] 8.14 Not yet tested: building and deploying a brand-new site from the CLI on Cloudflare (`gh repo create --template`, `wrangler login`, build, `wrangler deploy`); needs a Cloudflare API token in the environment's secrets. "Sign in with GitLab" against a real application.
+- [ ] 8.14 Not yet tested: building and deploying a brand-new site from the CLI on Cloudflare (`gh repo create --template`, `wrangler login`, build, `wrangler deploy`); needs a Cloudflare API token in the environment's secrets.
 
 ## Log
 
