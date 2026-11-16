@@ -12,7 +12,7 @@ import {
 	visibleChanges,
 } from "./tray.js";
 
-const TOKEN_KEY = "ghdash-token";
+const TOKEN_KEY = "gitdash-token";
 
 const safe = (f, fallback) => {
 	try {
@@ -22,7 +22,7 @@ const safe = (f, fallback) => {
 	}
 };
 
-function idb(name = "ghdash-studio") {
+function idb(name = "gitdash-studio") {
 	const open = () =>
 		new Promise((resolve, reject) => {
 			const r = indexedDB.open(name, 1);

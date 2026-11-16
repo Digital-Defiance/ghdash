@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Live check of github-commit.mjs against a real repo. Run on your own machine; the token stays local.
 //
-//   GH_TOKEN=github_pat_... node ghpages-port/spike/live-commit-test.mjs Digital-Defiance/GHDash-example
+//   GH_TOKEN=github_pat_... node gitpages-port/spike/live-commit-test.mjs Digital-Defiance/GitDash-example
 //
 // The token needs Contents: read and write on that one repo. It writes to a throwaway branch
 // (spike/live-commit-test), never the default branch.
@@ -37,7 +37,7 @@ let base = await api("GET", `/git/ref/heads/${access.defaultBranch}`);
 if (base.status === 404 || base.status === 409) {
 	const r = await api("PUT", "/contents/README.md", {
 		message: "Initial commit",
-		content: btoa("# GHDash example\n"),
+		content: btoa("# GitDash example\n"),
 	});
 	check("seed empty repo", r.ok, String(r.status));
 	base = await api("GET", `/git/ref/heads/${access.defaultBranch}`);

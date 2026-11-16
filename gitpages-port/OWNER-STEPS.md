@@ -7,7 +7,7 @@ Everything here needs an account, a setting or a secret that an agent should not
 Tag pushes from the cloud sandbox hang, so the owner pushes them from a Mac.
 
 - Release files for sites: `git tag pages-v<next> <commit> && git push origin pages-v<next>` (builds the admin, core, browser API and adapter tarballs and creates the GitHub release).
-- npm release of the adapter: `git tag adapter-v<version> <commit> && git push origin adapter-v<version>`. The tag must match `version` in `ghpages-port/adapter/package.json`. The workflow `publish-adapter.yml` publishes with npm trusted publishing (no token).
+- npm release of the adapter: `git tag adapter-v<version> <commit> && git push origin adapter-v<version>`. The tag must match `version` in `gitpages-port/adapter/package.json`. The workflow `publish-adapter.yml` publishes with npm trusted publishing (no token).
 
 If the release job fails with `403 Resource not accessible by integration`, the Actions workflow permissions are locked (enterprise, then org, then repo: Settings, Actions, General, Workflow permissions, Read and write).
 

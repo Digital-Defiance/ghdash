@@ -33,7 +33,7 @@ test("starting a sign-in sends the browser to GitHub with a challenge and keeps 
 	assert.equal(url.searchParams.get("client_id"), "Iv1.abc");
 	assert.equal(url.searchParams.get("redirect_uri"), cfg.redirectUri);
 	assert.equal(url.searchParams.get("code_challenge_method"), "S256");
-	const saved = JSON.parse(storage.getItem("ghdash-oauth"));
+	const saved = JSON.parse(storage.getItem("gitdash-oauth"));
 	assert.equal(url.searchParams.get("state"), saved.state);
 	assert.equal(url.searchParams.get("code_challenge"), await pkceChallenge(saved.verifier));
 	assert.ok(!url.href.includes(saved.verifier));

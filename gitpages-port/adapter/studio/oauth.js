@@ -1,4 +1,4 @@
-const STATE_KEY = "ghdash-oauth";
+const STATE_KEY = "gitdash-oauth";
 const b64url = (bytes) =>
 	btoa(String.fromCharCode(...bytes))
 		.replaceAll("+", "-")

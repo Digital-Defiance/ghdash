@@ -1,15 +1,15 @@
 {
   "name": "@digitaldefiance/gitdash-pages",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages, GitLab Pages, Netlify or Cloudflare Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Digital-Defiance/gitdash.git",
-    "directory": "ghpages-port/adapter"
+    "directory": "gitpages-port/adapter"
   },
-  "homepage": "https://github.com/Digital-Defiance/gitdash/tree/main/ghpages-port/adapter#readme",
+  "homepage": "https://github.com/Digital-Defiance/gitdash/tree/main/gitpages-port/adapter#readme",
   "bugs": {
     "url": "https://github.com/Digital-Defiance/gitdash/issues"
   },
@@ -24,8 +24,7 @@
     "jamstack"
   ],
   "bin": {
-    "gitdash-pages": "bin/gitdash-pages.mjs",
-    "ghdash-pages": "bin/gitdash-pages.mjs"
+    "gitdash-pages": "bin/gitdash-pages.mjs"
   },
   "files": [
     "bin",

@@ -4,6 +4,13 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.15.0
+
+- The `ghdash-pages` command, kept as an alias in 0.14.0, is removed. Use `gitdash-pages`.
+- The studio keeps its sign-in and pending changes in the browser under `gitdash-*` names instead of `ghdash-*`. After the upgrade, editors sign in to the studio again, and pending changes made before the upgrade are not restored.
+- The package source moved to `gitpages-port/adapter` in the repository, and the npm page's homepage and repository links point there.
+- In your site: commit or discard pending changes in the studio before you upgrade, and replace any remaining `ghdash-pages` command with `gitdash-pages` in `package.json` scripts and workflows.
+
 ## 0.14.1
 
 - Cloudflare Workers Builds, which is where Cloudflare now sends new Git projects, is supported next to the legacy Pages form: the build is recognised through `WORKERS_CI`, and the branch and commit come from `WORKERS_CI_BRANCH` and `WORKERS_CI_COMMIT_SHA`. `gitdash-pages add-host cloudflare` now writes a `wrangler.jsonc` that publishes `dist/client` as the Worker's static assets; `add-host cloudflare-pages` still writes the Pages `wrangler.toml`.

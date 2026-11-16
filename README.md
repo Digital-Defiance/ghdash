@@ -27,7 +27,7 @@ Drafts are public because the repo is public, so GitDash suits open source sites
 
 The demo site and its editor are working end to end. You can create and edit posts and pages, upload media, schedule posts, and change content types and settings, all from the browser. The site gets search, a sitemap, redirects, responsive images, scheduled publishing, webhooks and plugin cron jobs in the build. You can import a Jekyll site or a Markdown folder, add a contact form, and offer "Sign in with GitHub". Not available: users and passkeys, and anything that needs a server at request time (public plugin routes, anonymous comments without a GitHub account).
 
-Experimental: it works and is tested, but expect rough edges, and the patched admin and core come from release files on this repository rather than from EmDash itself. Design, decisions and the checklist are in [ghpages-port/](ghpages-port/): start with [SPEC.md](ghpages-port/SPEC.md) and [TODO.md](ghpages-port/TODO.md). Steps only the site owner can do are in [OWNER-STEPS.md](ghpages-port/OWNER-STEPS.md).
+Experimental: it works and is tested, but expect rough edges, and the patched admin and core come from release files on this repository rather than from EmDash itself. Design, decisions and the checklist are in [gitpages-port/](gitpages-port/): start with [SPEC.md](gitpages-port/SPEC.md) and [TODO.md](gitpages-port/TODO.md). Steps only the site owner can do are in [OWNER-STEPS.md](gitpages-port/OWNER-STEPS.md).
 
 ## Set up your own site
 
@@ -35,7 +35,7 @@ Experimental: it works and is tested, but expect rough edges, and the patched ad
 2. Turn on Pages: Settings, Pages, Source: **GitHub Actions**. The workflow builds and deploys, and the site appears at `https://<owner>.github.io/<repo>/`.
 3. Open `/studio/` on your site and sign in with a fine-grained token (Contents: read and write, that repo only). Edit, then **Commit**.
 
-[SETUP.md](https://github.com/Digital-Defiance/GitDash-example/blob/main/SETUP.md) has the full walkthrough and the optional extras: comments, scheduled posts, webhooks, plugin cron, importing a Jekyll site, a contact form, and GitHub sign-in. The build scripts and studio are the npm package [`@digitaldefiance/gitdash-pages`](https://www.npmjs.com/package/@digitaldefiance/gitdash-pages) ([README](ghpages-port/adapter/README.md)).
+[SETUP.md](https://github.com/Digital-Defiance/GitDash-example/blob/main/SETUP.md) has the full walkthrough and the optional extras: comments, scheduled posts, webhooks, plugin cron, importing a Jekyll site, a contact form, and GitHub sign-in. The build scripts and studio are the npm package [`@digitaldefiance/gitdash-pages`](https://www.npmjs.com/package/@digitaldefiance/gitdash-pages) ([README](gitpages-port/adapter/README.md)).
 
 The rest of this README is EmDash's own, kept as is.
 

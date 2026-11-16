@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 // Puts the in-browser API (a release asset of Digital-Defiance/gitdash) into public/studio-api/.
-// BROWSER_API_DIR=<dir> copies a local build instead (see ghpages-port/browser-api/build.sh).
+// BROWSER_API_DIR=<dir> copies a local build instead (see gitpages-port/browser-api/build.sh).
 // A failed download is a warning, not an error: the site still builds, without a working /studio/.
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -20,7 +20,7 @@ if (process.env.BROWSER_API_DIR) {
 	try {
 		const res = await fetch(url);
 		if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-		const tgz = join(tmpdir(), "ghdash-browser-api.tgz");
+		const tgz = join(tmpdir(), "gitdash-browser-api.tgz");
 		writeFileSync(tgz, Buffer.from(await res.arrayBuffer()));
 		mkdirSync(out, { recursive: true });
 		execFileSync("tar", ["-xzf", tgz, "-C", out]);

@@ -136,6 +136,6 @@
 		".claude/skills/**/scaffold/**",
 		"scripts/query-dumps/**",
 		".flue/**",
-		"ghpages-port/spike/**"
+		"gitpages-port/spike/**"
 	]
 }

@@ -90,16 +90,16 @@ Rows are written as pretty-printed JSON with sorted keys, ordered by primary key
 
 ### 4.2 Starting points in the codebase
 
-| Need                | Existing code                                                                                                                                            |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DB ↔ JSON           | `ghpages-port/spike/db-json.mjs` (proven). `generateSnapshot` and the seed CLI were considered: snapshot has no per-row layout, and seed is lossy (D11). |
-| Migrated empty DB   | `emdash init -d <path>` (CLI in `packages/core/dist/cli`). The schema is at migration 097.                                                               |
-| Site reads content  | `packages/core/src/loader.ts` (Astro live loader) and `packages/core/src/query.ts` (`getEmDashCollection`, `getEmDashEntry`)                             |
-| Admin network layer | `packages/admin/src/lib/api/client.ts` (`apiFetch`, `API_BASE = "/_emdash/api"`), the single interception point                                          |
-| Business logic      | `packages/core/src/api/handlers/*.ts`. Handlers take `db: Kysely<Database>` and return `ApiResult<T>`.                                                   |
-| Routes              | `packages/core/src/astro/routes/api/**`, about 236 files. The integration forces `prerender: false` in `packages/core/src/astro/integration/index.ts`.   |
-| SQLite dialect      | `emdash/db/sqlite`, and libSQL                                                                                                                           |
-| Plugins             | `packages/core/src/plugins/` (manager, hooks, cron, sandbox) and `packages/plugins/*`                                                                    |
+| Need                | Existing code                                                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DB ↔ JSON           | `gitpages-port/spike/db-json.mjs` (proven). `generateSnapshot` and the seed CLI were considered: snapshot has no per-row layout, and seed is lossy (D11). |
+| Migrated empty DB   | `emdash init -d <path>` (CLI in `packages/core/dist/cli`). The schema is at migration 097.                                                                |
+| Site reads content  | `packages/core/src/loader.ts` (Astro live loader) and `packages/core/src/query.ts` (`getEmDashCollection`, `getEmDashEntry`)                              |
+| Admin network layer | `packages/admin/src/lib/api/client.ts` (`apiFetch`, `API_BASE = "/_emdash/api"`), the single interception point                                           |
+| Business logic      | `packages/core/src/api/handlers/*.ts`. Handlers take `db: Kysely<Database>` and return `ApiResult<T>`.                                                    |
+| Routes              | `packages/core/src/astro/routes/api/**`, about 236 files. The integration forces `prerender: false` in `packages/core/src/astro/integration/index.ts`.    |
+| SQLite dialect      | `emdash/db/sqlite`, and libSQL                                                                                                                            |
+| Plugins             | `packages/core/src/plugins/` (manager, hooks, cron, sandbox) and `packages/plugins/*`                                                                     |
 
 ## 5. Components
 
@@ -216,7 +216,7 @@ Prefer an **adapter** shape over invasive edits: a new package (for example `pac
 
 ## 11. Phase 0 spike results (2026-11-13)
 
-The spike code is in `ghpages-port/spike/`, and `spike/README.md` has the reproduction steps. It was run on a clean clone of `main` at `c73c600`, using Node 22.23 and pnpm 11.9.
+The spike code is in `gitpages-port/spike/`, and `spike/README.md` has the reproduction steps. It was run on a clean clone of `main` at `c73c600`, using Node 22.23 and pnpm 11.9.
 
 | #   | Question                                         | Result                                                                                                                                                                                                                                                                                                                                                    |
 | --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -258,7 +258,7 @@ Surprises:
 
 ## 14a. Browser API results (2026-11-14)
 
-- `ghpages-port/browser-api/`: `router.ts`, `gen-routes.mjs`, `load-db.js` (opens sqlite-wasm from `_ddl.json` plus the JSON rows over an empty migrated DB), `make-empty-db.mjs`, `build.sh`, `test.mjs`.
+- `gitpages-port/browser-api/`: `router.ts`, `gen-routes.mjs`, `load-db.js` (opens sqlite-wasm from `_ddl.json` plus the JSON rows over an empty migrated DB), `make-empty-db.mjs`, `build.sh`, `test.mjs`.
 - Build: `node gen-routes.mjs '^dev/'` then `bash build.sh`. esbuild with `--splitting`; `node:*`, `astro:*` and `virtual:*` are external, `node:module` is a shim whose `require()` returns inert stand-ins for `crypto`, `util` and `stream`, and `Buffer` comes from the `buffer` package. Output is about 22 MB in 600 lazy chunks; a visit loads only what its routes need.
 - In headless Chromium against a local build, the real admin loads with real data, every sidebar page renders (dashboard, content lists, editor, taxonomies, menus, content types, plugins, settings, bylines, redirects, widgets, sections), and editing a post shows "Saved" and the edit is there on reopening.
 - Known gaps: users and passkey routes are meaningless on a static site; media upload and settings saves are untested; the `media-usage` activation check logs a harmless error; the entry-lock routes write to a lock table, which the pending-changes diff must ignore; deep links still 404 on a plain static server (2b.6). The demo does not yet fetch the chunks from a release asset (see TODO 2b.4).
@@ -298,7 +298,7 @@ Surprises:
 
 What the studio holds and who can reach it:
 
-- **The token** lives in `sessionStorage` under `ghdash-token` and is sent only to `https://api.github.com` as a Bearer header. It dies with the tab. A 401 clears it.
+- **The token** lives in `sessionStorage` under `gitdash-token` and is sent only to `https://api.github.com` as a Bearer header. It dies with the tab. A 401 clears it.
 - **Pending changes** (including uploaded files) live in IndexedDB, keyed by `<repo>#<branch>`. They persist across tabs and restarts and are discarded if the branch head moved.
 - **Shared origin.** Project sites on `<owner>.github.io` all share one origin. Any page on a sibling repo's site could read `sessionStorage` (same tab) and IndexedDB. Use a fine-grained token limited to the one repository with only Contents read and write, so a leak is bounded to that repository. A custom domain per site removes the sharing.
 - **Content Security Policy.** `/studio/` ships a CSP meta tag: scripts only from the site itself (plus WebAssembly), network only to the site and `api.github.com`, no objects, no foreign base or form targets. The boot script moved to `studio/paths.js` so no inline script is needed. The e2e suite fails on any CSP violation in the studio. A meta tag cannot set `frame-ancestors`, so clickjacking protection is not available on Pages.
@@ -308,17 +308,17 @@ The paste dialog has a "What token do I need?" section that gives the creation l
 
 ## 17. Pulling in upstream EmDash (2026-11-14)
 
-**What we change in upstream code.** Only 15 files outside `ghpages-port/`, all in `packages/admin/src` (`git diff --name-only origin/main HEAD -- packages`): `App.tsx`, `router.tsx`, `lib/paths.ts` (new, the one place that knows about base paths), `lib/url.ts`, `lib/plugin-links.ts`, `lib/api/client.ts`, `lib/api/media.ts`, and eight components that built `/_emdash/admin` links by hand (`AdminCommandPalette`, `DeviceAuthorizePage`, `Header`, `InviteAcceptPage`, `LoginPage`, `SetupWizard`, `SignupPage`, `WordPressImport`). Core, auth and the route files are untouched: the browser API loads them as they are.
+**What we change in upstream code.** Only 15 files outside `gitpages-port/`, all in `packages/admin/src` (`git diff --name-only origin/main HEAD -- packages`): `App.tsx`, `router.tsx`, `lib/paths.ts` (new, the one place that knows about base paths), `lib/url.ts`, `lib/plugin-links.ts`, `lib/api/client.ts`, `lib/api/media.ts`, and eight components that built `/_emdash/admin` links by hand (`AdminCommandPalette`, `DeviceAuthorizePage`, `Header`, `InviteAcceptPage`, `LoginPage`, `SetupWizard`, `SignupPage`, `WordPressImport`). Core, auth and the route files are untouched: the browser API loads them as they are.
 
-**Rule for new patches.** Keep them additive and small. Anything that builds a URL goes through `lib/paths.ts`. Anything new for the port goes under `ghpages-port/` or `.github/workflows/pages-tarballs.yml`.
+**Rule for new patches.** Keep them additive and small. Anything that builds a URL goes through `lib/paths.ts`. Anything new for the port goes under `gitpages-port/` or `.github/workflows/pages-tarballs.yml`.
 
 **Procedure for each upstream release**
 
 1. `git remote add upstream <the upstream EmDash repository URL>` (once), then `git fetch upstream`.
 2. On a branch off `spike/ghpages-phase0`, run `git rebase upstream/main` (or merge, if the history is long). Conflicts are most likely in the 15 files above; keep upstream's change and re-apply the `paths.ts` call.
 3. `grep -rn "/_emdash/admin\|/_emdash/api" packages/admin/src` and route any new hand-built URL through `lib/paths.ts`.
-4. `pnpm build`, `pnpm typecheck`, `pnpm lint:quick`, then the adapter tests (`cd ghpages-port/adapter && npm test`).
-5. Rebuild the browser API (`ghpages-port/browser-api`) and check the router still covers every route file: the studio e2e test "every sidebar page loads without API errors" fails if a new route needs something the facade lacks.
+4. `pnpm build`, `pnpm typecheck`, `pnpm lint:quick`, then the adapter tests (`cd gitpages-port/adapter && npm test`).
+5. Rebuild the browser API (`gitpages-port/browser-api`) and check the router still covers every route file: the studio e2e test "every sidebar page loads without API errors" fails if a new route needs something the facade lacks.
 6. Check upstream's new migrations: they run on the freshly initialised database at build time and in `empty.db`, so they apply to existing sites without changing `content/`. A migration that changes `ec_*` tables needs `_ddl.json` regenerated (`gitdash-pages export-content`), which a normal build does.
 7. Tag `pages-v*`, point the demo at it (`npm install`), and wait for the demo's CI to pass before merging.
 
