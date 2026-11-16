@@ -6,7 +6,6 @@
 //   export default defineConfig({ site: siteUrl(), base: basePath(), ... });
 import { execFileSync } from "node:child_process";
 
-const TRAILING_SLASHES = /\/+$/;
 const LEADING_SLASHES = /^\/+/;
 const SCP_REMOTE = /^(?:[^@/]+@)?([^:/]+):(?!\/)(.+)$/;
 const HAS_SCHEME = /^[a-z]+:\/\//i;
@@ -15,7 +14,11 @@ const PORT = /:\d+$/;
 const GITHUB_HOST = /^github\.com$/i;
 const GITLAB_HOST = /gitlab/i;
 
-const trimSlash = (s) => s.replace(TRAILING_SLASHES, "");
+function trimSlash(s) {
+	let end = s.length;
+	while (end > 0 && s[end - 1] === "/") end--;
+	return s.slice(0, end);
+}
 
 /** "netlify", "cloudflare-pages", "gitlab-pages", "github-pages" or "local". GHDASH_HOST overrides the guess. */
 export function hostName(env = process.env) {
@@ -83,7 +86,7 @@ export function parseRemote(remote) {
 		path = u.pathname.replace(LEADING_SLASHES, "");
 		if (u.protocol === "http:") protocol = "http:";
 	}
-	path = path.replace(DOT_GIT, "").replace(TRAILING_SLASHES, "");
+	path = trimSlash(path.replace(DOT_GIT, ""));
 	if (!path.includes("/")) return null;
 	const webUrl = `${protocol}//${host.replace(PORT, (p) => (protocol === "http:" ? p : ""))}`;
 	if (GITHUB_HOST.test(host))
