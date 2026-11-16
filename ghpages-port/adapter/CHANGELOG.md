@@ -10,6 +10,7 @@ To upgrade a site, change the adapter URL (or version) in its `package.json`, ru
 - The studio commits to GitLab projects (gitlab.com or self-managed) through the GitLab API with a pasted token or "Sign in with GitLab" (OAuth with PKCE, no Worker; set `__STUDIO_OAUTH__ = { clientId }`). Each changed file carries its last commit, so a commit is refused if someone changed one of those files first. The studio is behind a provider interface (`studio/providers.js`) that GitHub uses too. The tray's links and token help follow the host.
 - On Netlify, Cloudflare Pages and GitLab Pages, redirects become a `_redirects` file with real 301/302 responses.
 - `studio-assets` stops a hosted build when it can't tell which repository to commit to (set `STUDIO_REPO`), instead of shipping a studio that can't save.
+- Comments from GitLab issues for repositories on GitLab: `ghdash-pages gitlab-comments` writes `.ghdash/gitlab-comments.json` for the site's comment component.
 - `ghdash-pages add-host <netlify|cloudflare|gitlab>` writes `netlify.toml`, `wrangler.toml` or `.gitlab-ci.yml`.
 - In your site: nothing for GitHub Pages. For another host, use `siteUrl()` and `basePath()` in `astro.config.mjs`, add `studioApiOrigin()` to the studio page's `connect-src`, and run `add-host`; see "Hosts" in the README.
 

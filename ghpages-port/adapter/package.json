@@ -46,7 +46,8 @@
     "./worker/*": "./worker/*",
     "./package.json": "./package.json",
     "./hooks": "./lib/hooks-runner.mjs",
-    "./host": "./lib/host.mjs"
+    "./host": "./lib/host.mjs",
+    "./gitlab-comments": "./lib/gitlab-comments.mjs"
   },
   "peerDependencies": {
     "@emdash-cms/admin": "*",

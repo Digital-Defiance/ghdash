@@ -40,6 +40,10 @@ const commands = {
 		() => run("publish-due", rest),
 	],
 	due: ["Print true if a scheduled entry is due (reads content/ only)", () => run("due", rest)],
+	"gitlab-comments": [
+		"Read comments from GitLab issues into .ghdash/gitlab-comments.json (repositories on GitLab)",
+		() => run("gitlab-comments", rest),
+	],
 	"studio-assets": [
 		"Write public/studio-data for the in-browser admin",
 		() => run("studio-assets"),
