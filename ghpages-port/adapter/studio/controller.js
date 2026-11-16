@@ -117,7 +117,7 @@ export function createController({
 		const media = mediaDiff(cur);
 		const json = visibleChanges(base, cur);
 		return media.length
-			? [...json.filter((c) => c.path !== "media.json"), ...media].sort(
+			? [...json.filter((c) => c.path !== "media.json"), ...media].toSorted(
 					(a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label),
 				)
 			: json;
@@ -311,9 +311,9 @@ export function createController({
 		/** Call at start-up with location.search. Returns true when the page was a GitHub redirect, so the caller can clean the address. */
 		async finishOAuth(search) {
 			if (!oauth) return false;
-			let token;
+			let signedIn;
 			try {
-				token = await finishSignIn({
+				signedIn = await finishSignIn({
 					exchangeUrl: oauth.exchangeUrl,
 					redirectUri: oauth.redirectUri,
 					storage,
@@ -324,8 +324,8 @@ export function createController({
 				set({ status: { kind: "error", message: describeError(e) } });
 				return true;
 			}
-			if (!token) return false;
-			await this.signIn(token);
+			if (!signedIn) return false;
+			await this.signIn(signedIn);
 			return true;
 		},
 		signOut() {

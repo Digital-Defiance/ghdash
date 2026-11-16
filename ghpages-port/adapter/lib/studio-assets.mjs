@@ -17,7 +17,7 @@ mkdirSync(out, { recursive: true });
 const dir = "content";
 const ddl = JSON.parse(readFileSync(join(dir, "_ddl.json"), "utf8"));
 const tables = {};
-const names = readdirSync(dir).sort();
+const names = readdirSync(dir).toSorted();
 const isDir = (n) => statSync(join(dir, n)).isDirectory();
 // Plain files first, so a per-row directory wins over an older single file for the same table.
 for (const n of [...names.filter((x) => !isDir(x)), ...names.filter(isDir)]) {
@@ -26,7 +26,7 @@ for (const n of [...names.filter((x) => !isDir(x)), ...names.filter(isDir)]) {
 	const t = n.replace(/\.json$/, "");
 	const rows = isDir(n)
 		? readdirSync(q)
-				.sort()
+				.toSorted()
 				.map((f) => JSON.parse(readFileSync(join(q, f), "utf8")))
 		: JSON.parse(readFileSync(q, "utf8"));
 	const byId = new Map((tables[t] ?? []).map((r) => [r.id, r]));

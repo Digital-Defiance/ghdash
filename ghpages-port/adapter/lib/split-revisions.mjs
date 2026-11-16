@@ -11,7 +11,7 @@ if (!existsSync(file)) {
 const sortKeys = (o) =>
 	Object.fromEntries(
 		Object.keys(o)
-			.sort()
+			.toSorted()
 			.map((k) => [k, o[k]]),
 	);
 const rows = JSON.parse(readFileSync(file, "utf8"));

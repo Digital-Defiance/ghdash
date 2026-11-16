@@ -1,6 +1,8 @@
 // Plugin cron for the build Action: which configured jobs fall due in a time window.
 // Schedules are 5-field cron expressions in UTC (minute hour day-of-month month day-of-week) or @hourly / @daily / @weekly.
 
+const RE_1 = /\s+/;
+
 const ALIASES = { "@hourly": "0 * * * *", "@daily": "0 0 * * *", "@weekly": "0 0 * * 0" };
 const RANGES = [
 	[0, 59],
@@ -32,7 +34,7 @@ function field(text, [lo, hi]) {
 }
 
 export function parseSchedule(expr) {
-	const parts = (ALIASES[expr] ?? expr).trim().split(/\s+/);
+	const parts = (ALIASES[expr] ?? expr).trim().split(RE_1);
 	if (parts.length !== 5) throw new Error(`cron schedule "${expr}" needs 5 fields`);
 	const sets = parts.map((p, i) => field(p, RANGES[i]));
 	if (sets[4].has(7)) sets[4].add(0);

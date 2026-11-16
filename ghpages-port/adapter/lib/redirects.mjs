@@ -6,6 +6,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+const RE_1 = /^[a-z][a-z0-9+.-]*:/i;
+const RE_2 = /\/+$/;
+
 const escapeHtml = (s) =>
 	s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -27,11 +30,11 @@ export function planRedirects(rows, base = "") {
 			skipped.push(source);
 			continue;
 		}
-		const external = /^[a-z][a-z0-9+.-]*:/i.test(r.destination);
+		const external = RE_1.test(r.destination);
 		const destination =
 			external || !String(r.destination).startsWith("/") ? r.destination : base + r.destination;
 		pages.push({
-			path: join(source.replace(/\/+$/, ""), "index.html"),
+			path: join(source.replace(RE_2, ""), "index.html"),
 			html: redirectPage(destination),
 		});
 	}

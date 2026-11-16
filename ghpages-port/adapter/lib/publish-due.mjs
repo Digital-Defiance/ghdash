@@ -4,7 +4,7 @@
 // Run after `ghdash-pages build-db` and `fetch-browser-api`. Usage: publish-due [db] [contentDir]
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath, pathToFileURL } from "node:url";
 

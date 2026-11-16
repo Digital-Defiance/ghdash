@@ -19,7 +19,6 @@ const STANDARD = new Set([
 	"translation_group",
 ]);
 
-const camel = (s) => s.replace(/_([a-z])/g, (_m, c) => c.toUpperCase());
 const git = (args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
 
 /** A content row as the plugin hooks see it (the shape of the API's content item). */
@@ -189,7 +188,9 @@ export async function runHooks({ plugins, events, env = process.env, fetch, site
 				await handler(event, ctx);
 				results.push({ plugin: plugin.id, hook, ok: true });
 			} catch (e) {
-				console.error(`[${plugin.id}] ${hook} failed: ${e instanceof Error ? e.message : e}`);
+				console.error(
+					`[${plugin.id}] ${hook} failed: ${e instanceof Error ? e.message : String(e)}`,
+				);
 				results.push({ plugin: plugin.id, hook, ok: false });
 			}
 		}

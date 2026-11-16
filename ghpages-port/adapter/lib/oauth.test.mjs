@@ -4,6 +4,11 @@ import { test } from "node:test";
 import { finishSignIn, pkceChallenge, startSignIn } from "../studio/oauth.js";
 import { handleExchange } from "../worker/github-oauth.mjs";
 
+const RE_1 = /did not start in this tab/;
+const RE_2 = /Denied/;
+const RE_3 = /nope/;
+const RE_4 = /incorrect or expired/;
+
 const memory = () => {
 	const m = new Map();
 	return {
@@ -59,10 +64,7 @@ test("a redirect with the right state is traded for a token, once", async () => 
 	assert.equal(await finishSignIn({ ...opts, search: `?code=abc&state=${state}` }), "ghu_tok");
 	assert.equal(x.calls[0].body.code, "abc");
 	assert.equal(x.calls[0].body.redirect_uri, cfg.redirectUri);
-	await assert.rejects(
-		finishSignIn({ ...opts, search: `?code=abc&state=${state}` }),
-		/did not start in this tab/,
-	);
+	await assert.rejects(finishSignIn({ ...opts, search: `?code=abc&state=${state}` }), RE_1);
 });
 
 test("an ordinary page load is not a sign-in; a wrong state, a GitHub error and a refusal are errors", async () => {
@@ -76,17 +78,14 @@ test("an ordinary page load is not a sign-in; a wrong state, a GitHub error and 
 	};
 	assert.equal(await finishSignIn({ ...opts, search: "?p=settings" }), null);
 	await startSignIn({ ...cfg, storage });
-	await assert.rejects(
-		finishSignIn({ ...opts, search: "?code=abc&state=forged" }),
-		/did not start in this tab/,
-	);
+	await assert.rejects(finishSignIn({ ...opts, search: "?code=abc&state=forged" }), RE_1);
 	assert.equal(x.calls.length, 0);
 	await assert.rejects(
 		finishSignIn({ ...opts, search: "?error=access_denied&error_description=Denied" }),
-		/Denied/,
+		RE_2,
 	);
 	const state = new URL(await startSignIn({ ...cfg, storage })).searchParams.get("state");
-	await assert.rejects(finishSignIn({ ...opts, search: `?code=abc&state=${state}` }), /nope/);
+	await assert.rejects(finishSignIn({ ...opts, search: `?code=abc&state=${state}` }), RE_3);
 });
 
 const env = {
@@ -160,7 +159,7 @@ test("a GitHub refusal becomes a 400 without a token, and preflight answers for 
 	});
 	const res = await handleExchange(post(good), env, x.impl);
 	assert.equal(res.status, 400);
-	assert.match((await res.json()).error, /incorrect or expired/);
+	assert.match((await res.json()).error, RE_4);
 	const pre = await handleExchange(new Request("https://w.test/", { method: "OPTIONS" }), env);
 	assert.equal(pre.status, 204);
 	assert.equal(pre.headers.get("access-control-allow-origin"), env.ALLOWED_ORIGIN);

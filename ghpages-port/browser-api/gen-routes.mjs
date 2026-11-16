@@ -15,7 +15,7 @@ const files = [];
 })(root);
 
 const entries = [];
-for (const f of files.sort()) {
+for (const f of files.toSorted()) {
 	const rel = relative(root, f).replace(/\.ts$/, "");
 	if (exclude?.test(rel)) continue;
 	const segs = rel.split("/");

@@ -11,18 +11,15 @@ import { execFileSync } from "node:child_process";
 //   <table>.json              rows of a small system table, sorted by primary key
 //   <ec_table>/<id>.json      one file per content row, so diffs and merges stay per entry
 //   revisions/<id>.json       one file per revision row (an older revisions.json is still read)
-import {
-	mkdirSync,
-	readFileSync,
-	readdirSync,
-	rmSync,
-	statSync,
-	writeFileSync,
-	existsSync,
-} from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+
+const RE_1 = /^plugin:[^:]+:settings:/;
+const RE_2 = /"\$emdash"\s*:\s*"plugin-setting"/;
+const RE_3 = /^_emdash_fts_.*_(data|idx|content|docsize|config)$/;
+const RE_4 = /\.json$/;
 
 // Tables that are rebuilt, transient, or must never be published.
 const SKIP = [
@@ -49,15 +46,13 @@ const SKIP = [
 ];
 // Encrypted plugin secret settings are never published, even as ciphertext.
 const isSecretOption = (t, r) =>
-	t === "options" &&
-	/^plugin:[^:]+:settings:/.test(String(r.name)) &&
-	/"\$emdash"\s*:\s*"plugin-setting"/.test(String(r.value));
+	t === "options" && RE_1.test(String(r.name)) && RE_2.test(String(r.value));
 const perRow = (t) => t.startsWith("ec_") || t === "revisions";
 const skip = (t) => SKIP.some((r) => r.test(t));
 const sortKeys = (o) =>
 	Object.fromEntries(
 		Object.keys(o)
-			.sort()
+			.toSorted()
 			.map((k) => [k, o[k]]),
 	);
 const write = (p, v) => writeFileSync(p, JSON.stringify(v, null, "\t") + "\n");
@@ -66,7 +61,7 @@ function pkCols(db, t) {
 	const cols = db.prepare(`PRAGMA table_info("${t}")`).all();
 	const pk = cols
 		.filter((c) => c.pk > 0)
-		.sort((a, b) => a.pk - b.pk)
+		.toSorted((a, b) => a.pk - b.pk)
 		.map((c) => c.name);
 	return pk.length ? pk : cols.map((c) => c.name);
 }
@@ -88,12 +83,9 @@ function exportDb(dbPath, out, freshPath) {
 			"select type,name,tbl_name,sql from sqlite_master where sql is not null order by rowid",
 		)
 		.all()
-		.filter(
-			(o) =>
-				!baseline.has(o.name) && !/^_emdash_fts_.*_(data|idx|content|docsize|config)$/.test(o.name),
-		)
+		.filter((o) => !baseline.has(o.name) && !RE_3.test(o.name))
 		.map((o) => ({ type: o.type, name: o.name, sql: o.sql }))
-		.sort((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
+		.toSorted((x, y) => x.type.localeCompare(y.type) || x.name.localeCompare(y.name));
 	write(join(out, "_ddl.json"), ddl);
 
 	const tables = db
@@ -104,16 +96,16 @@ function exportDb(dbPath, out, freshPath) {
 	for (const t of tables) {
 		const pk = pkCols(db, t);
 		const rows = db
-			.prepare(`select * from "${t}" order by ${pk.map((c) => `"${c}"`).join(",")}`)
+			.prepare(`select * from "${String(t)}" order by ${pk.map((c) => `"${c}"`).join(",")}`)
 			.all()
 			.filter((r) => !isSecretOption(t, r))
 			.map((r) => sortKeys({ ...r }));
 		if (!rows.length) continue;
 		if (perRow(t)) {
 			mkdirSync(join(out, t), { recursive: true });
-			for (const r of rows) write(join(out, t, `${r.id}.json`), r);
+			for (const r of rows) write(join(out, t, `${String(r.id)}.json`), r);
 		} else {
-			write(join(out, `${t}.json`), rows);
+			write(join(out, `${String(t)}.json`), rows);
 		}
 	}
 	console.log(`exported ${tables.length} tables, ${ddl.length} DDL objects -> ${out}`);
@@ -124,8 +116,8 @@ function importDb(dir, dbPath) {
 	db.exec("PRAGMA foreign_keys=OFF; BEGIN");
 	const ddl = JSON.parse(readFileSync(join(dir, "_ddl.json"), "utf8"));
 	// Tables, then triggers (so FTS triggers index rows as they load), then rows, then indexes.
-	for (const o of ddl.filter((o) => o.type === "table")) db.exec(o.sql);
-	for (const o of ddl.filter((o) => o.type === "trigger")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "table")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "trigger")) db.exec(o.sql);
 	const load = (t, rows) => {
 		for (const r of rows) {
 			const cols = Object.keys(r);
@@ -134,7 +126,7 @@ function importDb(dir, dbPath) {
 			).run(...cols.map((c) => r[c]));
 		}
 	};
-	const names = readdirSync(dir).sort();
+	const names = readdirSync(dir).toSorted();
 	const isDir = (n) => statSync(join(dir, n)).isDirectory();
 	for (const name of [...names.filter((n) => !isDir(n)), ...names.filter(isDir)]) {
 		if (name === "_ddl.json") continue;
@@ -143,14 +135,14 @@ function importDb(dir, dbPath) {
 			load(
 				name,
 				readdirSync(p)
-					.sort()
+					.toSorted()
 					.map((f) => JSON.parse(readFileSync(join(p, f), "utf8"))),
 			);
 		} else {
-			load(name.replace(/\.json$/, ""), JSON.parse(readFileSync(p, "utf8")));
+			load(name.replace(RE_4, ""), JSON.parse(readFileSync(p, "utf8")));
 		}
 	}
-	for (const o of ddl.filter((o) => o.type === "index")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "index")) db.exec(o.sql);
 	db.exec("COMMIT");
 	console.log(`imported ${dir} -> ${dbPath}`);
 }

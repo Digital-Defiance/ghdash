@@ -5,6 +5,8 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+const RE_1 = /\.(html|xml)$/;
+
 const base = (process.env.BASE_PATH ?? "/").replace(/\/+$/, "");
 const dir = process.argv[2];
 if (!dir) throw new Error("usage: rebase-urls.mjs <distDir>");
@@ -23,7 +25,7 @@ const walk = (d) =>
 const mediaUrl = /\/_emdash\/api\/media\/file\//g;
 
 let changed = 0;
-for (const f of walk(dir).filter((f) => /\.(html|xml)$/.test(f))) {
+for (const f of walk(dir).filter((p) => RE_1.test(p))) {
 	const before = readFileSync(f, "utf8");
 	const after = before.replace(mediaUrl, `${base}/media/`).replace(prefix ?? /(?!)/g, `$1${base}/`);
 	if (after !== before) {

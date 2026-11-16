@@ -6,6 +6,11 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "
 import { extname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
+const RE_1 = /\ssrcset=/;
+const RE_2 = /\ssrc=["']([^"']+)["']/;
+const RE_3 = /\ssizes=/;
+const RE_4 = /\/?>$/;
+
 const SOURCE = new Set([".jpg", ".jpeg", ".png"]);
 const walk = (d) =>
 	readdirSync(d).flatMap((n) => {
@@ -33,7 +38,7 @@ export async function responsiveImages(
 		if (!width) continue;
 		const stem = file.slice(0, -extname(file).length);
 		const candidates = [];
-		for (const w of widths.filter((w) => w < width)) {
+		for (const w of widths.filter((n) => n < width)) {
 			const out = `${stem}-${w}w.webp`;
 			if (!existsSync(out)) {
 				await sharp(file).rotate().resize({ width: w }).webp({ quality: 78 }).toFile(out);
@@ -48,16 +53,16 @@ export async function responsiveImages(
 		known.set(url, [...candidates, `${url} ${width}w`].join(", "));
 	}
 	let pages = 0;
-	for (const f of walk(dist).filter((f) => f.endsWith(".html"))) {
+	for (const f of walk(dist).filter((p) => p.endsWith(".html"))) {
 		const before = readFileSync(f, "utf8");
 		const after = before.replace(/<img\b[^>]*>/g, (tag) => {
-			if (/\ssrcset=/.test(tag)) return tag;
-			const src = /\ssrc=["']([^"']+)["']/.exec(tag)?.[1];
+			if (RE_1.test(tag)) return tag;
+			const src = RE_2.exec(tag)?.[1];
 			const set = src && known.get(src);
 			if (!set) return tag;
-			const hasSizes = /\ssizes=/.test(tag);
+			const hasSizes = RE_3.test(tag);
 			return tag.replace(
-				/\/?>$/,
+				RE_4,
 				(end) => ` srcset="${set}"${hasSizes ? "" : ` sizes="${sizes}"`}${end}`,
 			);
 		});

@@ -9,6 +9,9 @@ import { OptionsRepository } from "../../packages/core/src/database/repositories
 import { selectTaxonomyDefs } from "../../packages/core/src/database/repositories/taxonomy-def.js";
 import { routeModules } from "./routes.generated.js";
 
+const RE_1 = /\/+$/;
+const RE_2 = /\/_api$/;
+
 const ADMIN_ROLE = 50;
 
 export interface BrowserUser {
@@ -38,7 +41,7 @@ export interface BrowserPlugin {
 	 * Opt-in browser version of `content:beforeSave`. Return the data to save (or nothing to keep it),
 	 * or throw `saveRejected(message)`. It must be plain browser code written for the site.
 	 */
-	beforeSave?: (event: BeforeSaveEvent) => unknown | Promise<unknown>;
+	beforeSave?: (event: BeforeSaveEvent) => unknown;
 	admin?: {
 		entry?: string;
 		pages?: Array<{ path: string; label?: string; icon?: string; group?: string }>;
@@ -251,6 +254,20 @@ function makeEmdash(
 	return em;
 }
 
+function refusal(error: unknown) {
+	if (error instanceof Error && error.name === "SaveRejected") {
+		return {
+			success: false,
+			error: { code: "SAVE_REJECTED", message: error.message },
+		};
+	}
+	console.error("[browser-api] beforeSave hook failed:", error);
+	return {
+		success: false,
+		error: { code: "SAVE_HOOK_ERROR", message: "A plugin hook failed while saving" },
+	};
+}
+
 function withBeforeSave(em: Record<string, any>, plugins: BrowserPlugin[]) {
 	const hooks = plugins.filter((p) => p.beforeSave);
 	if (!hooks.length) return;
@@ -258,22 +275,10 @@ function withBeforeSave(em: Record<string, any>, plugins: BrowserPlugin[]) {
 		let data = event.data;
 		for (const p of hooks) {
 			const out = await p.beforeSave!({ ...event, data });
+			// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a hook returns the replacement data object
 			if (out && typeof out === "object") data = out as Record<string, unknown>;
 		}
 		return data;
-	};
-	const refusal = (error: unknown) => {
-		if ((error as Error | undefined)?.name === "SaveRejected") {
-			return {
-				success: false,
-				error: { code: "SAVE_REJECTED", message: (error as Error).message },
-			};
-		}
-		console.error("[browser-api] beforeSave hook failed:", error);
-		return {
-			success: false,
-			error: { code: "SAVE_HOOK_ERROR", message: "A plugin hook failed while saving" },
-		};
 	};
 	const create = em.handleContentCreate;
 	em.handleContentCreate = async (
@@ -348,7 +353,7 @@ function match(path: string) {
 				okMatch = false;
 				break;
 			}
-			if (seg.startsWith(":")) params[seg.slice(1)] = decodeURIComponent(parts[i]!);
+			if (seg.startsWith(":")) params[seg.slice(1)] = decodeURIComponent(parts[i]);
 			else if (seg !== parts[i]) {
 				okMatch = false;
 				break;
@@ -367,8 +372,8 @@ export function createBrowserApi({
 	pendingMedia,
 	plugins = [],
 }: BrowserApiOptions) {
-	const base = apiBase.replace(/\/+$/, "");
-	const siteBase = base.replace(/\/_api$/, "");
+	const base = apiBase.replace(RE_1, "");
+	const siteBase = base.replace(RE_2, "");
 	const pending = pendingMedia ?? new Map<string, PendingFile>();
 	const realFetch: typeof fetch = passthrough ?? fetch.bind(globalThis);
 	const emdash = makeEmdash(db, makeStorage(siteBase, pending, realFetch), plugins);

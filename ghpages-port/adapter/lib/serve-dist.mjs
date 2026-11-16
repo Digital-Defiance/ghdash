@@ -3,6 +3,8 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 
+const RE_1 = /\/$/;
+
 const base = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
 const root = "dist/client";
 const port = Number(process.env.PORT || 4400);
@@ -28,7 +30,7 @@ createServer((req, res) => {
 		return;
 	}
 	let p = normalize(join(root, decodeURIComponent(url.pathname.slice(base.length)))).replace(
-		/\/$/,
+		RE_1,
 		"",
 	);
 	if (!p.startsWith(root)) {

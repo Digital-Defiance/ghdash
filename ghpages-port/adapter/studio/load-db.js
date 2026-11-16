@@ -20,18 +20,18 @@ export function openDb(sqlite, freshBytes, { ddl, tables }) {
 	}
 	const freshNames = new Set(db.selectValues("select name from sqlite_master"));
 	db.exec("PRAGMA foreign_keys=OFF; BEGIN");
-	for (const o of ddl.filter((o) => o.type === "table")) db.exec(o.sql);
-	for (const o of ddl.filter((o) => o.type === "trigger")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "table")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "trigger")) db.exec(o.sql);
 	for (const [t, rows] of Object.entries(tables)) {
 		for (const r of rows) {
 			const c = Object.keys(r);
 			db.exec({
-				sql: `insert or replace into "${t}" (${c.map((x) => `"${x}"`)}) values (${c.map(() => "?")})`,
+				sql: `insert or replace into "${t}" (${c.map((x) => `"${x}"`).join(",")}) values (${c.map(() => "?").join(",")})`,
 				bind: c.map((x) => r[x]),
 			});
 		}
 	}
-	for (const o of ddl.filter((o) => o.type === "index")) db.exec(o.sql);
+	for (const o of ddl.filter((d) => d.type === "index")) db.exec(o.sql);
 	db.exec("COMMIT");
 	const database = {
 		close() {
