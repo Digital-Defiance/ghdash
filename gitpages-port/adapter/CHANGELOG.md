@@ -4,7 +4,12 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
-## 0.15.0
+## 0.15.1 [pages-v0.18.0]
+
+- `fetch-browser-api` downloads `pages-v0.18.0` by default. Releases from `pages-v0.18.0` name the file `gitdash-browser-api-<tag>.tgz`; for older tags set in `BROWSER_API_TAG`, the command falls back to the old `ghdash-browser-api-<tag>.tgz` name.
+- In your site: nothing. The default release changes from `pages-v0.16.0` to `pages-v0.18.0`, so the next build downloads the newer browser API.
+
+## 0.15.0 [adapter-v0.15.0]
 
 - The `ghdash-pages` command, kept as an alias in 0.14.0, is removed. Use `gitdash-pages`.
 - The studio keeps its sign-in and pending changes in the browser under `gitdash-*` names instead of `ghdash-*`. After the upgrade, editors sign in to the studio again, and pending changes made before the upgrade are not restored.

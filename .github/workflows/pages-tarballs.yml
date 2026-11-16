@@ -51,7 +51,7 @@ jobs:
           npm install --prefix gitpages-port/spike/browser-handlers --no-audit --no-fund
           node gitpages-port/browser-api/gen-routes.mjs '^dev/'
           bash gitpages-port/browser-api/build.sh
-          tar -czf "out/ghdash-browser-api-${TAG}.tgz" -C gitpages-port/browser-api/dist .
+          tar -czf "out/gitdash-browser-api-${TAG}.tgz" -C gitpages-port/browser-api/dist .
           ls -la out
       - name: Pack the Pages adapter
         run: |
