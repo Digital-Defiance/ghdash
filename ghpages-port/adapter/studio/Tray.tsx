@@ -26,6 +26,14 @@ type Controller = {
 	commit(message: string): Promise<void>;
 	updateFromRemote(): Promise<void>;
 	repoInfo: { owner: string; repo: string; branch: string };
+	host: {
+		label: string;
+		apiHost: string;
+		buildsUrl: string;
+		tokenUrl: string;
+		tokenHelp: { kind: string; create: string; access: string; permissions: string };
+		commitUrl(sha: string): string;
+	};
 };
 
 const KIND_LABEL = { added: "New", modified: "Edited", deleted: "Deleted" } as const;
@@ -80,6 +88,7 @@ export function makeTray(c: Controller) {
 		}, [open]);
 
 		const { owner, repo, branch } = c.repoInfo;
+		const host = c.host;
 		return (
 			<div ref={root} style={{ position: "relative" }}>
 				<button
@@ -251,19 +260,11 @@ export function makeTray(c: Controller) {
 								style={{ marginTop: 10, fontSize: 13, color: "var(--text-color-kumo-success)" }}
 							>
 								Committed{" "}
-								<a
-									href={`https://github.com/${owner}/${repo}/commit/${s.status.sha}`}
-									target="_blank"
-									rel="noreferrer"
-								>
+								<a href={host.commitUrl(s.status.sha)} target="_blank" rel="noreferrer">
 									{s.status.sha.slice(0, 7)}
 								</a>
 								. The site rebuilds in a minute or two:{" "}
-								<a
-									href={`https://github.com/${owner}/${repo}/actions`}
-									target="_blank"
-									rel="noreferrer"
-								>
+								<a href={host.buildsUrl} target="_blank" rel="noreferrer">
 									watch the build
 								</a>
 								.
@@ -300,8 +301,8 @@ export function makeTray(c: Controller) {
 									style={{ fontSize: 12, color: "var(--text-color-kumo-subtle)" }}
 									htmlFor="tray-token"
 								>
-									GitHub token to commit to {owner}/{repo} (fine-grained, Contents: read and write).
-									Kept in this tab only.
+									{host.label} token to commit to {owner}/{repo} ({host.tokenHelp.kind}). Kept in
+									this tab only.
 								</label>
 								<input
 									id="tray-token"
@@ -317,21 +318,15 @@ export function makeTray(c: Controller) {
 										style={{ margin: "6px 0 0", paddingInlineStart: 18, display: "grid", gap: 2 }}
 									>
 										<li>
-											<a
-												href="https://github.com/settings/personal-access-tokens/new"
-												target="_blank"
-												rel="noreferrer"
-											>
-												Create a fine-grained token
+											<a href={host.tokenUrl} target="_blank" rel="noreferrer">
+												{host.tokenHelp.create}
 											</a>{" "}
-											on GitHub.
+											on {host.label}.
 										</li>
+										<li>{host.tokenHelp.access}</li>
+										<li>{host.tokenHelp.permissions}</li>
 										<li>
-											Repository access: only {owner}/{repo}.
-										</li>
-										<li>Permissions: Contents, read and write. Nothing else.</li>
-										<li>
-											Paste it here. It stays in this tab, is only sent to api.github.com, and is
+											Paste it here. It stays in this tab, is only sent to {host.apiHost}, and is
 											forgotten when you close the tab. It lets whoever holds it change this
 											repository, so don't share it.
 										</li>

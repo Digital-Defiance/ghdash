@@ -1,6 +1,6 @@
 # @digitaldefiance/ghdash-pages
 
-Build-side commands for an EmDash site that is published to GitHub Pages, with its content kept as JSON in the repository (`content/`). Run them from the site's root.
+Build-side commands for an EmDash site that is published to GitHub Pages, GitLab Pages, Netlify or Cloudflare Pages, with its content kept as JSON in the repository (`content/`). The studio commits to GitHub or GitLab. Run the commands from the site's root.
 
 ```
 ghdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
@@ -16,6 +16,7 @@ ghdash-pages import-markdown <dir>  bring a Jekyll site or Markdown folder into 
 ghdash-pages export-content      data.db -> content/
 ghdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
 ghdash-pages serve               serve dist/client under BASE_PATH, like Pages
+ghdash-pages add-host <netlify|cloudflare|gitlab>  write netlify.toml, wrangler.toml or .gitlab-ci.yml for the site
 ```
 
 A typical site build script:
@@ -57,6 +58,31 @@ GitHub App tokens expire after eight hours by default, after which the studio as
 
 `finish` makes 480, 960 and 1600 px WebP copies of each JPEG or PNG under `media/` that is wider than the copy, and adds a `srcset` and `sizes="100vw"` to built `<img>` tags that point at it. The original stays as the `src` and as the largest candidate. Tags that already have a `srcset`, and small images, are left alone. It needs `sharp` and does nothing without it. Set `RESPONSIVE_WIDTHS=480,800` to choose the widths, `RESPONSIVE_WIDTHS=` to turn it off, and `RESPONSIVE_SIZES` to change the `sizes` value for a narrower layout.
 
+## Hosts: GitHub Pages, GitLab Pages, Netlify, Cloudflare Pages
+
+`@digitaldefiance/ghdash-pages/host` reads the build environment and says where the site is served and where its repository is. Use it in `astro.config.mjs` so the same site builds on every host:
+
+```js
+import { basePath, siteUrl } from "@digitaldefiance/ghdash-pages/host";
+export default defineConfig({ site: siteUrl(), base: basePath(), output: "static" /* ... */ });
+```
+
+| Host             | Address and base path                                                                            | Repository the studio commits to                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| GitHub Pages     | `SITE_URL` and `BASE_PATH` from the workflow (`actions/configure-pages`)                         | `GITHUB_REPOSITORY`                                                                                                            |
+| GitLab Pages     | `CI_PAGES_URL`: `/<project>` for a project site, `/` for a unique domain or custom domain        | `CI_PROJECT_PATH` on `CI_API_V4_URL`, so self-managed GitLab works                                                             |
+| Netlify          | `URL` (production) or `DEPLOY_PRIME_URL` (previews and branches), always `/`                     | `REPOSITORY_URL`, GitHub or GitLab                                                                                             |
+| Cloudflare Pages | `CF_PAGES_URL` (this deployment's own address; set `SITE_URL` to the production one), always `/` | the `origin` remote, or `STUDIO_REPO` (and `STUDIO_PROVIDER=gitlab`), because Cloudflare doesn't say which repository it built |
+| Local            | `SITE_URL`, `BASE_PATH`                                                                          | the `origin` remote                                                                                                            |
+
+`SITE_URL`, `BASE_PATH`, `GHDASH_HOST` (`github-pages`, `gitlab-pages`, `netlify`, `cloudflare-pages`) and `STUDIO_PROVIDER` (`github`, `gitlab`), `STUDIO_REPO`, `STUDIO_BRANCH`, `STUDIO_API_URL`, `STUDIO_WEB_URL` override the guesses. `ghdash-pages finish` uses the same base path. On Netlify, Cloudflare Pages and GitLab Pages, redirects are written to a `_redirects` file and are real 301/302 responses; on GitHub Pages they stay HTML forwarding pages.
+
+`ghdash-pages add-host netlify` writes a `netlify.toml`, `ghdash-pages add-host cloudflare` a `wrangler.toml` (the build command and variables are set in the Cloudflare dashboard; the file lists them), and `ghdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
+
+### Committing to GitLab
+
+On GitLab the studio commits through GitLab's REST API, which allows browser requests, so no proxy is needed. Editors paste a personal access token with the `api` scope (GitLab has no narrower scope that can commit through the API); a project access token works too. The token must be allowed to push to the branch, so with the default branch protection that means Maintainer. GitLab's commits API can't refuse a commit when the branch moved, so the studio checks the branch head just before committing; a push that lands in the second between the check and the commit is not detected. "Sign in with GitHub" is GitHub-only; on GitLab the token is pasted.
+
 ## Install and upgrade
 
 From npm: `npm install @digitaldefiance/ghdash-pages`. Maintainers: publish the first version by hand from `ghpages-port/adapter` (`npm login`, then `npm publish --access public`), then add a Trusted Publisher on the package's npm settings page (GitHub Actions, organization `Digital-Defiance`, repository `ghdash`, workflow `publish-adapter.yml`). After that, pushing a tag `adapter-v<version>` publishes it with provenance and no token. From a GitHub release (what the example site uses): point the dependency at the release asset, for example `https://github.com/Digital-Defiance/ghdash/releases/download/pages-v0.17.0/digitaldefiance-ghdash-pages-0.12.0.tgz`. `CHANGELOG.md` lists, for each version, what changed and what a site has to do. The admin and core builds the studio needs are also release assets, because they are patched builds of EmDash's own packages and can't be published under its npm names.
@@ -74,7 +100,7 @@ From npm: `npm install @digitaldefiance/ghdash-pages`. Maintainers: publish the 
 <script>import "@digitaldefiance/ghdash-pages/studio/boot.tsx";</script>
 ```
 
-The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js` and `studio/github-commit.js`.
+The site must also depend on `@emdash-cms/admin` (the `pages-v*` release build), `@sqlite.org/sqlite-wasm`, `react` and `react-dom`. Also exported: `studio/tray.js`, `studio/load-db.js`, `studio/controller.js`, `studio/providers.js`, `studio/github-commit.js` and `studio/gitlab-commit.js`.
 
 The Pagefind search page and the page templates are part of the site template. See `GHDash-example` for a working site.
 

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // Templates link to root-absolute paths like href="/posts/x". On a GitHub Pages project site the
 // site lives under /<repo>/, so prefix those paths in the built HTML, CSS and XML.
-// Usage: BASE_PATH=/repo ghdash-pages finish <distDir>
+// Usage: ghdash-pages finish <distDir>   (the base path comes from host.mjs: BASE_PATH, or the host's own settings)
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { basePrefix } from "./host.mjs";
+
 const RE_1 = /\.(html|xml)$/;
 
-const base = (process.env.BASE_PATH ?? "/").replace(/\/+$/, "");
+const base = basePrefix();
 const dir = process.argv[2];
 if (!dir) throw new Error("usage: rebase-urls.mjs <distDir>");
 

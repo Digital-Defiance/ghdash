@@ -1,0 +1,24 @@
+# Netlify builds the site from content/*.json on every push and serves it from the root of the site's address.
+# The studio at /studio/ commits back to the repository Netlify builds from (GitHub or GitLab).
+# Scheduled posts, plugin after-hooks and cron still run in the repository's own CI: see SETUP.md, "Hosting on Netlify".
+[build]
+command = "npm run build"
+publish = "dist/client"
+
+[build.environment]
+NODE_VERSION = "22"
+NODE_OPTIONS = "--max-old-space-size=4096"
+# Tells the build it is on Netlify even when a script checks GHDASH_HOST directly.
+GHDASH_HOST = "netlify"
+
+# The studio is a single page; deep links inside it load the same page.
+[[redirects]]
+from = "/studio/*"
+to = "/studio/index.html"
+status = 200
+
+[[headers]]
+for = "/studio/*"
+[headers.values]
+X-Robots-Tag = "noindex"
+Referrer-Policy = "no-referrer"

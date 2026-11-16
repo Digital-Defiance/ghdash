@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // GitHub Pages can't send 301s, so each enabled redirect from content/_emdash_redirects.json becomes a small
 // HTML page at its source path that forwards the browser (meta refresh) and names the target as canonical.
-// Pattern redirects can't be pre-rendered and are skipped. Usage: BASE_PATH=/repo ghdash-pages finish <distDir>
+// Netlify, Cloudflare Pages and GitLab Pages read a _redirects file and send real redirects, so on those hosts that file is written instead.
+// Pattern redirects can't be pre-rendered and are skipped. Usage: ghdash-pages finish <distDir>
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { basePrefix, hostName } from "./host.mjs";
 
 const RE_1 = /^[a-z][a-z0-9+.-]*:/i;
 const RE_2 = /\/+$/;
@@ -41,12 +44,48 @@ export function planRedirects(rows, base = "") {
 	return { pages, skipped };
 }
 
+const STATUS = { 301: 301, 302: 302, 307: 302, 308: 301 };
+
+/** The body of a Netlify / Cloudflare Pages / GitLab Pages `_redirects` file for the given rows, and the sources it skipped. */
+export function redirectsFile(rows, base = "") {
+	const lines = [];
+	const skipped = [];
+	for (const r of rows) {
+		if (!r.enabled) continue;
+		const source = String(r.source);
+		const destination = String(r.destination);
+		if (
+			r.is_pattern ||
+			!source.startsWith("/") ||
+			source.startsWith("//") ||
+			/\s/.test(source + destination)
+		) {
+			skipped.push(source);
+			continue;
+		}
+		const to =
+			RE_1.test(destination) || !destination.startsWith("/") ? destination : base + destination;
+		lines.push(`${base}${source} ${to} ${STATUS[r.type] ?? 301}`);
+	}
+	return { text: lines.length ? `${lines.join("\n")}\n` : "", skipped };
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const dist = process.argv[2];
 	if (!dist) throw new Error("usage: redirects.mjs <distDir>");
 	const file = join("content", "_emdash_redirects.json");
 	const rows = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
-	const { pages, skipped } = planRedirects(rows, (process.env.BASE_PATH ?? "").replace(/\/+$/, ""));
+	const base = basePrefix();
+	if (["netlify", "cloudflare-pages", "gitlab-pages"].includes(hostName())) {
+		const { text, skipped } = redirectsFile(rows, base);
+		const out = join(dist, "_redirects");
+		const before = existsSync(out) ? readFileSync(out, "utf8") : "";
+		if (text) writeFileSync(out, before + (before && !before.endsWith("\n") ? "\n" : "") + text);
+		for (const s of skipped) console.warn(`redirect ${s} skipped (pattern or unsafe path)`);
+		console.log(`wrote ${text.split("\n").filter(Boolean).length} rules to _redirects`);
+		process.exit(0);
+	}
+	const { pages, skipped } = planRedirects(rows, base);
 	let written = 0;
 	for (const p of pages) {
 		const out = join(dist, p.path);

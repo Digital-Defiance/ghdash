@@ -59,7 +59,11 @@ const controller = createController({
 const rawApi = createBrowserApi({
 	db,
 	apiBase: paths.apiBase,
-	user: { id: "github-user", email: "editor@users.noreply.github.com", name: "GitHub editor" },
+	user: {
+		id: "github-user",
+		email: "editor@users.noreply.github.com",
+		name: content.meta.provider === "gitlab" ? "GitLab editor" : "GitHub editor",
+	},
 	passthrough: realFetch,
 	pendingMedia,
 	plugins: studioPlugins.plugins,

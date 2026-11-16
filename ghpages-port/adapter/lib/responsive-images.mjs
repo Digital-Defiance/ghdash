@@ -6,6 +6,8 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "
 import { extname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { basePrefix } from "./host.mjs";
+
 const RE_1 = /\ssrcset=/;
 const RE_2 = /\ssrc=["']([^"']+)["']/;
 const RE_3 = /\ssizes=/;
@@ -77,7 +79,7 @@ export async function responsiveImages(
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 	const dist = process.argv[2];
 	if (!dist) throw new Error("usage: responsive-images.mjs <distDir>");
-	const base = (process.env.BASE_PATH ?? "/").replace(/\/+$/, "");
+	const base = basePrefix();
 	const env = process.env.RESPONSIVE_WIDTHS;
 	const widths = env === undefined ? undefined : env.split(",").map(Number).filter(Boolean);
 	const { variants, pages } = await responsiveImages(dist, {

@@ -4,6 +4,14 @@ Each entry says what changed and what a site has to do to get it. Versions are r
 
 To upgrade a site, change the adapter URL (or version) in its `package.json`, run `npm install`, and apply the "In your site" step if there is one.
 
+## 0.14.0
+
+- Hosting on GitLab Pages, Netlify and Cloudflare Pages as well as GitHub Pages. New `@digitaldefiance/ghdash-pages/host` (`siteUrl()`, `basePath()`, `repoMeta()`, `studioApiOrigin()`) works out the site address, the base path and the repository from the build environment; `ghdash-pages finish` and `studio-assets` use it.
+- The studio commits to GitLab projects (gitlab.com or self-managed) through the GitLab API with a pasted token, behind a provider interface (`studio/providers.js`) that GitHub uses too. The tray's links and token help follow the host.
+- On Netlify, Cloudflare Pages and GitLab Pages, redirects become a `_redirects` file with real 301/302 responses.
+- `ghdash-pages add-host <netlify|cloudflare|gitlab>` writes `netlify.toml`, `wrangler.toml` or `.gitlab-ci.yml`.
+- In your site: nothing for GitHub Pages. For another host, use `siteUrl()` and `basePath()` in `astro.config.mjs`, add `studioApiOrigin()` to the studio page's `connect-src`, and run `add-host`; see "Hosts" in the README.
+
 ## 0.13.2
 
 - Fixed: creating a new content type (collection) in the studio failed with "Failed to create collection". The empty database the studio starts from had lost a row EmDash needs when it adds a collection. Rebuild the site to pick up the fix.

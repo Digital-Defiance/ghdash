@@ -15,9 +15,9 @@ export class GitHubError extends Error {
 	}
 }
 
-function client(token, fetchImpl = globalThis.fetch) {
+function client(token, fetchImpl = globalThis.fetch, apiUrl = "https://api.github.com") {
 	return async (method, path, body) => {
-		const res = await fetchImpl(`https://api.github.com${path}`, {
+		const res = await fetchImpl(`${apiUrl}${path}`, {
 			method,
 			headers: {
 				Accept: "application/vnd.github+json",
@@ -40,16 +40,17 @@ function toBase64(bytes) {
 	return btoa(s);
 }
 
-export async function checkAccess({ token, owner, repo, fetchImpl }) {
-	const r = await client(token, fetchImpl)("GET", `/repos/${owner}/${repo}`);
+export async function checkAccess({ token, owner, repo, fetchImpl, apiUrl }) {
+	const r = await client(token, fetchImpl, apiUrl)("GET", `/repos/${owner}/${repo}`);
 	return { canPush: Boolean(r.permissions?.push), defaultBranch: r.default_branch };
 }
 
-export async function getHead({ token, owner, repo, branch, fetchImpl }) {
-	const ref = await client(token, fetchImpl)(
-		"GET",
-		`/repos/${owner}/${repo}/git/ref/heads/${branch}`,
-	);
+export async function getHead({ token, owner, repo, branch, fetchImpl, apiUrl }) {
+	const ref = await client(
+		token,
+		fetchImpl,
+		apiUrl,
+	)("GET", `/repos/${owner}/${repo}/git/ref/heads/${branch}`);
 	return ref.object.sha;
 }
 
@@ -62,8 +63,9 @@ export async function commitFiles({
 	message,
 	expectedHeadSha,
 	fetchImpl,
+	apiUrl,
 }) {
-	const gh = client(token, fetchImpl);
+	const gh = client(token, fetchImpl, apiUrl);
 	const base = `/repos/${owner}/${repo}/git`;
 	const headSha = (await gh("GET", `${base}/ref/heads/${branch}`)).object.sha;
 	if (expectedHeadSha && expectedHeadSha !== headSha) return { ok: false, conflict: true, headSha };
@@ -97,7 +99,7 @@ export async function commitFiles({
 			return {
 				ok: false,
 				conflict: true,
-				headSha: await getHead({ token, owner, repo, branch, fetchImpl }),
+				headSha: await getHead({ token, owner, repo, branch, fetchImpl, apiUrl }),
 			};
 		}
 		throw e;
