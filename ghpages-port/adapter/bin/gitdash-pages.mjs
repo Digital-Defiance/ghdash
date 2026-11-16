@@ -62,16 +62,17 @@ const commands = {
 		},
 	],
 	"add-host": [
-		"Add the build settings for another host to the site: add-host <netlify|cloudflare|gitlab>",
+		"Add the build settings for another host to the site: add-host <netlify|cloudflare|cloudflare-pages|gitlab>",
 		() => {
 			const files = {
 				netlify: ["netlify.toml", "netlify.toml"],
 				gitlab: ["gitlab-ci.yml", ".gitlab-ci.yml"],
-				cloudflare: ["wrangler.toml", "wrangler.toml"],
+				cloudflare: ["wrangler.jsonc", "wrangler.jsonc"],
+				"cloudflare-pages": ["wrangler.toml", "wrangler.toml"],
 			};
 			const pick = files[rest[0]];
 			if (!pick) {
-				console.error("usage: gitdash-pages add-host <netlify|cloudflare|gitlab>");
+				console.error("usage: gitdash-pages add-host <netlify|cloudflare|cloudflare-pages|gitlab>");
 				process.exit(1);
 			}
 			const [from, to] = pick;
@@ -80,7 +81,12 @@ const commands = {
 				process.exit(1);
 			}
 			copyFileSync(fileURLToPath(new URL(`../templates/${from}`, import.meta.url)), to);
-			const names = { netlify: "Netlify", gitlab: "GitLab Pages", cloudflare: "Cloudflare Pages" };
+			const names = {
+				netlify: "Netlify",
+				gitlab: "GitLab Pages",
+				cloudflare: "Cloudflare",
+				"cloudflare-pages": "Cloudflare Pages (legacy)",
+			};
 			console.log(`wrote ${to}. Next steps: SETUP.md, "Hosting on ${names[rest[0]]}".`);
 		},
 	],

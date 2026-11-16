@@ -20,11 +20,11 @@ function trimSlash(s) {
 	return s.slice(0, end);
 }
 
-/** "netlify", "cloudflare-pages", "gitlab-pages", "github-pages" or "local". GITDASH_HOST overrides the guess. */
+/** "netlify", "cloudflare-pages" (Pages and Workers Builds), "gitlab-pages", "github-pages" or "local". GITDASH_HOST overrides the guess. */
 export function hostName(env = process.env) {
 	if (env.GITDASH_HOST) return env.GITDASH_HOST;
 	if (env.NETLIFY === "true") return "netlify";
-	if (env.CF_PAGES === "1") return "cloudflare-pages";
+	if (env.CF_PAGES === "1" || env.WORKERS_CI === "1") return "cloudflare-pages";
 	if (env.GITLAB_CI) return "gitlab-pages";
 	if (env.GITHUB_ACTIONS) return "github-pages";
 	return "local";
@@ -41,6 +41,7 @@ export function siteUrl(env = process.env) {
 	const host = hostName(env);
 	if (host === "netlify") return netlifyUrl(env) || undefined;
 	// CF_PAGES_URL names this deployment (https://<hash>.<project>.pages.dev); set SITE_URL for the production address.
+	// Workers Builds gives no address at all, so SITE_URL is required there.
 	if (host === "cloudflare-pages" && env.CF_PAGES_URL) return new URL(env.CF_PAGES_URL).origin;
 	if (host === "gitlab-pages" && env.CI_PAGES_URL) return new URL(env.CI_PAGES_URL).origin;
 	return undefined;
@@ -156,6 +157,7 @@ export function repoMeta(env = process.env, git = sh) {
 			env.CI_COMMIT_REF_NAME ||
 			(env.NETLIFY === "true" ? env.BRANCH || env.HEAD : "") ||
 			env.CF_PAGES_BRANCH ||
+			env.WORKERS_CI_BRANCH ||
 			env.GITHUB_REF_NAME ||
 			git("git", ["branch", "--show-current"]) ||
 			"main",
@@ -163,6 +165,7 @@ export function repoMeta(env = process.env, git = sh) {
 			env.CI_COMMIT_SHA ||
 			(env.NETLIFY === "true" ? env.COMMIT_REF : "") ||
 			env.CF_PAGES_COMMIT_SHA ||
+			env.WORKERS_CI_COMMIT_SHA ||
 			env.GITHUB_SHA ||
 			git("git", ["rev-parse", "HEAD"]),
 		apiUrl,

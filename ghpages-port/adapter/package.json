@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/gitdash-pages",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Build-side tooling for running an EmDash site on GitHub Pages, GitLab Pages, Netlify or Cloudflare Pages with content stored as JSON in the repository.",
   "type": "module",
   "license": "MIT",

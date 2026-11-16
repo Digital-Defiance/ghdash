@@ -1,6 +1,6 @@
 # @digitaldefiance/gitdash-pages
 
-Build-side commands for an EmDash site that is published to GitHub Pages, GitLab Pages, Netlify or Cloudflare Pages, with its content kept as JSON in the repository (`content/`). The studio commits to GitHub or GitLab. Run the commands from the site's root.
+Build-side commands for an EmDash site that is published to GitHub Pages, GitLab Pages, Netlify or Cloudflare, with its content kept as JSON in the repository (`content/`). The studio commits to GitHub or GitLab. Run the commands from the site's root.
 
 ```
 gitdash-pages build-db            content/*.json -> data.db (needs `emdash` in the site)
@@ -16,7 +16,7 @@ gitdash-pages import-markdown <dir>  bring a Jekyll site or Markdown folder into
 gitdash-pages export-content      data.db -> content/
 gitdash-pages split-revisions     one-off: content/revisions.json -> content/revisions/<id>.json (older sites)
 gitdash-pages serve               serve dist/client under BASE_PATH, like Pages
-gitdash-pages add-host <netlify|cloudflare|gitlab>  write netlify.toml, wrangler.toml or .gitlab-ci.yml for the site
+gitdash-pages add-host <netlify|cloudflare|cloudflare-pages|gitlab>  write netlify.toml, wrangler.jsonc (or the legacy Pages wrangler.toml) or .gitlab-ci.yml for the site
 ```
 
 A typical site build script:
@@ -58,7 +58,7 @@ GitHub App tokens expire after eight hours by default, after which the studio as
 
 `finish` makes 480, 960 and 1600 px WebP copies of each JPEG or PNG under `media/` that is wider than the copy, and adds a `srcset` and `sizes="100vw"` to built `<img>` tags that point at it. The original stays as the `src` and as the largest candidate. Tags that already have a `srcset`, and small images, are left alone. It needs `sharp` and does nothing without it. Set `RESPONSIVE_WIDTHS=480,800` to choose the widths, `RESPONSIVE_WIDTHS=` to turn it off, and `RESPONSIVE_SIZES` to change the `sizes` value for a narrower layout.
 
-## Hosts: GitHub Pages, GitLab Pages, Netlify, Cloudflare Pages
+## Hosts: GitHub Pages, GitLab Pages, Netlify, Cloudflare
 
 `@digitaldefiance/gitdash-pages/host` reads the build environment and says where the site is served and where its repository is. Use it in `astro.config.mjs` so the same site builds on every host:
 
@@ -67,17 +67,17 @@ import { basePath, siteUrl } from "@digitaldefiance/gitdash-pages/host";
 export default defineConfig({ site: siteUrl(), base: basePath(), output: "static" /* ... */ });
 ```
 
-| Host             | Address and base path                                                                            | Repository the studio commits to                                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| GitHub Pages     | `SITE_URL` and `BASE_PATH` from the workflow (`actions/configure-pages`)                         | `GITHUB_REPOSITORY`                                                                                                            |
-| GitLab Pages     | `CI_PAGES_URL`: `/<project>` for a project site, `/` for a unique domain or custom domain        | `CI_PROJECT_PATH` on `CI_API_V4_URL`, so self-managed GitLab works                                                             |
-| Netlify          | `URL` (production) or `DEPLOY_PRIME_URL` (previews and branches), always `/`                     | `REPOSITORY_URL`, GitHub or GitLab                                                                                             |
-| Cloudflare Pages | `CF_PAGES_URL` (this deployment's own address; set `SITE_URL` to the production one), always `/` | the `origin` remote, or `STUDIO_REPO` (and `STUDIO_PROVIDER=gitlab`), because Cloudflare doesn't say which repository it built |
-| Local            | `SITE_URL`, `BASE_PATH`                                                                          | the `origin` remote                                                                                                            |
+| Host                                         | Address and base path                                                                                              | Repository the studio commits to                                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| GitHub Pages                                 | `SITE_URL` and `BASE_PATH` from the workflow (`actions/configure-pages`)                                           | `GITHUB_REPOSITORY`                                                                                                            |
+| GitLab Pages                                 | `CI_PAGES_URL`: `/<project>` for a project site, `/` for a unique domain or custom domain                          | `CI_PROJECT_PATH` on `CI_API_V4_URL`, so self-managed GitLab works                                                             |
+| Netlify                                      | `URL` (production) or `DEPLOY_PRIME_URL` (previews and branches), always `/`                                       | `REPOSITORY_URL`, GitHub or GitLab                                                                                             |
+| Cloudflare (Workers Builds, or legacy Pages) | `SITE_URL` (Workers Builds gives no address; legacy Pages gives `CF_PAGES_URL`, this deployment's own), always `/` | the `origin` remote, or `STUDIO_REPO` (and `STUDIO_PROVIDER=gitlab`), because Cloudflare doesn't say which repository it built |
+| Local                                        | `SITE_URL`, `BASE_PATH`                                                                                            | the `origin` remote                                                                                                            |
 
 `SITE_URL`, `BASE_PATH`, `GITDASH_HOST` (`github-pages`, `gitlab-pages`, `netlify`, `cloudflare-pages`) and `STUDIO_PROVIDER` (`github`, `gitlab`), `STUDIO_REPO`, `STUDIO_BRANCH`, `STUDIO_API_URL`, `STUDIO_WEB_URL` override the guesses. `gitdash-pages finish` uses the same base path. On Netlify, Cloudflare Pages and GitLab Pages, redirects are written to a `_redirects` file and are real 301/302 responses; on GitHub Pages they stay HTML forwarding pages.
 
-`gitdash-pages add-host netlify` writes a `netlify.toml`, `gitdash-pages add-host cloudflare` a `wrangler.toml` (the build command and variables are set in the Cloudflare dashboard; the file lists them), and `gitdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
+`gitdash-pages add-host netlify` writes a `netlify.toml`, `gitdash-pages add-host cloudflare` a `wrangler.jsonc` that publishes `dist/client` as a Worker's static assets (Cloudflare's current path; the build command and build variables are set in the dashboard, and the file lists them), `gitdash-pages add-host cloudflare-pages` the legacy Pages `wrangler.toml`, and `gitdash-pages add-host gitlab` a `.gitlab-ci.yml` that builds and publishes with GitLab Pages, publishes scheduled posts from a pipeline schedule, and runs plugin after-hooks and cron. The studio page's Content-Security-Policy must allow the git host's API: `studioApiOrigin()` from the same module gives it (`https://api.github.com`, `https://gitlab.com`, or your GitLab's address).
 
 ### Publishing on GitLab Pages
 
