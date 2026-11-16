@@ -1,4 +1,4 @@
-// Runs plugin after-hooks for content that changed between two commits. Used by `ghdash-pages run-hooks`.
+// Runs plugin after-hooks for content that changed between two commits. Used by `gitdash-pages run-hooks`.
 import { execFileSync } from "node:child_process";
 
 const STANDARD = new Set([

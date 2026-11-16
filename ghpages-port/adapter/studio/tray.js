@@ -1,6 +1,6 @@
 // Pending-changes logic: turns the in-browser database into the repo's JSON files, diffs them against
 // the files it was loaded from, and applies files back to the database (discard, merge).
-// The file layout and skip rules mirror ghdash-pages lib/db-json.mjs, which writes content/ at build time.
+// The file layout and skip rules mirror gitdash-pages lib/db-json.mjs, which writes content/ at build time.
 
 const RE_1 = /^plugin:[^:]+:settings:/;
 const RE_2 = /"\$emdash"\s*:\s*"plugin-setting"/;

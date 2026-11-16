@@ -1,5 +1,5 @@
 // Writes the data the in-browser admin loads: public/studio-data/{content.json,empty.db}, and the media service worker at public/studio/media-sw.js.
-// Run after `ghdash-pages build-db`. content.json is the repo's content/ tree as one file.
+// Run after `gitdash-pages build-db`. content.json is the repo's content/ tree as one file.
 import { execFileSync } from "node:child_process";
 import {
 	copyFileSync,
@@ -11,6 +11,8 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { hostName, repoMeta } from "./host.mjs";
 
 const out = "public/studio-data";
 mkdirSync(out, { recursive: true });
@@ -32,25 +34,17 @@ for (const n of [...names.filter((x) => !isDir(x)), ...names.filter(isDir)]) {
 	const byId = new Map((tables[t] ?? []).map((r) => [r.id, r]));
 	tables[t] = byId.size ? [...new Map([...byId, ...rows.map((r) => [r.id, r])]).values()] : rows;
 }
-const sh = (cmd, args) => {
-	try {
-		return execFileSync(cmd, args, { encoding: "utf8" }).trim();
-	} catch {
-		return "";
+const meta = repoMeta();
+if (!meta.repo) {
+	const message =
+		"studio-assets: could not tell which repository the studio should commit to. Set STUDIO_REPO to owner/repo (and STUDIO_PROVIDER=gitlab for a GitLab project) in the build's environment variables.";
+	// A deployed studio that can't save is worse than a failed build; a local build can go on without one.
+	if (hostName() !== "local") {
+		console.error(message);
+		process.exit(1);
 	}
-};
-const remote = sh("git", ["remote", "get-url", "origin"]).match(
-	/github\.com[:/]([^/]+\/[^/.]+)/,
-)?.[1];
-const meta = {
-	repo: process.env.GITHUB_REPOSITORY || remote || "",
-	branch:
-		process.env.STUDIO_BRANCH ||
-		process.env.GITHUB_REF_NAME ||
-		sh("git", ["branch", "--show-current"]) ||
-		"main",
-	head: process.env.GITHUB_SHA || sh("git", ["rev-parse", "HEAD"]),
-};
+	console.warn(message);
+}
 mkdirSync("public/studio", { recursive: true });
 copyFileSync(
 	fileURLToPath(new URL("../studio/media-sw.js", import.meta.url)),

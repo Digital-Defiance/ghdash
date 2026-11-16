@@ -164,3 +164,44 @@ test("a GitHub refusal becomes a 400 without a token, and preflight answers for 
 	assert.equal(pre.status, 204);
 	assert.equal(pre.headers.get("access-control-allow-origin"), env.ALLOWED_ORIGIN);
 });
+
+test("GitLab: sign-in asks for the api scope and trades the code at GitLab itself, with no secret", async () => {
+	const storage = memory();
+	const gitlab = { clientId: "gl-app", redirectUri: "https://g.gitlab.io/site/studio/" };
+	const url = new URL(
+		await startSignIn({
+			...gitlab,
+			storage,
+			authorizeUrl: "https://gitlab.example.org/oauth/authorize",
+			scope: "api",
+		}),
+	);
+	assert.equal(url.origin + url.pathname, "https://gitlab.example.org/oauth/authorize");
+	assert.equal(url.searchParams.get("response_type"), "code");
+	assert.equal(url.searchParams.get("scope"), "api");
+	const calls = [];
+	const fetchImpl = async (u, init) => {
+		calls.push({ url: u, body: new URLSearchParams(init.body) });
+		return new Response(JSON.stringify({ access_token: "gl_tok", token_type: "Bearer" }));
+	};
+	const token = await finishSignIn({
+		tokenUrl: "https://gitlab.example.org/oauth/token",
+		clientId: "gl-app",
+		label: "GitLab",
+		redirectUri: gitlab.redirectUri,
+		storage,
+		fetchImpl,
+		search: `?code=c1&state=${url.searchParams.get("state")}`,
+	});
+	assert.equal(token, "gl_tok");
+	assert.equal(calls[0].url, "https://gitlab.example.org/oauth/token");
+	const body = calls[0].body;
+	assert.equal(body.get("grant_type"), "authorization_code");
+	assert.equal(body.get("client_id"), "gl-app");
+	assert.equal(body.get("code"), "c1");
+	assert.equal(
+		await pkceChallenge(body.get("code_verifier")),
+		url.searchParams.get("code_challenge"),
+	);
+	assert.equal(body.get("client_secret"), null);
+});

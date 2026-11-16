@@ -39,10 +39,11 @@ if ("serviceWorker" in navigator) {
 	});
 	navigator.serviceWorker.register(`${site}/studio/media-sw.js`).catch(() => {});
 }
-// Sites that offer "Sign in with GitHub" set this before loading the studio: `clientId` of their GitHub App and `exchangeUrl` of the token-exchange Worker.
+// Sites that offer "Sign in with GitHub" set this before loading the studio: `clientId` of their GitHub App and `exchangeUrl` of the
+// token-exchange Worker. "Sign in with GitLab" needs only `clientId`, of a non-confidential GitLab OAuth application with scope api.
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the site page sets this global before the studio loads
 const studioOAuth = (globalThis as any).__STUDIO_OAUTH__ as
-	| { clientId: string; exchangeUrl: string }
+	| { clientId: string; exchangeUrl?: string }
 	| undefined;
 const studioUrl = `${location.origin}${location.pathname}`;
 const controller = createController({
@@ -51,15 +52,16 @@ const controller = createController({
 	baseFiles: snapshot(raw, freshNames),
 	meta: content.meta,
 	pendingMedia,
-	oauth:
-		studioOAuth?.clientId && studioOAuth?.exchangeUrl
-			? { ...studioOAuth, redirectUri: studioUrl }
-			: null,
+	oauth: studioOAuth?.clientId ? { ...studioOAuth, redirectUri: studioUrl } : null,
 });
 const rawApi = createBrowserApi({
 	db,
 	apiBase: paths.apiBase,
-	user: { id: "github-user", email: "editor@users.noreply.github.com", name: "GitHub editor" },
+	user: {
+		id: "github-user",
+		email: "editor@users.noreply.github.com",
+		name: content.meta.provider === "gitlab" ? "GitLab editor" : "GitHub editor",
+	},
 	passthrough: realFetch,
 	pendingMedia,
 	plugins: studioPlugins.plugins,

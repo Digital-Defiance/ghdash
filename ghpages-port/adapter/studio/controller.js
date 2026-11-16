@@ -1,5 +1,5 @@
-import { checkAccess, commitFiles, getHead, GitHubError } from "./github-commit.js";
 import { finishSignIn, startSignIn } from "./oauth.js";
+import { createProvider } from "./providers.js";
 import {
 	applyFile,
 	canonical,
@@ -13,7 +13,6 @@ import {
 } from "./tray.js";
 
 const TOKEN_KEY = "ghdash-token";
-const API = "https://api.github.com";
 
 const safe = (f, fallback) => {
 	try {
@@ -66,8 +65,10 @@ export function createController({
 	storage = safe(() => sessionStorage, null),
 	store = safe(() => idb(), null),
 	oauth = null,
+	provider = createProvider(meta, fetchImpl),
 }) {
-	const [owner, repo] = meta.repo.split("/");
+	const { owner, repo } = provider;
+	const signInFlow = oauth?.clientId ? provider.oauth(oauth) : null;
 	const prefix = "content/";
 	let base = baseFiles;
 	let head = meta.head;
@@ -178,43 +179,15 @@ export function createController({
 	}
 
 	async function fetchRemote(ref) {
-		const gh = async (path) => {
-			const res = await fetchImpl(`${API}${path}`, {
-				headers: {
-					Accept: "application/vnd.github+json",
-					...(token() ? { Authorization: `Bearer ${token()}` } : {}),
-				},
-			});
-			if (!res.ok) throw new GitHubError(res.status, await res.json().catch(() => null));
-			return res.json();
-		};
-		const tree = await gh(`/repos/${owner}/${repo}/git/trees/${ref}?recursive=1`);
 		const files = new Map();
-		const blobs = tree.tree.filter(
-			(n) => n.type === "blob" && n.path.startsWith(prefix) && n.path.endsWith(".json"),
-		);
-		for (let i = 0; i < blobs.length; i += 8) {
-			await Promise.all(
-				blobs.slice(i, i + 8).map(async (n) => {
-					const b = await gh(`/repos/${owner}/${repo}/git/blobs/${n.sha}`);
-					const bytes = Uint8Array.from(atob(b.content.replace(/\s/g, "")), (c) => c.charCodeAt(0));
-					files.set(n.path.slice(prefix.length), canonical(new TextDecoder().decode(bytes)));
-				}),
-			);
-		}
+		for (const [path, text] of await provider.readJsonFiles(token(), ref, prefix))
+			files.set(path, canonical(text));
 		return expandLegacyRevisions(files);
 	}
-
 	async function updateFromRemote() {
 		set({ status: { kind: "updating" } });
 		try {
-			const remoteHead = await getHead({
-				token: token(),
-				owner,
-				repo,
-				branch: meta.branch,
-				fetchImpl,
-			});
+			const remoteHead = await provider.getHead(token());
 			const remote = await fetchRemote(remoteHead);
 			const local = snapshot(db, freshNames);
 			const clashes = mergeRemote(db, base, remote, local);
@@ -253,14 +226,17 @@ export function createController({
 	}
 
 	function describeError(e) {
-		if (e instanceof GitHubError) {
-			if (e.status === 401) {
+		const host = provider.describeError(e);
+		if (host) {
+			if (host.auth) {
 				storage?.removeItem(TOKEN_KEY);
 				set({ hasToken: false });
-				return "GitHub rejected the token. Sign in again.";
+				return `${provider.label} rejected the token. Sign in again.`;
 			}
-			if (e.status === 403 || e.status === 404)
-				return "The token can't write to this repository. It needs Contents: read and write for this repo.";
+			if (host.status === 403 || host.status === 404)
+				return provider.name === "gitlab"
+					? "The token can't write to this project. It needs the api scope and permission to push to this branch."
+					: "The token can't write to this repository. It needs Contents: read and write for this repo.";
 			return e.message;
 		}
 		return e instanceof Error ? e.message : String(e);
@@ -294,7 +270,7 @@ export function createController({
 		async signIn(value) {
 			set({ status: { kind: "checking" } });
 			try {
-				const { canPush } = await checkAccess({ token: value, owner, repo, fetchImpl });
+				const { canPush } = await provider.checkAccess(value);
 				if (!canPush) throw new Error("This token can read the repository but not push to it.");
 				storage?.setItem(TOKEN_KEY, value);
 				set({ hasToken: true, status: { kind: "idle" } });
@@ -303,18 +279,23 @@ export function createController({
 			}
 		},
 		get oauthAvailable() {
-			return Boolean(oauth);
+			return Boolean(signInFlow);
 		},
 		beginOAuth() {
-			return startSignIn({ clientId: oauth.clientId, redirectUri: oauth.redirectUri, storage });
+			return startSignIn({
+				...signInFlow.start,
+				clientId: oauth.clientId,
+				redirectUri: oauth.redirectUri,
+				storage,
+			});
 		},
-		/** Call at start-up with location.search. Returns true when the page was a GitHub redirect, so the caller can clean the address. */
+		/** Call at start-up with location.search. Returns true when the page was a sign-in redirect, so the caller can clean the address. */
 		async finishOAuth(search) {
-			if (!oauth) return false;
+			if (!signInFlow) return false;
 			let signedIn;
 			try {
 				signedIn = await finishSignIn({
-					exchangeUrl: oauth.exchangeUrl,
+					...signInFlow.finish,
 					redirectUri: oauth.redirectUri,
 					storage,
 					search,
@@ -342,15 +323,11 @@ export function createController({
 				files[c.path.slice(1)] =
 					c.kind === "added" ? pendingMedia.get(c.path.slice(MEDIA.length)).bytes : null;
 			try {
-				const r = await commitFiles({
+				const r = await provider.commitFiles({
 					token: token(),
-					owner,
-					repo,
-					branch: meta.branch,
 					files,
 					message: message || "Update content from the studio",
 					expectedHeadSha: head,
-					fetchImpl,
 				});
 				if (!r.ok) {
 					set({ status: { kind: "conflict", remoteHead: r.headSha } });
@@ -366,6 +343,19 @@ export function createController({
 		},
 		get repoInfo() {
 			return { owner, repo, branch: meta.branch };
+		},
+		/** Names, links and token help for the git host, for the tray. */
+		get host() {
+			const { label, name, apiHost, buildsUrl, tokenUrl, tokenHelp } = provider;
+			return {
+				label,
+				name,
+				apiHost,
+				buildsUrl,
+				tokenUrl,
+				tokenHelp,
+				commitUrl: provider.commitUrl,
+			};
 		},
 	};
 }

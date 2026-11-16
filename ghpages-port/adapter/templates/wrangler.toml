@@ -1,0 +1,11 @@
+# Cloudflare Pages settings for this site. Connect the repository in the Cloudflare dashboard
+# (Workers & Pages > Create > Pages > Connect to Git), then set:
+#   Build command: npm run build        Build output directory: dist/client
+#   Environment variables: NODE_VERSION = 22, NODE_OPTIONS = --max-old-space-size=4096,
+#   SITE_URL = your production address, and STUDIO_REPO = owner/repo (plus STUDIO_PROVIDER = gitlab on GitLab)
+#   if the studio says it can't tell which repository to commit to.
+# `name` must be the Pages project's name, because Cloudflare reads this file as the project's configuration.
+# Scheduled posts, plugin after-hooks and cron still run in the repository's own CI: see SETUP.md, "Hosting on Cloudflare Pages".
+name = "my-gitdash-site"
+pages_build_output_dir = "dist/client"
+compatibility_date = "2026-11-01"

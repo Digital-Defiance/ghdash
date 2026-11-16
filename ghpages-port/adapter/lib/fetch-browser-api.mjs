@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-// Puts the in-browser API (a release asset of Digital-Defiance/ghdash) into public/studio-api/.
+// Puts the in-browser API (a release asset of Digital-Defiance/gitdash) into public/studio-api/.
 // BROWSER_API_DIR=<dir> copies a local build instead (see ghpages-port/browser-api/build.sh).
 // A failed download is a warning, not an error: the site still builds, without a working /studio/.
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -9,7 +9,7 @@ import { join } from "node:path";
 const TAG = process.env.BROWSER_API_TAG || "pages-v0.16.0";
 const url =
 	process.env.BROWSER_API_URL ||
-	`https://github.com/Digital-Defiance/ghdash/releases/download/${TAG}/ghdash-browser-api-${TAG}.tgz`;
+	`https://github.com/Digital-Defiance/gitdash/releases/download/${TAG}/ghdash-browser-api-${TAG}.tgz`;
 const out = "public/studio-api";
 
 rmSync(out, { recursive: true, force: true });

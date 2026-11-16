@@ -1,7 +1,7 @@
 name: Publish Pages tarballs
 
 # Builds the packages that the GitHub Pages port changes and attaches their npm
-# tarballs to a GitHub release, so sites such as GHDash-example can depend on a
+# tarballs to a GitHub release, so sites such as GitDash-example can depend on a
 # release URL instead of vendoring binaries.
 #
 # Run it from the Actions tab (workflow_dispatch) with a tag name, or push a tag

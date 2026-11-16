@@ -1,18 +1,18 @@
-# GHDash
+# GitDash
 
-GHDash is a fork of [EmDash](https://github.com/emdash-cms/emdash) that runs entirely on GitHub Pages. There is no server and no database service. Your site's content, schema and settings are JSON files in a public repo, a GitHub Action builds them into a static site, and you edit from the browser with a GitHub token that commits straight to the repo.
+GitDash is a fork of [EmDash](https://github.com/emdash-cms/emdash) that runs entirely on GitHub Pages. There is no server and no database service. Your site's content, schema and settings are JSON files in a public repo, a GitHub Action builds them into a static site, and you edit from the browser with a GitHub token that commits straight to the repo.
 
-**Live demo:** https://digital-defiance.github.io/GHDash-example/ (source: [GHDash-example](https://github.com/Digital-Defiance/GHDash-example))
+**Live demo:** https://digital-defiance.github.io/GitDash-example/ (source: [GitDash-example](https://github.com/Digital-Defiance/GitDash-example))
 
 ## Why a fork
 
-EmDash is built for servers: Cloudflare Workers or Node.js, with SQL at request time. That is the right design for most sites, but it rules out free static hosting, and it means open source projects, docs and personal blogs need infrastructure they would rather not run. GHDash keeps EmDash's content model, templates and admin, and changes where the data lives and when pages are rendered.
+EmDash is built for servers: Cloudflare Workers or Node.js, with SQL at request time. That is the right design for most sites, but it rules out free static hosting, and it means open source projects, docs and personal blogs need infrastructure they would rather not run. GitDash keeps EmDash's content model, templates and admin, and changes where the data lives and when pages are rendered.
 
 The fork stays close to upstream on purpose. Changes are additive (for example, the admin reads its base paths from `globalThis.__EMDASH_PATHS__`, and defaults are unchanged), so pulling in EmDash releases stays practical.
 
 ## What changes
 
-|               | EmDash                                     | GHDash                                                                                                      |
+|               | EmDash                                     | GitDash                                                                                                     |
 | ------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | Content store | SQLite, D1 or Postgres                     | JSON files in the repo (one file per row)                                                                   |
 | Rendering     | On each request                            | Static build in a GitHub Action                                                                             |
@@ -21,7 +21,7 @@ The fork stays close to upstream on purpose. Changes are additive (for example, 
 | Comments      | Built in                                   | giscus (commenters need a GitHub account)                                                                   |
 | Plugins       | Sandboxed runtime                          | Browser admin UI and before-hooks, plus build-time after-hooks and cron; public plugin HTTP routes are lost |
 
-Drafts are public because the repo is public, so GHDash suits open source sites.
+Drafts are public because the repo is public, so GitDash suits open source sites.
 
 ## What works today
 
@@ -31,11 +31,11 @@ Experimental: it works and is tested, but expect rough edges, and the patched ad
 
 ## Set up your own site
 
-1. Use [GHDash-example](https://github.com/Digital-Defiance/GHDash-example) as a template (**Use this template**, public repository) or fork it.
+1. Use [GitDash-example](https://github.com/Digital-Defiance/GitDash-example) as a template (**Use this template**, public repository) or fork it.
 2. Turn on Pages: Settings, Pages, Source: **GitHub Actions**. The workflow builds and deploys, and the site appears at `https://<owner>.github.io/<repo>/`.
 3. Open `/studio/` on your site and sign in with a fine-grained token (Contents: read and write, that repo only). Edit, then **Commit**.
 
-[SETUP.md](https://github.com/Digital-Defiance/GHDash-example/blob/main/SETUP.md) has the full walkthrough and the optional extras: comments, scheduled posts, webhooks, plugin cron, importing a Jekyll site, a contact form, and GitHub sign-in. The build scripts and studio are the npm package [`@digitaldefiance/ghdash-pages`](https://www.npmjs.com/package/@digitaldefiance/ghdash-pages) ([README](ghpages-port/adapter/README.md)).
+[SETUP.md](https://github.com/Digital-Defiance/GitDash-example/blob/main/SETUP.md) has the full walkthrough and the optional extras: comments, scheduled posts, webhooks, plugin cron, importing a Jekyll site, a contact form, and GitHub sign-in. The build scripts and studio are the npm package [`@digitaldefiance/gitdash-pages`](https://www.npmjs.com/package/@digitaldefiance/gitdash-pages) ([README](ghpages-port/adapter/README.md)).
 
 The rest of this README is EmDash's own, kept as is.
 

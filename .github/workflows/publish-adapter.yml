@@ -1,11 +1,11 @@
 name: Publish adapter to npm
 
-# Publishes @digitaldefiance/ghdash-pages when a tag named adapter-v<version> is pushed.
+# Publishes @digitaldefiance/gitdash-pages when a tag named adapter-v<version> is pushed.
 # The tag must match the version in ghpages-port/adapter/package.json.
 #
 # Uses npm trusted publishing, so there is no npm token. On npmjs.com, open the package's
 # Settings, then Trusted Publisher, choose GitHub Actions and enter organization
-# "Digital-Defiance", repository "ghdash" and workflow filename "publish-adapter.yml".
+# "Digital-Defiance", repository "gitdash" and workflow filename "publish-adapter.yml".
 # The package has to exist first, so publish the first version by hand (see ghpages-port/adapter/README.md).
 
 on:

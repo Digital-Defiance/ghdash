@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Build-side commands for an EmDash site that runs on GitHub Pages. Run them from the site's root.
 import { spawnSync } from "node:child_process";
+import { copyFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const lib = (name) => fileURLToPath(new URL(`../lib/${name}.mjs`, import.meta.url));
@@ -39,6 +40,10 @@ const commands = {
 		() => run("publish-due", rest),
 	],
 	due: ["Print true if a scheduled entry is due (reads content/ only)", () => run("due", rest)],
+	"gitlab-comments": [
+		"Read comments from GitLab issues into .gitdash/gitlab-comments.json (repositories on GitLab)",
+		() => run("gitlab-comments", rest),
+	],
 	"studio-assets": [
 		"Write public/studio-data for the in-browser admin",
 		() => run("studio-assets"),
@@ -56,12 +61,35 @@ const commands = {
 			run("redirects", [dist]);
 		},
 	],
+	"add-host": [
+		"Add the build settings for another host to the site: add-host <netlify|cloudflare|gitlab>",
+		() => {
+			const files = {
+				netlify: ["netlify.toml", "netlify.toml"],
+				gitlab: ["gitlab-ci.yml", ".gitlab-ci.yml"],
+				cloudflare: ["wrangler.toml", "wrangler.toml"],
+			};
+			const pick = files[rest[0]];
+			if (!pick) {
+				console.error("usage: gitdash-pages add-host <netlify|cloudflare|gitlab>");
+				process.exit(1);
+			}
+			const [from, to] = pick;
+			if (existsSync(to) && !rest.includes("--force")) {
+				console.error(`${to} already exists; pass --force to replace it`);
+				process.exit(1);
+			}
+			copyFileSync(fileURLToPath(new URL(`../templates/${from}`, import.meta.url)), to);
+			const names = { netlify: "Netlify", gitlab: "GitLab Pages", cloudflare: "Cloudflare Pages" };
+			console.log(`wrote ${to}. Next steps: SETUP.md, "Hosting on ${names[rest[0]]}".`);
+		},
+	],
 	serve: ["Serve the built site under BASE_PATH, like Pages", () => run("serve-dist")],
 };
 
 if (!cmd || !commands[cmd]) {
 	console.error(
-		`usage: ghdash-pages <command>\n\n${Object.entries(commands)
+		`usage: gitdash-pages <command>\n\n${Object.entries(commands)
 			.map(([n, [d]]) => `  ${n.padEnd(18)}${String(d)}`)
 			.join("\n")}`,
 	);

@@ -1,0 +1,108 @@
+# Builds the site from content/*.json and publishes it with GitLab Pages.
+# The site's address and base path come from GitLab (CI_PAGES_URL), so project sites under /<project>/ and
+# unique-domain sites both work. The studio at /studio/ commits back to this project through the GitLab API.
+#
+# Optional, for scheduled posts, plugin after-hooks and cron (see SETUP.md, "Hosting on GitLab Pages"):
+#   - CI/CD variable GITDASH_PUSH_TOKEN: a project access token, role Maintainer, scope write_repository.
+#   - A pipeline schedule (Build > Pipeline schedules), hourly, on the default branch.
+# When Netlify or Cloudflare Pages hosts the site, set the CI/CD variable GITDASH_HOST to "netlify" or "cloudflare-pages":
+# the pages job then stays off, and scheduled posts, hooks and cron still run here.
+
+default:
+  image: node:22
+  cache:
+    key:
+      files: [package-lock.json]
+    paths: [.npm/]
+  before_script:
+    - npm ci --cache .npm --prefer-offline --no-audit --no-fund
+
+variables:
+  NODE_OPTIONS: --max-old-space-size=4096
+  GIT_DEPTH: "0"
+
+stages: [build, after]
+
+.push_back: &push_back |
+  push_back() {
+    [ -n "$GITDASH_PUSH_TOKEN" ] || { echo "GITDASH_PUSH_TOKEN is not set, so nothing is pushed back."; return 1; }
+    git config user.name "GitDash CI"
+    git config user.email "gitdash-ci@users.noreply.${CI_SERVER_HOST}"
+    git remote set-url origin "https://oauth2:${GITDASH_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  }
+
+pages:
+  stage: build
+  rules:
+    - if: $GITDASH_HOST && $GITDASH_HOST != "gitlab-pages"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - *push_back
+    # The build downloads font files from Google; retry so one network blip doesn't fail the deploy.
+    - for attempt in 1 2 3; do npm run build && break; [ "$attempt" = 3 ] && exit 1; echo "build attempt $attempt failed, retrying"; sleep 10; done
+    # The build publishes scheduled posts that are due; commit that so the studio sees them as published.
+    - |
+      if ! git diff --quiet -- content && push_back; then
+        git add content
+        git commit -m "Publish scheduled content"
+        git push -o ci.skip origin "HEAD:${CI_COMMIT_REF_NAME}" || echo "Could not push the published state; the next run will publish it again."
+      fi
+  pages:
+    publish: dist/client
+  artifacts:
+    paths: [dist/client]
+
+# Hourly from a pipeline schedule: when a scheduled post is due, publish it and push, which starts a normal build.
+scheduled-publish:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - *push_back
+    - |
+      if [ "$(npx gitdash-pages due)" != "true" ]; then echo "No scheduled content is due."; exit 0; fi
+      npm run db
+      npx gitdash-pages publish-due
+      push_back || exit 1
+      git add content
+      git commit -m "Publish scheduled content"
+      git push origin "HEAD:${CI_COMMIT_REF_NAME}"
+
+# Plugin after-hooks for content that changed since the last run (hooks.config.json). Secrets come from CI/CD variables.
+hooks:
+  stage: after
+  needs:
+    - job: pages
+      optional: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      exists: [hooks.config.json]
+  script:
+    - *push_back
+    - |
+      git fetch --force origin "refs/tags/hooks-last:refs/tags/hooks-last" 2>/dev/null || true
+      base=$(git rev-parse -q --verify hooks-last || echo "$CI_COMMIT_BEFORE_SHA")
+      case "$base" in ""|0000000000000000000000000000000000000000) base=$(git rev-parse HEAD~1);; esac
+      npx gitdash-pages run-hooks --base "$base" --head HEAD
+      if push_back; then git tag -f hooks-last HEAD && git push --force origin refs/tags/hooks-last; fi
+
+# Plugin cron jobs that fell due since the last run, from the same hourly schedule.
+cron:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      exists: [hooks.config.json]
+  script:
+    - *push_back
+    - |
+      grep -q '"cron"' hooks.config.json || { echo "No cron jobs in hooks.config.json, nothing to run."; exit 0; }
+      git fetch --force origin "refs/tags/cron-last:refs/tags/cron-last" 2>/dev/null || true
+      since=$(git for-each-ref refs/tags/cron-last --format='%(creatordate:iso-strict)')
+      now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      npx gitdash-pages run-cron ${since:+--since "$since"} --now "$now"
+      if push_back; then git tag -f -a cron-last -m "$now" HEAD && git push --force origin refs/tags/cron-last; fi

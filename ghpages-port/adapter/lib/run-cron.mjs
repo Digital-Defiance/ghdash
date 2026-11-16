@@ -1,4 +1,4 @@
-// ghdash-pages run-cron [--since <iso>] [--now <iso>]
+// gitdash-pages run-cron [--since <iso>] [--now <iso>]
 // Runs the `cron` hook of plugins in hooks.config.json whose `cron` jobs fell due since the last run (default: the last hour).
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
