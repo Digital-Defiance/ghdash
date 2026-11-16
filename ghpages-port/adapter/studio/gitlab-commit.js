@@ -17,6 +17,7 @@ export class GitLabError extends Error {
 }
 
 const DEFAULT_API = "https://gitlab.com/api/v4";
+const TRAILING_SLASH = /\/$/;
 
 function client({ token, apiUrl = DEFAULT_API, fetchImpl = globalThis.fetch }) {
 	const call = async (method, path, body, raw = false) => {
@@ -107,7 +108,7 @@ export async function readJsonFiles({ token, apiUrl, project, ref, prefix, fetch
 			apiUrl,
 			project,
 			ref,
-			path: prefix.replace(/\/$/, ""),
+			path: prefix.replace(TRAILING_SLASH, ""),
 			recursive: true,
 			fetchImpl,
 		})

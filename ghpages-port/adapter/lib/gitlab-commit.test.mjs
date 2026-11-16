@@ -14,14 +14,15 @@ import { createProvider } from "../studio/providers.js";
 const API = "https://gitlab.test/api/v4";
 const PROJECT = "group/sub/site";
 const PID = encodeURIComponent(PROJECT);
+const BLOB_RAW = /\/repository\/blobs\/(.+)\/raw$/;
+const json = (status, body, headers = {}) =>
+	new Response(JSON.stringify(body), {
+		status,
+		headers: { "content-type": "application/json", ...headers },
+	});
 
 function fakeGitLab({ files = {}, canPush = true, token = "glpat-ok", pageSize = 100 } = {}) {
 	const state = { files: { ...files }, head: "c0", n: 0, commits: [], log: [] };
-	const json = (status, body, headers = {}) =>
-		new Response(JSON.stringify(body), {
-			status,
-			headers: { "content-type": "application/json", ...headers },
-		});
 	const fetchImpl = async (url, init = {}) => {
 		const u = new URL(url);
 		const method = init.method ?? "GET";
@@ -40,7 +41,7 @@ function fakeGitLab({ files = {}, canPush = true, token = "glpat-ok", pageSize =
 				.filter(
 					(p) => p.startsWith(`${dir}/`) && (recursive || !p.slice(dir.length + 1).includes("/")),
 				)
-				.toSorted()
+				.toSorted((x, y) => x.localeCompare(y))
 				.map((p) => ({ type: "blob", path: p, id: `blob:${p}` }));
 			if (!all.length) return json(404, { message: "404 Tree Not Found" });
 			const page = Number(u.searchParams.get("page"));
@@ -49,7 +50,7 @@ function fakeGitLab({ files = {}, canPush = true, token = "glpat-ok", pageSize =
 				"x-next-page": page * pageSize < all.length ? String(page + 1) : "",
 			});
 		}
-		const blob = path.match(/\/repository\/blobs\/(.+)\/raw$/);
+		const blob = path.match(BLOB_RAW);
 		if (blob) return new Response(state.files[decodeURIComponent(blob[1]).slice(5)]);
 		if (path === `${proj}/repository/commits` && method === "POST") {
 			const body = JSON.parse(init.body);
@@ -103,15 +104,18 @@ test("readJsonFiles reads every .json file under the prefix across pages", async
 	for (let i = 0; i < 5; i++) files[`content/ec_pages/${i}.json`] = `{"i":${i}}`;
 	const f = fakeGitLab({ files, pageSize: 2 });
 	const got = await readJsonFiles(opts(f, { ref: "c0", prefix: "content/" }));
-	assert.deepEqual([...got.keys()].toSorted(), [
-		"a.json",
-		"ec_pages/0.json",
-		"ec_pages/1.json",
-		"ec_pages/2.json",
-		"ec_pages/3.json",
-		"ec_pages/4.json",
-		"ec_posts/1.json",
-	]);
+	assert.deepEqual(
+		[...got.keys()].toSorted((x, y) => x.localeCompare(y)),
+		[
+			"a.json",
+			"ec_pages/0.json",
+			"ec_pages/1.json",
+			"ec_pages/2.json",
+			"ec_pages/3.json",
+			"ec_pages/4.json",
+			"ec_posts/1.json",
+		],
+	);
 	assert.equal(got.get("ec_pages/3.json"), '{"i":3}');
 });
 

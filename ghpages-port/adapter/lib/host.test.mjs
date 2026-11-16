@@ -12,6 +12,8 @@ import {
 } from "./host.mjs";
 
 const noGit = () => "";
+const localGit = (cmd, args) =>
+	args[0] === "remote" ? "git@github.com:me/site.git" : args[0] === "branch" ? "work" : "sha1";
 
 test("GitHub Actions: the workflow's BASE_PATH and SITE_URL are used as given", () => {
 	const env = {
@@ -113,9 +115,7 @@ test("Netlify: the repository comes from REPOSITORY_URL, whichever host it is on
 });
 
 test("local builds read the origin remote, and STUDIO_* settings override everything", () => {
-	const git = (cmd, args) =>
-		args[0] === "remote" ? "git@github.com:me/site.git" : args[0] === "branch" ? "work" : "sha1";
-	assert.deepEqual(repoMeta({}, git), {
+	assert.deepEqual(repoMeta({}, localGit), {
 		provider: "github",
 		repo: "me/site",
 		branch: "work",
@@ -125,7 +125,7 @@ test("local builds read the origin remote, and STUDIO_* settings override everyt
 	});
 	const m = repoMeta(
 		{ STUDIO_PROVIDER: "gitlab", STUDIO_REPO: "g/p", STUDIO_WEB_URL: "https://git.example.net" },
-		git,
+		localGit,
 	);
 	assert.equal(m.provider, "gitlab");
 	assert.equal(m.repo, "g/p");

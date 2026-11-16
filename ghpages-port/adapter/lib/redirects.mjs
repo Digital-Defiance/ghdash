@@ -11,6 +11,7 @@ import { basePrefix, hostName } from "./host.mjs";
 
 const RE_1 = /^[a-z][a-z0-9+.-]*:/i;
 const RE_2 = /\/+$/;
+const WHITESPACE = /\s/;
 
 const escapeHtml = (s) =>
 	s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -58,7 +59,7 @@ export function redirectsFile(rows, base = "") {
 			r.is_pattern ||
 			!source.startsWith("/") ||
 			source.startsWith("//") ||
-			/\s/.test(source + destination)
+			WHITESPACE.test(source + destination)
 		) {
 			skipped.push(source);
 			continue;

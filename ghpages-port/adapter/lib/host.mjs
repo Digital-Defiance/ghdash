@@ -6,7 +6,16 @@
 //   export default defineConfig({ site: siteUrl(), base: basePath(), ... });
 import { execFileSync } from "node:child_process";
 
-const trimSlash = (s) => s.replace(/\/+$/, "");
+const TRAILING_SLASHES = /\/+$/;
+const LEADING_SLASHES = /^\/+/;
+const SCP_REMOTE = /^(?:[^@/]+@)?([^:/]+):(?!\/)(.+)$/;
+const HAS_SCHEME = /^[a-z]+:\/\//i;
+const DOT_GIT = /\.git$/;
+const PORT = /:\d+$/;
+const GITHUB_HOST = /^github\.com$/i;
+const GITLAB_HOST = /gitlab/i;
+
+const trimSlash = (s) => s.replace(TRAILING_SLASHES, "");
 
 /** "netlify", "cloudflare-pages", "gitlab-pages", "github-pages" or "local". GHDASH_HOST overrides the guess. */
 export function hostName(env = process.env) {
@@ -60,8 +69,8 @@ export function parseRemote(remote) {
 	let host,
 		path,
 		protocol = "https:";
-	const scp = remote.match(/^(?:[^@/]+@)?([^:/]+):(?!\/)(.+)$/);
-	if (scp && !/^[a-z]+:\/\//i.test(remote)) {
+	const scp = remote.match(SCP_REMOTE);
+	if (scp && !HAS_SCHEME.test(remote)) {
 		[, host, path] = scp;
 	} else {
 		let u;
@@ -71,20 +80,21 @@ export function parseRemote(remote) {
 			return null;
 		}
 		host = u.host;
-		path = u.pathname.replace(/^\/+/, "");
+		path = u.pathname.replace(LEADING_SLASHES, "");
 		if (u.protocol === "http:") protocol = "http:";
 	}
-	path = path.replace(/\.git$/, "").replace(/\/+$/, "");
+	path = path.replace(DOT_GIT, "").replace(TRAILING_SLASHES, "");
 	if (!path.includes("/")) return null;
-	const webUrl = `${protocol}//${host.replace(/:\d+$/, (p) => (protocol === "http:" ? p : ""))}`;
-	if (/^github\.com$/i.test(host))
+	const webUrl = `${protocol}//${host.replace(PORT, (p) => (protocol === "http:" ? p : ""))}`;
+	if (GITHUB_HOST.test(host))
 		return {
 			provider: "github",
 			webUrl: "https://github.com",
 			apiUrl: "https://api.github.com",
 			path,
 		};
-	if (/gitlab/i.test(host)) return { provider: "gitlab", webUrl, apiUrl: `${webUrl}/api/v4`, path };
+	if (GITLAB_HOST.test(host))
+		return { provider: "gitlab", webUrl, apiUrl: `${webUrl}/api/v4`, path };
 	return null;
 }
 
